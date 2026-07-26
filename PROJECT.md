@@ -34,5 +34,5 @@ Full flow: intake → generated customer site → Angel widget embedded and work
 
 ## Post-MVP Roadmap
 
-- **Business Manager Tier -- Marketing Coordinator.** `social-media-marketing-machine` (a separate, self-contained repo -- github.com/keithtortorich/smmm), combined with the `marketing-director-gtm` skill, is designated as the future "Marketing Coordinator" AI-employee role -- the crux of the Business Manager Tier upgrade. Combination plan drafted (`docs/MARKETING_COORDINATOR_PLAN.md`); implementation not started.
+- **Business Manager Tier -- Marketing Coordinator.** The social-media-marketing-machine product (a separate, self-contained repo -- github.com/keithtortorich/Marketing-Coordinator), combined with the `marketing-director-gtm` skill, is designated as the future "Marketing Coordinator" AI-employee role -- the crux of the Business Manager Tier upgrade. Combination plan drafted (`docs/MARKETING_COORDINATOR_PLAN.md`); implementation not started.
 - **ServiceTitan tie-in.** Client code exists (`webstaffr/integrations/servicetitan/`), tested against mocks, not yet wired to a live account. One open design decision (socket workflow format) blocking that pass -- see TASKS.md.

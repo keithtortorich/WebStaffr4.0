@@ -17,7 +17,7 @@ Business Manager Tier.
   positioning recommendation → 3–5 ad copy variants → platform-specific ad assembly
   (Meta / Google / LinkedIn) → weekly KPI monitoring with an optimization protocol.
   Human approval gate on ad copy only.
-- **`social-media-marketing-machine`** (SMMM; its own repo — github.com/keithtortorich/smmm,
+- **`social-media-marketing-machine`** (SMMM; its own repo — github.com/keithtortorich/Marketing-Coordinator,
   not carried into this repo, see `docs/DECISIONS.md` ADR-012) — the **execution body**.
   Campaigns, posts with immutable version history, approval state machine (structurally
   enforced), calendar/scheduling, publishing adapters for 9 organic platforms, analytics
