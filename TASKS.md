@@ -70,17 +70,17 @@
 
 ## Pending
 
-- **Set production credentials on the Vercel project.** Contrary to what
-  `DEPLOYMENT_CHECKLIST.md` assumed, these were never set on the `web-staffr3-3` Vercel
-  project and did not survive/exist through the repo re-point: `GROK_API_KEY`, `GHL_API_KEY`,
-  `GHL_LOCATION_ID`, `RETELL_WEBHOOK_SECRET`, `GHL_WEBHOOK_SECRET`, `BOOK_API_KEY`.
-  Consequences until set: `/chat` answers with the NullVoiceBackend fallback message (no real
-  AI), GHL sync is a no-op, and `/book` + both webhook routes fail open (Null verifiers accept
-  everything -- safe for tests, not intended for production). Founder action: values go in via
-  Vercel env vars (Sensitive), never chat. See `CREDENTIALS.md` for sourcing each one.
+- **Set remaining production credentials on the Vercel project** -- all tied to paid vendors,
+  deliberately deferred by founder decision (2026-07-27: no new spend or timed trials yet):
+  `GHL_API_KEY` + `GHL_LOCATION_ID` (GHL subscription), `GHL_WEBHOOK_SECRET` (free, but
+  generate it when the GHL account exists so it can be pasted into both sides in one sitting
+  -- Vercel Sensitive vars can't be read back), `RETELL_WEBHOOK_SECRET` (Retell account).
+  Until set: GHL sync is a no-op and both webhook routes fail open (Null verifiers) -- safe,
+  by design. Set (verified live 2026-07-27): `GROK_API_KEY` (`/chat` returns real Grok
+  replies), `BOOK_API_KEY` (`/book` now 401s unauthenticated callers -- fail-open closed).
 - **Founder eyeball-check** of a real generated customer site (Lovable-hosted): Angel widget
-  loads and completes a chat round-trip against the live backend. Meaningful only after
-  `GROK_API_KEY` is set.
+  loads and completes a chat round-trip against the live backend. Now meaningful --
+  `GROK_API_KEY` is live.
 - **Review 7 open Dependabot PRs** on the WebStaffr4.0 GitHub remote.
 - **Founder decision: disposition of `WebStaffr 3.0/` and `social-media-marketing-machine/`
   subfolders** inside the WS3.3 archive repo (leave as-is vs. prune).
