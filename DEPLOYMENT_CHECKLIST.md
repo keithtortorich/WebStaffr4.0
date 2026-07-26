@@ -3,12 +3,11 @@
 **Owner:** Founder (approval gate before any push to production)
 
 **Status:** CUT OVER COMPLETE (2026-07-26; independently verified 2026-07-27). Vercel project
-`web-staffr3-3` builds from `WebStaffr4.0@681870d`; both Postgres migrations applied with RLS
-verified; live smoke test passed. **Correction to the env-var assumption below:** the six
-application credentials (`GROK_API_KEY`, `GHL_API_KEY`, `GHL_LOCATION_ID`,
-`RETELL_WEBHOOK_SECRET`, `GHL_WEBHOOK_SECRET`, `BOOK_API_KEY`) were never actually set on this
-Vercel project -- only `DATABASE_URL` was. Setting them is the remaining pre-MVP step; see
-`TASKS.md`.
+`web-staffr3-3` builds from `WebStaffr4.0`; both Postgres migrations applied with RLS verified;
+live smoke test passed. Credentials now live and verified: `DATABASE_URL`, `GROK_API_KEY`
+(`/chat` returns real Grok replies), `BOOK_API_KEY` (`/book` 401s unauthenticated callers).
+Still unset, deferred by founder decision (no new vendor spend/trials yet): `GHL_API_KEY`,
+`GHL_LOCATION_ID`, `GHL_WEBHOOK_SECRET`, `RETELL_WEBHOOK_SECRET` -- see `TASKS.md`.
 
 ---
 
@@ -28,49 +27,44 @@ Vercel project -- only `DATABASE_URL` was. Setting them is the remaining pre-MVP
 - [x] **Retell voice wiring**: code-complete, unit-tested, webhook signature verification implemented.
 - [x] **Env var reference**: documented (`CREDENTIALS.md`).
 - [x] **Git hygiene**: no secrets committed.
-- [ ] **Secrets manager configured**: Vercel project not yet re-pointed at this repo (see below).
+- [x] **Secrets manager configured**: Vercel Sensitive env vars in use (`DATABASE_URL`,
+      `GROK_API_KEY`, `BOOK_API_KEY` set; GHL/Retell vars deferred -- see Status above).
 
 ---
 
 ## Cutover Steps (this repo is a rebuild of WS3.3, already live at web-staffr3-3.vercel.app)
 
-**This is a re-point, not a first launch.** The existing Vercel project and its env vars
-(`GROK_API_KEY`, `GHL_API_KEY`, `GHL_LOCATION_ID`, `RETELL_WEBHOOK_SECRET`,
-`GHL_WEBHOOK_SECRET`, `BOOK_API_KEY`, `DATABASE_URL`) already exist and stay with the Vercel
-project through a repo swap -- they do not need to be re-entered.
+**This was a re-point, not a first launch.** Correction to the original assumption: env vars
+did *not* carry over as expected -- only `DATABASE_URL` existed on the Vercel project. The
+application credentials had to be (and are being) entered fresh; three of seven are live.
 
-1. **[Founder, production DB change]** Apply the two new Postgres migrations to the live
-   Supabase project, in order:
-   - `webstaffr/migrations/postgres_manual/0007_social_media.sql`
-   - `webstaffr/migrations/postgres_manual/0008_execution_nodes.sql`
+1. - [x] **[Founder, production DB change]** Both Postgres migrations
+   (`postgres_manual/0007_social_media.sql`, `0008_execution_nodes.sql`) applied to the live
+   Supabase project. Done 2026-07-26.
 
-   Via the Supabase SQL editor, the Supabase CLI, or the Supabase MCP's `apply_migration`.
-   **Must happen before step 3** -- without this, `/integrations/*` and `/workflow-graph/*`
-   500 against the live Postgres backend, and the two tables would exist with no RLS if
-   created implicitly some other way.
+2. - [x] **[Founder]** RLS verified: direct `pg_tables`/`pg_policies` query on 2026-07-27
+   confirmed default-deny (RLS enabled, 0 policies) on `social_media_mounts`,
+   `social_media_intents`, `execution_nodes` -- same pattern as all 11 public tables.
 
-2. **[Founder]** Verify: re-run Supabase's advisor check (or query `pg_tables`/`pg_policies`
-   directly) to confirm RLS default-deny now covers `social_media_mounts`,
-   `social_media_intents`, and `execution_nodes` -- same pattern as every other table.
+3. - [x] **[Founder]** Vercel project re-pointed to `WebStaffr4.0`. Verified 2026-07-27 via
+   the production deployment's own git metadata (built from `keithtortorich/WebStaffr4.0`,
+   `main`). A `DATABASE_URL` hostname typo found and fixed during this step (pooler host is
+   `aws-1-ap-south-1.pooler.supabase.com` -- `.com`, not `.co`).
 
-3. **[Founder]** Re-point the Vercel project's connected repository from WS3.3 to this repo
-   (`WebStaffr4`). Vercel project settings → Git → change repository. Env vars persist with
-   the project.
+4. - [x] **[Agent, post-deploy]** Smoke test passed 2026-07-27 against the live URL:
+   - `GET /health` → `200 {"status":"ok"}` ✓
+   - `POST /chat` with a real tenant → `200` with a real Grok-generated reply ✓
+     (`Access-Control-Allow-Origin` header presence `[Unverified]` -- re-check alongside step 5)
+   - `GET /sites/{tenant}` → `200`, zero never-leak fields ✓
+   - `POST /book` with no/wrong `X-API-Key` → `401`, no CORS headers ✓
+   - Retell bad-signature rejection: **not testable yet** -- `RETELL_WEBHOOK_SECRET` unset,
+     so the Null verifier accepts everything by design. Test when Retell is configured.
 
-4. **[Agent, post-deploy]** Smoke test against the live URL once the new deploy is up:
-   - `GET /health` → `200 {"status":"ok"}`
-   - `POST /chat` with a real tenant → `200`, response carries
-     `Access-Control-Allow-Origin`
-   - `GET /sites/{a_real_tenant_id}` → response contains no `lead_routing`, `approver`,
-     `competitors`, or `license_number` keys
-   - `POST /book` with no `X-API-Key` → `401`, response carries **no** CORS headers
-   - A malformed Retell signature on `/retell/webhook` → rejected
+5. - [ ] **[Founder]** Eyeball-check: open a real generated customer site (Lovable-hosted),
+   confirm the Angel widget loads and a chat round-trip works end to end. Now meaningful --
+   `GROK_API_KEY` is live.
 
-5. **[Founder]** Eyeball-check: open a real generated customer site (Lovable-hosted), confirm
-   the Angel widget loads and a chat round-trip works end to end against the newly
-   re-pointed backend.
-
-6. **[Founder]** Once stable, update WS3.3's own `README.md` to point at this repo, and
+6. - [ ] **[Founder]** Once stable, update WS3.3's own `README.md` to point at this repo, and
    consider tagging WS3.3's final commit as `archive/final`.
 
 ---
@@ -111,5 +105,7 @@ success signal.
 
 ---
 
-**Last Updated:** at WebStaffr 4.0 rebuild completion.
-**Next Review:** before running step 1 above (the production DB change).
+**Last Updated:** 2026-07-27, after verified cutover + credential setup (`GROK_API_KEY`,
+`BOOK_API_KEY`).
+**Next Review:** when GHL/Retell credentials get funded and set (completes step 4's Retell
+check and unlocks the 30-day monitoring section), or at the founder's step-5 eyeball-check.
