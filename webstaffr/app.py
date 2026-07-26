@@ -1,0 +1,279 @@
+"""Composition root -- builds the FastAPI app and wires every router.
+
+This is the single place that assembles the full HTTP surface: Angel
+(chat/book/GHL-webhook), Retell voice webhooks, intake, site-data,
+attribution, and the two integration bridges (social-media-marketing,
+workflow-graph). A future AI-employee worker (e.g. Marketing
+Coordinator) adds its own router here, as a sibling to Angel's -- never
+nested inside workers/angel/.
+
+Split out of workers/angel/router.py during the WebStaffr 4.0 rebuild:
+that file had grown into both the app factory AND Angel's own
+endpoints, which buried this repo's actual composition root four
+directories deep, under one specific AI worker's package. Angel's own
+request/response models and endpoint handlers stayed in
+workers/angel/router.py as create_angel_router(); this file combines
+everything into one FastAPI app.
+"""
+
+from __future__ import annotations
+
+import logging
+import os as _os
+from contextlib import asynccontextmanager
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from .attribution_router import attribution_router
+from .db import connect, migrate, using_postgres
+from .intake_router import intake_router
+from .site_router import site_router
+from .workers.angel.api_auth import SharedSecretVerifier
+from .workers.angel.ghl import GHLClient
+from .workers.angel.retell import RetellWebhookVerifier
+from .workers.angel.retell_router import create_retell_router
+from .workers.angel.router import create_angel_router
+from .workers.angel.social_media_router import social_media_router
+from .workers.angel.voice import VoiceBackend
+from .workers.angel.workflow_graph_router import create_workflow_graph_router
+
+try:  # optional in minimal test/runtime envs without ServiceTitan configured
+    from .integrations.servicetitan import ServiceTitanSync as _ServiceTitanSync
+except Exception:  # noqa: BLE001
+    _ServiceTitanSync = None  # type: ignore[assignment,misc]
+
+# Optional external TTS backend. When KOKORO_TTS_URL is set, /v1/audio/speech
+# proxies OpenAI-compatible speech requests to that backend instead of
+# requiring any new dependency or model hosting inside this repo.
+_KOKORO_TTS_URL = _os.environ.get("KOKORO_TTS_URL")
+
+# Expose under the public module name so test patches and any future
+# direct imports resolve consistently, while preserving the existing
+# lazy-import fallback behavior inside the handler below.
+ServiceTitanSync = _ServiceTitanSync
+
+logger = logging.getLogger("webstaffr.app")
+
+_SERVICETITAN_POLL_PATH = "/integrations/servicetitan/poll"
+
+# Paths called directly from browser JS running on an arbitrary origin --
+# the customer-site widget (angel-widget.js) for /chat, the intake form
+# (wherever it's hosted -- the WebStaffr marketing site today, a
+# Lovable-generated page later) for /intake and its read-only presets
+# endpoints, and the Lovable multi-tenant site's client-side fetch of its
+# own content for /sites/{tenant_id}. These are the only paths that need
+# CORS headers. /book and /webhooks/ghl are not meant to be readable by
+# browser JS running on an arbitrary third-party origin -- /webhooks/ghl
+# is only ever called server-to-server by GoHighLevel (CORS is a
+# browser-enforced restriction and has no bearing on that caller), and
+# /book has no browser caller today. Scoping here means adding a
+# browser-facing caller for /book later requires a deliberate change to
+# this set, not an accidental side effect of an app-wide wildcard.
+_CORS_SCOPED_PATHS = {"/chat", "/intake"}
+# /tenants/{tenant_id}/{metrics,calls,tracking-number} are read by the
+# Lovable dashboard client-side, same reasoning as /sites/{tenant_id} --
+# see _CORS_SCOPED_PREFIXES below, where the actual prefix is registered
+# (a dynamic path segment can't be listed here as an exact match).
+# Prefixes rather than exact paths, for routes with a path parameter
+# (/intake/presets/{industry}, /sites/{tenant_id}) -- exact-match
+# membership in _CORS_SCOPED_PATHS can't match a dynamic segment.
+_CORS_SCOPED_PREFIXES = ("/intake/presets", "/sites/", "/tenants/")
+
+
+class ScopedCORSMiddleware(BaseHTTPMiddleware):
+    """CORS restricted to `_CORS_SCOPED_PATHS`/`_CORS_SCOPED_PREFIXES`,
+    replacing FastAPI's CORSMiddleware which is app-wide only. Origin
+    stays wildcarded per-path rather than app-wide, so /book and
+    /webhooks/ghl never accidentally pick up CORS headers meant for the
+    browser-facing routes."""
+
+    async def dispatch(self, request: Request, call_next):
+        origin = request.headers.get("origin")
+        path = request.url.path
+        scoped = path in _CORS_SCOPED_PATHS or path.startswith(_CORS_SCOPED_PREFIXES)
+
+        if scoped and request.method == "OPTIONS":
+            response = Response(status_code=200)
+        else:
+            response = await call_next(request)
+
+        if scoped and origin:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+
+        return response
+
+
+def create_app(
+    db_path: str = "webstaffr.db",
+    voice_backend: Optional[VoiceBackend] = None,
+    ghl_client: Optional[GHLClient] = None,
+    retell_verifier: Optional[RetellWebhookVerifier] = None,
+    ghl_webhook_verifier: Optional[SharedSecretVerifier] = None,
+    book_api_verifier: Optional[SharedSecretVerifier] = None,
+    workflow_graph_verifier: Optional[SharedSecretVerifier] = None,
+) -> FastAPI:
+    """Factory rather than a module-level app instance, so tests (and any
+    future multi-tenant deployment shape) can construct an app pointed at
+    a specific database and specific backends instead of relying on
+    hidden global state.
+
+    IMPORTANT: this module also builds a default `app` instance at import
+    time (see bottom of file), for `uvicorn ...:app`. Migration must NOT
+    run eagerly inside this factory itself -- that would make merely
+    importing this module (as every test and the health check does) touch
+    disk and create/migrate a real db file as a side effect, independent
+    of whether that app instance is ever actually served. Migration stays
+    scoped to the ASGI lifespan event below, which only fires when the app
+    is actually started."""
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Under Postgres, migrate() is a documented no-op (schema is managed
+        # out-of-band via Supabase migrations) -- so skip opening a
+        # connection at all rather than making the whole app's cold start
+        # (including DB-independent routes like /health) depend on the
+        # database being reachable. A transient outage on the Postgres side
+        # should degrade DB-touching routes, not take down the entire app.
+        if not using_postgres():
+            with connect(db_path) as conn:
+                migrate(conn)
+        yield
+
+    app = FastAPI(title="WebStaffr", lifespan=lifespan)
+    app.state.db_path = db_path  # read by intake_router's/site_router's _get_connection()
+    app.include_router(intake_router)
+    app.include_router(site_router)
+    app.include_router(attribution_router)
+    app.include_router(social_media_router)
+    app.include_router(create_workflow_graph_router(verifier=workflow_graph_verifier))
+    # /retell/* is server-to-server only (Retell calling this app, not a
+    # browser) -- intentionally not added to ScopedCORSMiddleware's paths,
+    # same reasoning as /book and /webhooks/ghl.
+    app.include_router(
+        create_retell_router(
+            db_path=db_path,
+            voice_backend=voice_backend,
+            ghl_client=ghl_client,
+            verifier=retell_verifier,
+        )
+    )
+    # Angel's own endpoints (/chat, /book, /webhooks/ghl) live in
+    # workers/angel/router.py -- this is the only place that worker's
+    # router gets included, same pattern every future AI-employee worker
+    # will follow (its own create_<worker>_router() included here).
+    app.include_router(
+        create_angel_router(
+            db_path=db_path,
+            voice_backend=voice_backend,
+            ghl_client=ghl_client,
+            book_api_verifier=book_api_verifier,
+            ghl_webhook_verifier=ghl_webhook_verifier,
+        )
+    )
+
+    # The widget is embedded on customer websites (arbitrary origins), so
+    # /chat needs CORS enabled; the intake form (wherever it's hosted) needs
+    # the same for /intake. Scoped to just those paths -- see
+    # ScopedCORSMiddleware above -- rather than an app-wide wildcard, which
+    # would also cover /book and /webhooks/ghl as an unintended side effect.
+    app.add_middleware(ScopedCORSMiddleware)
+
+    @app.get("/health")
+    def health() -> dict:
+        return {"status": "ok"}
+
+    if _KOKORO_TTS_URL:
+        @app.post("/v1/audio/speech")
+        async def proxy_kokoro_speech(request: Request) -> Response:
+            """Proxy OpenAI-compatible TTS requests to Kokoro when KOKORO_TTS_URL is configured.
+
+            Keeps this app free of model hosting or new dependencies.
+            """
+            import httpx as _httpx
+
+            url = f"{_KOKORO_TTS_URL.rstrip('/')}/v1/audio/speech"
+            body = await request.body()
+            headers = {k: v for k, v in request.headers.items() if k.lower() not in {"host", "content-length"}}
+            try:
+                with _httpx.Client(timeout=60.0) as client:
+                    resp = client.post(url, content=body, headers=headers)
+                return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+            except _httpx.HTTPError as exc:
+                raise HTTPException(status_code=503, detail="TTS backend unavailable") from exc
+
+    if _os.environ.get("SERVICETITAN_ENABLED", "false").lower() == "true":
+        @app.post(_SERVICETITAN_POLL_PATH)
+        def servicetitan_poll() -> dict:
+            """Bounded read from ServiceTitan.
+
+            Available only when `SERVICETITAN_ENABLED=true`.
+            """
+            try:
+                from .integrations.servicetitan import ServiceTitanNotConfiguredError, ServiceTitanClient, ServiceTitanSync
+            except Exception as exc:  # noqa: BLE001
+                raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+            try:
+                client = ServiceTitanClient()
+            except ServiceTitanNotConfiguredError as exc:
+                raise HTTPException(status_code=503, detail=str(exc)) from exc
+            except Exception as exc:  # noqa: BLE001
+                raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+            sync = ServiceTitanSync(client)
+            return {
+                "results": [
+                    {
+                        "resource": result.resource,
+                        "fetched": result.fetched,
+                        "failed": result.failed,
+                        "error": result.error,
+                    }
+                    for result in sync.run()
+                ]
+            }
+
+    return app
+
+
+def _backend_from_env() -> Optional[VoiceBackend]:
+    """GrokVoiceBackend only if GROK_API_KEY is actually set -- otherwise
+    None, so create_app() falls back to NullVoiceBackend. Never silently
+    construct a backend that will fail on first real use."""
+    import os
+
+    if os.environ.get("GROK_API_KEY"):
+        from .workers.angel.voice import GrokVoiceBackend
+
+        return GrokVoiceBackend()
+    return None
+
+
+def _ghl_client_from_env() -> Optional[GHLClient]:
+    import os
+
+    if os.environ.get("GHL_API_KEY") and os.environ.get("GHL_LOCATION_ID"):
+        from .workers.angel.ghl import GoHighLevelClient
+
+        return GoHighLevelClient()
+    return None
+
+
+# Default app instance for `uvicorn webstaffr.app:app` (local dev) and for
+# the Vercel entrypoint at /index.py (deployed). db_path and backends are
+# picked up from environment at process start -- set WEBSTAFFR_DB_PATH,
+# DATABASE_URL, GHL_API_KEY/GHL_LOCATION_ID, etc. as Vercel project
+# environment variables. No Dockerfile/docker-compose in this repo --
+# deployment is Vercel, not containers.
+app = create_app(
+    db_path=_os.environ.get("WEBSTAFFR_DB_PATH", "webstaffr.db"),
+    voice_backend=_backend_from_env(),
+    ghl_client=_ghl_client_from_env(),
+    retell_verifier=None,  # resolved from RETELL_WEBHOOK_SECRET inside create_retell_router()
+    ghl_webhook_verifier=None,  # resolved from GHL_WEBHOOK_SECRET inside create_angel_router()
+    book_api_verifier=None,  # resolved from BOOK_API_KEY inside create_angel_router()
+)
