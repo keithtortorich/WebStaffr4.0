@@ -52,6 +52,17 @@
   root, paths/migration numbers updated), `DEPLOYMENT_CHECKLIST.md`.
 - **Final verification**: full suite green in a fresh, isolated Python 3.12 venv, health
   check HEALTHY, before the initial commit.
+- **Production cutover complete (2026-07-26, verified live 2026-07-27).** The two Postgres
+  migrations (`0007_social_media.sql`, `0008_execution_nodes.sql`) are applied to the live
+  Supabase project -- all 11 public tables confirmed with RLS enabled, default-deny
+  (0 policies), verified via direct `pg_tables`/`pg_policies` query. Vercel project
+  `web-staffr3-3` now builds from `keithtortorich/WebStaffr4.0` commit `681870d` --
+  confirmed via the deployment's own git metadata, not assumed. Latest production deploy
+  READY at `web-staffr3-3.vercel.app`.
+- **Post-cutover smoke test passed (2026-07-27, live URL).** `/health` 200; `/sites/{tenant}`
+  200 with zero never-leak fields (`lead_routing`/`approver`/`competitors`/`license_number`
+  all absent); `/book` carries no CORS headers; `/chat` 200 with graceful NullVoiceBackend
+  fallback reply (GROK_API_KEY unset -- expected, see Pending).
 
 ## In Progress
 
@@ -59,15 +70,20 @@
 
 ## Pending
 
-- **Founder: run the two new Postgres migrations** (`postgres_manual/0007_social_media.sql`,
-  `0008_execution_nodes.sql`) against the live Supabase project before cutover -- production DB
-  change, requires explicit approval per `CLAUDE.md`. See `DEPLOYMENT_CHECKLIST.md`.
-- **Founder: re-point the Vercel project** from WS3.3 to this repo. Env vars persist with the
-  project; see `DEPLOYMENT_CHECKLIST.md`.
-- **Post-cutover smoke test** against the live URL once re-pointed: `/health`, `/chat` (200 +
-  CORS), `/sites/{tenant}` (no never-leak fields), `/book` (401 + no CORS without a key),
-  Retell bad-signature rejection, and a founder eyeball-check of the Lovable site's chat
-  widget end to end.
+- **Set production credentials on the Vercel project.** Contrary to what
+  `DEPLOYMENT_CHECKLIST.md` assumed, these were never set on the `web-staffr3-3` Vercel
+  project and did not survive/exist through the repo re-point: `GROK_API_KEY`, `GHL_API_KEY`,
+  `GHL_LOCATION_ID`, `RETELL_WEBHOOK_SECRET`, `GHL_WEBHOOK_SECRET`, `BOOK_API_KEY`.
+  Consequences until set: `/chat` answers with the NullVoiceBackend fallback message (no real
+  AI), GHL sync is a no-op, and `/book` + both webhook routes fail open (Null verifiers accept
+  everything -- safe for tests, not intended for production). Founder action: values go in via
+  Vercel env vars (Sensitive), never chat. See `CREDENTIALS.md` for sourcing each one.
+- **Founder eyeball-check** of a real generated customer site (Lovable-hosted): Angel widget
+  loads and completes a chat round-trip against the live backend. Meaningful only after
+  `GROK_API_KEY` is set.
+- **Review 7 open Dependabot PRs** on the WebStaffr4.0 GitHub remote.
+- **Founder decision: disposition of `WebStaffr 3.0/` and `social-media-marketing-machine/`
+  subfolders** inside the WS3.3 archive repo (leave as-is vs. prune).
 - **ServiceTitan socket workflow format** -- open design decision, needed before the next
   ServiceTitan integration pass (post-MVP).
 - **D4 (SMS/email vendor)** for the Marketing Coordinator's two-way client comms channel --
@@ -79,7 +95,6 @@
 
 ## Blocked
 
-(none carried forward from WS3.3 as of this rebuild -- the prior `/sites/{tenant_id}` 503
-investigation and its Supabase credential-retrieval blocker were WS3.3-specific operational
-issues, not code defects in what was carried into this repo. Re-verify against this repo's
-own deploy once cutover happens, rather than assuming resolved.)
+(none -- the prior `/sites/{tenant_id}` 503 was diagnosed post-cutover as a `DATABASE_URL`
+hostname transcription error (`.co` vs the correct `aws-1-ap-south-1.pooler.supabase.com`),
+fixed and verified live 2026-07-27: `/sites/{tenant}` returns 200 with correct data.)

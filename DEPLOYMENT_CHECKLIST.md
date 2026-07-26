@@ -2,7 +2,13 @@
 
 **Owner:** Founder (approval gate before any push to production)
 
-**Status:** WebStaffr 4.0 rebuild complete, not yet cut over to production as of this checklist.
+**Status:** CUT OVER COMPLETE (2026-07-26; independently verified 2026-07-27). Vercel project
+`web-staffr3-3` builds from `WebStaffr4.0@681870d`; both Postgres migrations applied with RLS
+verified; live smoke test passed. **Correction to the env-var assumption below:** the six
+application credentials (`GROK_API_KEY`, `GHL_API_KEY`, `GHL_LOCATION_ID`,
+`RETELL_WEBHOOK_SECRET`, `GHL_WEBHOOK_SECRET`, `BOOK_API_KEY`) were never actually set on this
+Vercel project -- only `DATABASE_URL` was. Setting them is the remaining pre-MVP step; see
+`TASKS.md`.
 
 ---
 
