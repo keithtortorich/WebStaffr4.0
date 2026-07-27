@@ -66,7 +66,59 @@
 
 ## In Progress
 
-(none)
+- **WebStaffr Agency Site (Lovable, new project, 2026-07-27).** Reviewed a stack of loose
+  frontend/marketing files handed off outside this repo (`WS4 TBR/` folder plus uploaded docs):
+  an old React/Vite `frontend/` scaffold, an `intake.html` prototype, several marketing-site
+  HTML mockups, and strategy/brand reference docs. All Python/servicetitan files in that stash
+  were byte-identical to what's already in this repo -- no code integration needed there.
+  The frontend scaffold and intake prototype are **not wired to this backend's real routes**
+  (`intake.html` posts to a nonexistent `/api/leads`; the React scaffold displays
+  `site.license_number`, a field `site_data.py` deliberately never sends) -- flagged, not fixed,
+  since frontend is Lovable's domain per this repo's MVP Scope section, not this repo's to patch.
+  Ran this project's `governance-compliance-linter` skill against the WebStaffr agency
+  marketing-site HTML using a ruleset derived from the founder's actual Brand Handbook PDF
+  (uploaded this session -- supersedes the skill's stale captured ruleset, which cited a
+  `docs/governance/DOC1.1_writing_editorial.md` that does not exist anywhere in this repo or
+  its lineage). Confirmed rules: company name is always **WebStaffr** (the handbook's own
+  cover-page logo violated this -- "WebStaff" -- a real finding, not a false positive); never
+  say "AI" in customer-facing copy; no emojis in brand-facing assets. The em-dash "ban" cited
+  by the old ruleset does not appear anywhere in the real handbook and was dropped rather than
+  enforced. Fixed all naming/AI/emoji violations in the reference HTML, then created a **new**
+  Lovable project, "WebStaffr Agency Site" (`https://lovable.dev/projects/6c33e383-76ed-4398-ae38-8428d80d06da`),
+  separate from the existing "Site Weaver" project -- Site Weaver renders customer/tenant sites
+  from `/sites/{tenant_id}`; this new project is the company's own public marketing site and
+  has no tenant_id logic, so folding it into Site Weaver would have muddied that project's scope.
+  Lovable's `create_project` call returned a client-side timeout but the project completed
+  server-side (confirmed via `list_projects`) -- **not yet visually verified** against the
+  brand rules in the actual rendered preview; per this repo's rule to independently verify
+  agent "done" claims, review the Lovable editor/preview before treating this as finished.
+
+- **WebStaffr Agency Site: live preview independently verified (2026-07-27).** Pulled the full
+  rendered page text from the live preview URL
+  (`id-preview--6c33e383-76ed-4398-ae38-8428d80d06da.lovable.app`) via Chrome tools, not just a
+  screenshot -- confirmed this is a real, working build (status `completed`, `agentFinished: true`),
+  closing the open verification item from the entry above.
+  **Clean:** WebStaffr spelling correct everywhere (nav, footer, copyright); no "AI"/"chatbot"/
+  "software"/"platform" language describing the product anywhere on the page (uses "Angel" /
+  "recurring office staff" / "receptionist" throughout, matching brand rules); no emoji characters,
+  only the approved thin ✦ glyph and star-rating glyphs.
+  **3 issues found, none fixed yet (see Pending -- blocked on Lovable credits):**
+  1. Three em-dashes in body copy (hero paragraph, chat-orb "YES -- APPLY NOW" button, "Why
+     WebStaffr" section) -- violates the no-em-dash rule (present in both the Brand Handbook
+     finding and the separate Governance Manual excerpt provided 2026-07-27).
+  2. The 11 demo-gallery industry cards (Luna Salon, Rivera Plumbing, Rodriguez Law, etc.) and 3
+     testimonial quotes in the Proof section show specific fabricated-looking stats (review
+     counts, star ratings, named businesses) presented as if real, with nothing marking them as
+     illustrative -- this is the same category of problem this repo's own no-fabrication
+     invariant exists to prevent, just surfaced on the marketing site rather than in
+     `site_data.py`.
+  3. Live pricing section shows three tiers ($97/mo "Site", $497/mo "Site + Office Staff", custom
+     "Full Front Office") that don't match the official Governance Manual pricing (Office Staff
+     $497/mo, Business Manager $2,497/mo, White-Glove $5,000+/mo custom) -- pricing has drifted
+     from source of truth on this specific Lovable project.
+  A single consolidated fix instruction for all three issues was drafted and sent to the Lovable
+  agent, but the send failed: **workspace is out of Lovable credits** (API error, not a
+  founder-decision block). See Pending.
 
 - **Founder eyeball-check passed (2026-07-27, Site Weaver Lovable preview).** Loaded the live
   tenant site for `webstaffr_e2e_verification_co_d07dc1d1`: hero, tagline, industry/location
@@ -92,6 +144,33 @@
 
 ## Pending
 
+- **WebStaffr Agency Site (Lovable): 3 fixes queued, blocked on Lovable credits (2026-07-27).**
+  Consolidated instruction ready to send the moment credits are added at
+  `lovable.dev/settings/billing`: (1) remove 3 em-dashes from body copy, (2) label the demo-gallery
+  cards and testimonials as illustrative examples rather than implying real customers, (3) correct
+  the live pricing tiers to match the Governance Manual ($497/$2,497/$5,000+ instead of the
+  currently-shown $97/$497/custom). Not a founder-decision block -- purely an account-credits
+  issue; resend the same instruction once resolved.
+- **Two governance source documents disagree on the em-dash rule (2026-07-27, unresolved).**
+  The founder's Brand Principles Handbook PDF (verified earlier session) uses em-dashes freely in
+  its own body copy with no stated ban anywhere in its 19 pages. A separate "WebStaffr Governance
+  Manual" excerpt (provided 2026-07-27, used as source of truth for the new
+  `webstaffr-website-copy` skill and all website copy work below) explicitly states "no
+  em-dashes anywhere in WebStaffr copy, internal or external... This applies to marketing, sales
+  materials, investor decks, internal documentation, everything." Per founder direction, the
+  Governance Manual's no-em-dash rule has been followed for all copy produced this session (the
+  new website copy doc, and the Lovable fix instruction above). The two source documents still
+  conflict and haven't been reconciled -- flagged, not resolved.
+- **New WebStaffr website copy produced and a reusable skill created (2026-07-27, outside this
+  repo).** Full production-ready website copy (Home, Pricing, How It Works, Industries, About,
+  FAQ, Contact, nav, footer, CTAs, forms, microcopy) was written following the Governance Manual,
+  using verified statistics only (Invoca 2026's 27% unanswered-call figure and the MIT/Oldroyd
+  speed-to-lead study both held up on independent search; a claimed "85% of voicemail callers
+  never call back" BIA/Kelsey stat and a claimed HVAC-specific "34% answer rate" did not, on two
+  separate rounds of independent verification, and were deliberately left out of the copy). A
+  packaged `webstaffr-website-copy` skill was also built to standardize this for future copy
+  requests. Both live outside this repo (Cowork outputs/skill library), not committed here --
+  noting for context since they used this repo's Brand Handbook findings as partial input.
 - **Set remaining production credentials on the Vercel project** -- all tied to paid vendors,
   deliberately deferred by founder decision (2026-07-27: no new spend or timed trials yet):
   `GHL_API_KEY` + `GHL_LOCATION_ID` (GHL subscription), `GHL_WEBHOOK_SECRET` (free, but
