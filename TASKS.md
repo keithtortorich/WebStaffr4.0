@@ -66,6 +66,73 @@
 
 ## In Progress
 
+- **Supported industries narrowed to WebStaffr's priority trade list (2026-07-27, founder
+  direction).** `webstaffr/trade_presets.py`'s `SUPPORTED_INDUSTRIES` replaced: kept
+  HVAC/Plumber/Electrician/Roofing, dropped Contractor/Restaurant/Med Spa/Dentist/Salon
+  (off-strategy), added Water Damage Restoration, Garage Door Repair, Pest Control,
+  Landscaping, Tree Service, Cleaning Services -- the founder's ranked list of trades where
+  speed-to-lead most directly determines revenue. "Other" stays as the always-available
+  fallback (`normalize_industry()` behavior unchanged, so intake still never hard-fails on an
+  unlisted business type). Added illustrative `TRADE_HINTS`/`TRADE_SOFTWARE` entries for all
+  6 new trades, matching the existing style (Phoenix-themed placeholder copy, real
+  vertical-specific FSM software names -- PestPac/FieldRoutes for pest control,
+  Aspire/LMN for landscaping, Arborgold/SingleOps for tree service, ZenMaid/Launch27 for
+  cleaning, Xactimate/DASH/Encircle for restoration). Added aliases (Restoration,
+  Garage Door, Exterminator, Lawn Care, Tree Trimming, House Cleaning, etc.) so common
+  synonyms resolve to the right canonical key.
+  `webstaffr/site_renderer.py`'s `_SCHEMA_TYPE_BY_INDUSTRY` updated to match: the 6 new
+  trades have no dedicated schema.org LocalBusiness subtype, so they use the real parent
+  type `HomeAndConstructionBusiness` rather than inventing one (no-fabrication invariant
+  applied to schema markup, not just visible copy).
+  Verified (this sandbox): 183/183 tests passing, 9/9 health checks HEALTHY, plus a manual
+  end-to-end check (new industry preset, alias resolution, and JSON-LD schema type all
+  correct on a real intake -> render round trip for Pest Control). Not yet pushed -- same
+  push mechanics note as the site-renderer entry above (Desktop Commander, founder's Mac).
+
+- **In-repo customer site renderer: built (2026-07-27), not yet pushed.** Per
+  `docs/SITE_RENDERER_PLAN.md`'s build sequence, all steps complete:
+  `webstaffr/site_renderer.py` (pure SEO/schema helper functions), `webstaffr/templates/site/`
+  (Jinja2 templates for home/service/about/reviews/contact + sitemap.xml/robots.txt + shared
+  CSS), `webstaffr/site_render_router.py` (GET routes at `/sites/{tenant_id}/web` and below,
+  plus `/static/site.css` and `/static/angel-widget.js` -- the latter wasn't served by this
+  backend at all before this change, only referenced in a comment), wired into
+  `create_app()`. `jinja2==3.1.6` + `markupsafe==3.0.3` added to `requirements.txt`.
+  20 new tests in `tests/test_site_render_router.py` covering rendered-page round trips,
+  never-leak (HTML, not just JSON), no-fabrication (no aggregateRating/FAQPage schema
+  without real data backing it, no forbidden brand copy), tenant isolation, and 404 handling.
+  `health_check.py` gained a 9th check (`rendered_site_smoke_test`). Two real adaptations
+  from the SEO blueprint, both documented in `site_renderer.py`'s docstrings rather than
+  fabricated: (1) LocalBusiness schema omits address/geo/openingHours/logo-image -- intake
+  collects none of those fields; (2) no FAQPage schema and no individual structured `Review`
+  objects -- intake has no structured Q&A content and `testimonials` is a single free-text
+  field with no author/date, so testimonials render as visible page copy only.
+  **Verification (this sandbox, Python 3.10 -- CI/production run 3.12 per ADR-016; final
+  confirmation still needs the founder's Mac venv):** full suite 183/183 passing plus the 20
+  new tests (189 total minus 2 pre-existing, unrelated failures -- see note below); health
+  check 9/9 HEALTHY.
+  **Pre-existing, unrelated test-environment issue found, not fixed (out of scope for this
+  task):** `tests/test_social_media_integration.py`'s `test_mount_endpoint_returns_mount` and
+  `test_intent_endpoint_returns_pending_review` call `create_app()` with no `db_path`, so they
+  write to the default relative `webstaffr.db` inside the repo folder instead of a tempfile
+  like every other test file does -- that path hits `sqlite3.OperationalError: disk I/O error`
+  specifically on this sandbox's mounted-folder filesystem (consistent with CLAUDE.md's Git
+  Mechanics note that this mount has write restrictions). Confirmed via `git status` that
+  neither this test file nor anything in its import chain was touched by this build. Worth a
+  follow-up (give those two tests a tempfile db_path like the rest of the suite) but is a
+  pre-existing hygiene gap, not something this task caused or should fix inline.
+  **Sandbox mishap, self-inflicted, disclosed:** attempted a `git stash` from this sandbox to
+  check whether test_social_media_integration.py's failure was pre-existing (a bad idea given
+  CLAUDE.md's own warning that this sandbox can't write git objects for this mounted repo --
+  should have just checked `git status` instead, which is what ultimately confirmed it). It
+  failed and left a stale 0-byte `.git/index.lock` that this sandbox's shell cannot delete
+  (permission denied on unlink, same mount restriction). No working-tree changes were lost --
+  `git status` still reads clean and correct. **Founder action needed:** delete
+  `.git/index.lock` next time you're on your Mac before running any git command there; it's
+  an empty lock file, not a content change.
+  **Not done, per plan's explicit scope:** no push/deploy (needs separate approval), no
+  custom-domain resolution, no location-page generation beyond the service-area line, no ADR
+  entry in `docs/DECISIONS.md` yet (add at push time), Site Weaver's Lovable project untouched.
+
 - **WebStaffr Agency Site (Lovable, new project, 2026-07-27).** Reviewed a stack of loose
   frontend/marketing files handed off outside this repo (`WS4 TBR/` folder plus uploaded docs):
   an old React/Vite `frontend/` scaffold, an `intake.html` prototype, several marketing-site
@@ -144,6 +211,29 @@
 
 ## Pending
 
+- **In-repo customer site renderer: plan written and direction approved, build not started
+  (2026-07-27).** Founder decision after repeated Lovable credit stalls: customer/tenant sites
+  will be rendered server-side from this repo (Jinja2 templates over the existing
+  `build_public_site_data()` projection, on the existing Vercel deployment, $0 incremental)
+  instead of via Lovable's Site Weaver project, which stays untouched as fallback. Full plan
+  incl. routes, template/SEO design, build sequence, test gates, rollout/rollback, and the
+  approvals ledger: `docs/SITE_RENDERER_PLAN.md`. Jinja2 dependency approved as part of the
+  same sign-off. Next action: execute the build sequence (each step keeps the suite green);
+  push/deploy still requires its own founder approval. ADR to be added to `docs/DECISIONS.md`
+  at build completion. This resolves the "is Lovable the right tool" question raised earlier
+  today for *customer sites*; the Agency Site (company marketing site) stays on Lovable.
+- **Site Weaver SEO/ASO blueprint saved (2026-07-27).** Founder
+  provided a full local-SEO spec (URL structure, on-page elements, schema markup, intake-to-content
+  mapping, checklist) for Site Weaver's customer-site output -- founder direction: SEO/ASO are
+  tantamount to the rest of the build, not an afterthought. Saved verbatim at
+  `docs/SITE_WEAVER_SEO_BLUEPRINT.md` (this repo's scope is backend per `CLAUDE.md`; the actual
+  markup/schema implementation belongs to whichever site-generation tool ends up building Site
+  Weaver's pages). One flag added to the saved doc: its Review Schema example hardcodes a
+  fabricated review/rating as boilerplate -- must be populated from real tenant data only (or
+  omitted) per the no-fabrication invariant, same category of issue already found live on the
+  Agency Site preview below. Implementation home decided same day: the in-repo site renderer
+  (entry above), not Lovable -- the blueprint's page architecture, on-page elements, and schema
+  markup are folded into `docs/SITE_RENDERER_PLAN.md`'s template design.
 - **WebStaffr Agency Site (Lovable): 3 fixes queued, blocked on Lovable credits (2026-07-27).**
   Consolidated instruction ready to send the moment credits are added at
   `lovable.dev/settings/billing`: (1) remove 3 em-dashes from body copy, (2) label the demo-gallery
