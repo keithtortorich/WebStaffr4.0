@@ -12,18 +12,17 @@
         <div class="ws-hero-features">
           {% if site.certifications %}<span>{{ site.certifications }}</span>{% endif %}
           {% if site.emergency_service %}<span>24/7 Emergency Service</span>{% endif %}
-          <span>Free Estimates</span>
+          {% if site.pricing_shown %}<span>Free Estimates</span>{% endif %}
         </div>
 
+        {% if site.years_in_biz or site.rating_value %}
         <div class="ws-hero-stats">
+          {% if site.years_in_biz %}
           <div>
-            <div class="ws-stat-num">5,000+</div>
-            <div class="ws-stat-label">Jobs Done</div>
-          </div>
-          <div>
-            <div class="ws-stat-num">{{ site.years_in_biz or 15 }}yr</div>
+            <div class="ws-stat-num">{{ site.years_in_biz }}yr</div>
             <div class="ws-stat-label">Experience</div>
           </div>
+          {% endif %}
           {% if site.rating_value %}
           <div>
             <div class="ws-stat-num">{{ site.rating_value }}★</div>
@@ -31,6 +30,7 @@
           </div>
           {% endif %}
         </div>
+        {% endif %}
 
         <div class="ws-hero-ctas">
           <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">Start 30-Day Free Trial</a>
@@ -46,58 +46,126 @@
 </section>
 
 <!-- Trust Bar -->
+{% if site.rating_value or site.certifications or site.emergency_service or site.pricing_shown %}
 <section class="ws-trust-grid">
   <div class="ws-container">
+    {% if site.rating_value and site.review_count %}
     <div>
       <div class="ws-trust-num">★★★★★</div>
-      <div class="ws-trust-label">{{ site.rating_value or 4.9 }} • {{ site.review_count or 100 }}+ Reviews</div>
+      <div class="ws-trust-label">{{ site.rating_value }} • {{ site.review_count }}+ Reviews</div>
     </div>
+    {% endif %}
+    {% if site.certifications %}
     <div>
       <div class="ws-trust-num">✓</div>
-      <div class="ws-trust-label">Licensed & Insured</div>
+      <div class="ws-trust-label">{{ site.certifications }}</div>
     </div>
+    {% endif %}
+    {% if site.emergency_service %}
     <div>
       <div class="ws-trust-num">⏱️</div>
       <div class="ws-trust-label">Same-Day Service</div>
     </div>
+    {% endif %}
+    {% if site.pricing_shown %}
     <div>
       <div class="ws-trust-num">💰</div>
       <div class="ws-trust-label">Free Estimates</div>
     </div>
+    {% endif %}
   </div>
 </section>
+{% endif %}
 
 <!-- Why Us Section -->
+{% if site.differentiator or site.emergency_service or site.certifications %}
 <section class="ws-section">
   <div class="ws-container">
     <div class="ws-section-header">
       <div class="ws-eyebrow">Why {{ site.biz_name }}</div>
-      <h2>Three Reasons We're Different</h2>
+      <h2>Why Customers Choose Us</h2>
     </div>
 
     <div class="ws-reasons-grid">
+      {% if site.differentiator %}
+      <div class="ws-reason-card">
+        <span class="ws-reason-icon">⭐</span>
+        <h3>What Sets Us Apart</h3>
+        <p>{{ site.differentiator }}</p>
+      </div>
+      {% endif %}
+      {% if site.emergency_service %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">⏱️</span>
-        <h3>Same-Day Service</h3>
-        <p>Call before 2pm and we'll be at your door today. No waiting for service.</p>
+        <h3>24/7 Emergency Service</h3>
+        <p>We're available around the clock for {{ site.industry | lower }} emergencies in {{ site.service_area }}.</p>
       </div>
-      <div class="ws-reason-card">
-        <span class="ws-reason-icon">💰</span>
-        <h3>Upfront Pricing</h3>
-        <p>You get the price before we start. No surprises, no hidden fees.</p>
-      </div>
+      {% endif %}
+      {% if site.certifications %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">🔧</span>
-        <h3>Licensed & Insured</h3>
-        <p>All our technicians are licensed, insured, and background-checked.</p>
+        <h3>Licensed & Certified</h3>
+        <p>{{ site.certifications }}</p>
       </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Common Questions (objection-handling FAQ) -->
+<section class="ws-section" style="background: var(--bg-surface);">
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">Common Questions</div>
+      <h2>What to Know Before You Call</h2>
+    </div>
+
+    <div class="ws-faq-list">
+      <div class="ws-faq-item">
+        <h3>What areas do you serve?</h3>
+        <p>{{ site.biz_name }} serves {{ site.service_area }}. Call {{ site.phone }} to confirm we cover your address.</p>
+      </div>
+
+      {% if site.emergency_service %}
+      <div class="ws-faq-item">
+        <h3>Do you offer emergency service?</h3>
+        <p>Yes &mdash; {{ site.biz_name }} offers 24/7 emergency {{ site.industry | lower }} service in {{ site.service_area }}.</p>
+      </div>
+      {% else %}
+      <div class="ws-faq-item">
+        <h3>What if I can't answer when you call back?</h3>
+        <p>Calls to {{ site.biz_name }} are answered directly, day or night &mdash; no voicemail loop to lose your spot in line.</p>
+      </div>
+      {% endif %}
+
+      {% if site.pricing_shown %}
+      <div class="ws-faq-item">
+        <h3>Will I get a price before you start?</h3>
+        <p>Yes &mdash; {{ site.biz_name }} provides a free estimate before any work begins.</p>
+      </div>
+      {% endif %}
+
+      {% if site.certifications %}
+      <div class="ws-faq-item">
+        <h3>Are you licensed and insured?</h3>
+        <p>{{ site.certifications }}</p>
+      </div>
+      {% endif %}
+
+      {% if site.differentiator %}
+      <div class="ws-faq-item">
+        <h3>Why choose {{ site.biz_name }} over another {{ site.industry | lower }} company?</h3>
+        <p>{{ site.differentiator }}</p>
+      </div>
+      {% endif %}
     </div>
   </div>
 </section>
 
 <!-- Reviews Section -->
-{% if site.testimonials or site.rating_value %}
-<section class="ws-section" style="background: var(--bg-surface);">
+{% if site.testimonials or (site.rating_value and site.review_count) %}
+<section class="ws-section">
   <div class="ws-container">
     <div class="ws-section-header">
       <div class="ws-eyebrow">Reviews</div>
@@ -112,11 +180,6 @@
         <div class="ws-review-attribution">{{ site.biz_name }} Customer</div>
       </div>
       {% endif %}
-      <div class="ws-review-card">
-        <div class="ws-review-stars">★★★★★</div>
-        <div class="ws-review-quote">Professional, reliable, and they always follow through. Highly recommend {{ site.biz_name }}.</div>
-        <div class="ws-review-attribution">Satisfied Client</div>
-      </div>
     </div>
   </div>
 </section>
