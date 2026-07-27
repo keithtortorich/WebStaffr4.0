@@ -37,7 +37,7 @@ async def investor_pitch():
     return JSONResponse({
         "message": "WebStaffr Investment Overview",
         "narrative": "You don't need more leads. You need to stop losing the ones you already have.",
-        "problem": "27% of home-service calls go unanswered. 85% of voicemail callers never call back. A single missed job costs $500-$5,000.",
+        "problem": "27% of home-service calls go unanswered. A single missed job costs $500-$5,000.",
         "solution": "WebStaffr answers every call 24/7. $497/month. Built for contractors.",
         "unit_economics": {
             "arpu_monthly": 487,
@@ -87,69 +87,120 @@ _LANDING_PAGE_HTML = """
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #0a0c0f; color: #f0f2f5;">
     <div style="max-width: 1200px; margin: 0 auto;">
-        <h1 style="font-size: 3.5rem; margin-bottom: 16px; color: #c8a25a;">WebStaffr</h1>
-        <h2 style="font-size: 1.5rem; color: #f0f2f5; max-width: 700px; margin-bottom: 24px; font-weight: 400; line-height: 1.6;">
-            You don't need more leads. You need to stop losing the ones you already have.
-        </h2>
-        <p style="font-size: 1rem; color: #8a94a6; max-width: 600px; margin-bottom: 32px; line-height: 1.6;">
-            WebStaffr answers your calls 24/7 so you don't lose jobs you already paid to generate.
-            Built for contractors. $497/month. Free for 30 days.
-        </p>
-        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-            <a href="#demos" style="background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: pointer;">
-                See Demos
-            </a>
-            <a href="#lead-capture" style="background: transparent; color: #c8a25a; padding: 16px 32px; border: 2px solid rgba(255,255,255,0.12); border-radius: 8px; text-decoration: none; font-weight: 600;">
-                Apply Now
-            </a>
-            <a href="#investorModal" onclick="openInvestorModal(); return false;" style="background: transparent; color: #c8a25a; padding: 16px 32px; border: 2px solid rgba(255,255,255,0.12); border-radius: 8px; text-decoration: none; font-weight: 600;">
-                Investor Access
-            </a>
+        <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr — One Problem, One Solution</h1>
+
+        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
+            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Problem</h2>
+            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
+                <strong>Contractors lose revenue because they can't answer the phone while they're working.</strong>
+            </p>
+            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
+                That's it. Everything else is a symptom.
+                <br><br>
+                Missed calls become lost jobs. Lost jobs become revenue leaks. Revenue leaks become cash flow problems. Cash flow problems become stress, sleepless nights, and wondering if you can make payroll.
+                <br><br>
+                But it all starts with one thing: <strong>You're on a job. The phone rings. You can't get to it.</strong>
+            </p>
         </div>
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 60px 0;">
-        <div id="demos" style="margin-bottom: 60px;">
-            <h2 style="color: #c8a25a; margin-bottom: 24px;">Live Demo Sites</h2>
-            <p style="color: #8a94a6; font-size: 0.9rem; margin-bottom: 16px;">Click any to see a full working site generated in 48 hours:</p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
-                <a href="/demos/salon" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">1. Luna Salon</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Hair & Beauty</span>
+
+        <div style="margin-bottom: 60px;">
+            <h3 style="color: #c8a25a; margin-bottom: 20px;">The Math That Makes It Real</h3>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 24px; border-radius: 8px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 600; color: #c8a25a;">27%</div>
+                        <div style="color: #8a94a6; font-size: 0.9rem;">of home service calls go unanswered</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 600; color: #c8a25a;">78%</div>
+                        <div style="color: #8a94a6; font-size: 0.9rem;">of homeowners hire whoever responds first</div>
+                    </div>
+                </div>
+                <p style="color: #8a94a6; margin: 0; line-height: 1.8;">
+                    <strong style="color: #f0f2f5;">If you miss 10 calls in a week:</strong> most leave voicemail, and most of those never call back. The majority hire your competitor.
+                    <br><br>
+                    <strong style="color: #c8a25a;">A single missed job = $500–$5,000.</strong> A single missed call costs more than a month of WebStaffr.
+                </p>
+            </div>
+        </div>
+
+        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
+            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Solution</h2>
+            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
+                <strong>WebStaffr answers your phone so you don't have to.</strong>
+            </p>
+            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
+                It's not software. It's not AI. It's not a chatbot.
+                <br><br>
+                It's a <strong>24/7 Receptionist</strong> that picks up every call, pre-qualifies the lead, and books appointments directly into your calendar. While you're on a ladder, under a house, or driving to the next job, your phone is still ringing—and still getting answered.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 60px;">
+            <h3 style="color: #c8a25a; margin-bottom: 20px;">Why WebStaffr</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Hire a human receptionist</div>
+                    <div style="color: #8a94a6; font-size: 0.9rem;">$3,500+/month. Can't work 24/7. Calls in sick. Takes vacations. Can't handle 3 calls at once.</div>
+                </div>
+                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Let calls go to voicemail</div>
+                    <div style="color: #8a94a6; font-size: 0.9rem;">Most never call back. They call your competitor instead.</div>
+                </div>
+                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Call back later</div>
+                    <div style="color: #8a94a6; font-size: 0.9rem;">The lead is already gone. 78% hire whoever responds first.</div>
+                </div>
+                <div style="background: rgba(200,162,90,0.1); border: 1px solid rgba(200,162,90,0.3); padding: 16px; border-radius: 6px;">
+                    <div style="color: #c8a25a; font-weight: 600; margin-bottom: 8px;">WebStaffr</div>
+                    <div style="color: #8a94a6; font-size: 0.9rem;">$497/month. 24/7/365. Answers every call. Qualifies every lead. Books every job. Built for contractors.</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 60px;">
+            <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live — 10 Home Service Industries</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">1. HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span>
                 </a>
                 <a href="/demos/plumbing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">2. Rivera Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 Service</span>
+                    <strong style="color: #c8a25a;">2. Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span>
                 </a>
-                <a href="/demos/electrician" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">3. Kim Electric</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Licensed & Bonded</span>
+                <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">3. Electrical</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24% unanswered</span>
                 </a>
-                <a href="/demos/contractor" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">4. Mendez Construction</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Full Service Remodel</span>
+                <a href="/demos/roofing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">4. Roofing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span>
                 </a>
-                <a href="/demos/medspa" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">5. Green Med Spa</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Med-Grade Skincare</span>
+                <a href="/demos/water-damage" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">5. Water Damage</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 emergency</span>
                 </a>
-                <a href="/demos/dentist" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">6. Bright Smile Dental</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Family Dentistry</span>
+                <a href="/demos/garage-door" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">6. Garage Door</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">After-hours demand</span>
                 </a>
-                <a href="/demos/realestate" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">7. Park Realty Group</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Local Experts</span>
+                <a href="/demos/pest-control" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">7. Pest Control</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">27% unanswered</span>
                 </a>
-                <a href="/demos/lawfirm" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">8. Rodriguez Law</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Criminal & Family</span>
+                <a href="/demos/landscaping" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">8. Landscaping</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">High volume</span>
                 </a>
-                <a href="/demos/gym" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">9. Ironclad Fitness</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Small Group Training</span>
+                <a href="/demos/tree-service" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">9. Tree Service</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span>
                 </a>
-                <a href="/demos/restaurant" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">10. Nonna's Recipe</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Authentic Italian</span>
+                <a href="/demos/cleaning" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
+                    <strong style="color: #c8a25a;">10. Cleaning</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Recurring</span>
                 </a>
             </div>
         </div>
-        <div style="background: rgba(200, 162, 90, 0.1); border: 1px solid rgba(200, 162, 90, 0.3); padding: 24px; border-radius: 8px; margin-top: 40px; margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-top: 0;">Investors</h3>
-            <p style="color: #8a94a6; margin: 0;">See the full business plan, unit economics, and why this works:</p>
-            <a href="/investors/pitch" onclick="event.preventDefault(); fetch('/investors/pitch.pdf').then(r => r.blob()).then(b => window.open(URL.createObjectURL(b)));" style="display: inline-block; margin-top: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                Download Pitch Deck →
-            </a>
-            <p style="color: #8a94a6; font-size: 0.9rem; margin-top: 12px; margin-bottom: 0;">Or email: <a href="mailto:keith@webstaff.com" style="color: #c8a25a;">keith@webstaff.com</a></p>
+
+        <div style="text-align: center; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.06);">
+            <h2 style="color: #f0f2f5; margin: 0 0 16px 0; font-size: 1.3rem;">
+                <strong style="color: #c8a25a;">You don't need more leads.</strong><br>You need to stop losing the ones you already have.
+            </h2>
+            <p style="color: #8a94a6; margin: 0; max-width: 600px; margin-left: auto; margin-right: auto;">
+                WebStaffr recovers revenue by making sure you never miss another call. Everything else—the website, the reviews, the follow-ups—is just how we do it.
+            </p>
         </div>
         <div id="lead-capture" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px;">
             <h2 style="margin-top: 0; color: #c8a25a;">Get Your Free Website</h2>
