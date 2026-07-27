@@ -1,16 +1,31 @@
 # WebStaffr — Investment Opportunity
 
-**Subject: $497/mo recurring from contractors who lose $20K/year to missed calls**
+**Subject: You don't need more leads. You need to stop losing the ones you already have.**
 
 ---
 
-## The Reality
+## The One Problem
 
-27% of home-service calls go unanswered. 85% of voicemail callers never call back.
+**Contractors lose revenue because they can't answer the phone while they're working.**
+
+That's it. Everything else is a symptom.
+
+- Missed calls become lost jobs
+- Lost jobs become revenue leaks  
+- Revenue leaks become cash flow problems
+- Cash flow problems become stress, sleepless nights, and wondering if you can make payroll
+
+But it all starts with one thing: **You're on a job. The phone rings. You can't get to it.**
+
+---
+
+## The Math That Makes It Real
+
+27% of home-service calls go unanswered. 85% of voicemail callers never call back. 78% of homeowners hire whoever responds first.
 
 A plumber doesn't lose money because he can't install a water heater. He loses money because his phone rang, nobody picked up, and a competitor got the job.
 
-That's a **$15–50K problem** for a single contractor. And it happens 27 times a day for 2.5M businesses.
+**A single missed job can be worth $500–$5,000.** That's not a revenue leak. That's a hole in the boat.
 
 ---
 

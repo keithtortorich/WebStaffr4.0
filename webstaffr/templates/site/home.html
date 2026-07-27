@@ -5,9 +5,9 @@
   <div class="ws-container">
     <div class="ws-hero-grid">
       <div>
-        <div class="ws-hero-tag">{% if site.certifications %}Certified & Insured{% endif %} • Since {{ current_year - (site.years_in_biz or 5) }}</div>
-        <h1 class="ws-h1">{{ site.tagline or site.industry }}</h1>
-        <p class="ws-body-text">{{ site.differentiator }}</p>
+        <div class="ws-hero-tag">{{ site.industry | title }} • 24/7 Answering Service</div>
+        <h1 class="ws-h1">Stop losing jobs you already paid to generate</h1>
+        <p class="ws-body-text">WebStaffr answers every call while you're working. No missed opportunities. No voicemail loops. No lost leads to your competitors.</p>
 
         <div class="ws-hero-features">
           {% if site.certifications %}<span>{{ site.certifications }}</span>{% endif %}
@@ -33,8 +33,8 @@
         </div>
 
         <div class="ws-hero-ctas">
-          <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">Get Help Now</a>
-          {% if site.emergency_service %}<a href="tel:{{ site.phone }}" class="ws-btn ws-btn-emergency">🚨 Call Emergency</a>{% endif %}
+          <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">Start 30-Day Free Trial</a>
+          <a href="#lead-form" class="ws-btn ws-btn-secondary">See How It Works</a>
         </div>
       </div>
 
