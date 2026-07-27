@@ -181,6 +181,64 @@ def main() -> int:
         leaked = never_leak & public_data.keys()
         assert not leaked, f"internal-only fields leaked into public site data: {leaked}"
 
+    def check_rendered_site_smoke_test():
+        """The in-repo customer site renderer (webstaffr/site_render_router.py,
+        see docs/SITE_RENDERER_PLAN.md) is a separate code path from the
+        JSON /sites/{tenant_id} endpoint checked above -- a real HTTP round
+        trip through it, plus the same never-leak assertion applied to
+        rendered HTML instead of a JSON dict, catches template-layer
+        regressions the JSON-only check above can't see."""
+        import tempfile
+        from fastapi.testclient import TestClient
+        from webstaffr.app import create_app
+
+        fd, db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            app = create_app(db_path=db_path)
+            with TestClient(app) as client:
+                submit = client.post(
+                    "/intake",
+                    json={
+                        "biz_name": "Healthcheck Plumbing",
+                        "phone": "555-0100",
+                        "email": "owner@healthcheckplumbing.example",
+                        "industry": "Plumber",
+                        "service_area": "Metro area",
+                        "tagline": "We fix it right the first time.",
+                        "differentiator": "24/7 emergency response.",
+                        "services": ["Drain Cleaning"],
+                        "license_number": "LIC-12345",
+                        "plan": "growth",
+                        "lead_routing": "owner@healthcheckplumbing.example",
+                        "approver": "Owner",
+                        "competitors": "Acme Plumbing",
+                    },
+                )
+                assert submit.status_code == 200, f"intake failed: {submit.text}"
+                tenant_id = submit.json()["tenant_id"]
+
+                home = client.get(f"/sites/{tenant_id}/web")
+                assert home.status_code == 200, f"rendered home page failed: {home.status_code}"
+                assert "Healthcheck Plumbing" in home.text
+                for leaked_value in ("LIC-12345", "Acme Plumbing"):
+                    assert leaked_value not in home.text, (
+                        f"internal-only value {leaked_value!r} leaked into rendered HTML"
+                    )
+                assert "aggregateRating" not in home.text, (
+                    "aggregateRating schema present with no real rating/review data on file"
+                )
+
+                svc = client.get(f"/sites/{tenant_id}/web/services/drain-cleaning")
+                assert svc.status_code == 200, f"rendered service page failed: {svc.status_code}"
+
+                css = client.get("/static/site.css")
+                assert css.status_code == 200, "rendered-site stylesheet failed to serve"
+                widget = client.get("/static/angel-widget.js")
+                assert widget.status_code == 200, "angel-widget.js failed to serve"
+        finally:
+            os.remove(db_path)
+
     def check_cors_scoped_correctly():
         """/chat (browser-facing, embedded widget) must carry CORS
         headers; /book (server-to-server only) must not -- CORS scoping
@@ -245,6 +303,7 @@ def main() -> int:
     check("app_boots_and_chat_responds", check_app_boots_and_chat_responds)
     check("intake_round_trip_and_tenant_scoping", check_intake_round_trip_and_tenant_scoping)
     check("site_data_never_leaks_internal_fields", check_site_data_never_leaks_internal_fields)
+    check("rendered_site_smoke_test", check_rendered_site_smoke_test)
     check("cors_scoped_correctly", check_cors_scoped_correctly)
     check("rate_limit_trips", check_rate_limit_trips)
     check("angel_prompt_loads", check_angel_prompt_loads)

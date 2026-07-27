@@ -1,0 +1,23 @@
+{% extends "site/base.html" %}
+{% block content %}
+<section class="ws-hero ws-hero-sub">
+  <div class="ws-hero-inner">
+    <h1>About {{ site.biz_name }}</h1>
+  </div>
+</section>
+
+<section class="ws-section">
+  {% if site.years_in_biz %}
+  <p>{{ site.biz_name }} has served {{ site.service_area }} for {{ site.years_in_biz }} years.</p>
+  {% endif %}
+  {% if site.differentiator %}<p>{{ site.differentiator }}</p>{% endif %}
+  {% if site.tagline %}<p class="ws-tagline">{{ site.tagline }}</p>{% endif %}
+</section>
+
+{% if site.certifications %}
+<section class="ws-section ws-section-muted">
+  <h2>Certifications &amp; Affiliations</h2>
+  <p>{{ site.certifications }}</p>
+</section>
+{% endif %}
+{% endblock %}

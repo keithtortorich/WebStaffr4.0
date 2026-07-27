@@ -1,0 +1,14 @@
+{% extends "site/base.html" %}
+{% block content %}
+<section class="ws-hero ws-hero-sub">
+  <div class="ws-hero-inner">
+    <h1>Contact {{ site.biz_name }}</h1>
+  </div>
+</section>
+
+<section class="ws-section">
+  <p><a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">Call {{ site.phone }}</a></p>
+  <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+  <p>Serving {{ site.service_area }}.</p>
+</section>
+{% endblock %}

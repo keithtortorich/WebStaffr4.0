@@ -1,0 +1,33 @@
+{% extends "site/base.html" %}
+{% block content %}
+<section class="ws-hero ws-hero-sub">
+  <div class="ws-hero-inner">
+    <h1>{{ current_service }} in {{ site.service_area }} &mdash; Fast &amp; Reliable Service</h1>
+    <div class="ws-hero-ctas">
+      <a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">Call {{ site.phone }}</a>
+    </div>
+  </div>
+</section>
+
+<section class="ws-section">
+  <p>When you need {{ current_service.lower() }} in {{ site.service_area }}, {{ site.biz_name }} responds fast{% if site.differentiator %} &mdash; {{ site.differentiator }}{% endif %}.</p>
+</section>
+
+<section class="ws-section">
+  <h2>We Serve {{ site.service_area }}</h2>
+  <p>Call <a href="tel:{{ site.phone }}">{{ site.phone }}</a> to schedule {{ current_service.lower() }}.</p>
+</section>
+
+{% if services|length > 1 %}
+<section class="ws-section ws-section-muted">
+  <h2>Other Services</h2>
+  <ul class="ws-service-grid">
+    {% for svc in services %}
+    {% if svc.name != current_service %}
+    <li><a href="{{ site_root }}/services/{{ svc.slug }}">{{ svc.name }}</a></li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}
