@@ -384,3 +384,40 @@ conversation thread, when it is a single file, or when a founder approval gate
 sits in the middle, since a subagent cannot wait for a yes. The judgement is
 encoded in the `engineering-director` skill; if that skill is removed, this ADR
 still governs.
+
+
+---
+
+## ADR-019: Capability Check runs before every response
+
+**Date**: 2026-07-28
+
+**Decision**: Before writing any instruction that sends the founder to a
+terminal, a directory, or a dashboard, Claude works down a five-rung ladder
+first : dedicated MCP for that service, Desktop Commander, browser tools,
+computer use, sandbox shell. Only when all five come up empty is the ask
+legitimate. The rule is now a section in CLAUDE.md so it loads on every
+orientation pass, and is mirrored in `~/.claude/CLAUDE.md` and the
+`engineering-director` skill.
+
+**Why**: Founder request, made explicitly this session in response to being
+repeatedly asked to do mechanical lookups by hand. The cost is asymmetric and
+invisible to him: he can tell when a design is wrong, but he cannot tell that a
+working tool was sitting there unused. Two concrete precedents. The WS3.3
+`/sites/{tenant_id}` 503 investigation lost two sessions to retrieving
+`DATABASE_URL` out of the Vercel UI while the Supabase MCP (keys, logs,
+advisors, direct SQL) and Vercel MCP (runtime logs, runtime errors) were
+connected the whole time. And in the session that produced this ADR, Claude ran
+a filesystem search for "webstaffr4", got no hits, and reported that no 4.0
+repo existed : while this repo was the mounted session folder and this very
+CLAUDE.md was already in context. Both failures share a shape: concluding
+absence from one narrow check.
+
+**Consequences**: Two clauses carry most of the weight. An approval gate is
+about authority, not mechanics : "ready to push?" is a legitimate ask, "run git
+push for me" is not, because Desktop Commander does it on the yes. And
+local-empty is not empty : check the mounted folder and the context already
+loaded before searching, and check the remote before reporting that something
+does not exist. Asking the founder to confirm what could be verified directly
+is offloading, not diligence; a long manual workaround written out in prose is
+a tell that the ladder was skipped.

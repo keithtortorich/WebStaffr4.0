@@ -16,6 +16,22 @@ Full flow: intake → generated customer site → Angel widget embedded and work
 ## Process
 Claude-only. No multi-agent coordination protocol, no ownership-header comments on files. Short, single-purpose turns. Decisions get made once, logged, executed : not re-litigated. One task per turn; side-issues discovered mid-task get logged in TASKS.md, not fixed inline, unless trivially in-path.
 
+## Capability Check
+Runs before every response, ahead of the scope call. Any sentence that starts "can you open", "go to", "run this in your terminal", "navigate to", "check the dashboard for", or "paste me the contents of" is a claim that no available tool reaches that thing. Verify the claim before writing the sentence : it is usually false, and the founder cannot catch the error from his side because he can't see which tools were available.
+
+Ladder, stop at the first rung that works:
+1. **A dedicated MCP for that exact service.** Supabase (project settings, connection strings, keys, logs, SQL, advisors), Vercel (deployments, build logs, runtime logs, runtime errors), GitHub, Netlify, Lovable, Drive. If unsure one exists, search the MCP registry before concluding it doesn't.
+2. **Desktop Commander.** Real shell and real filesystem on the founder's Mac : file reads/writes anywhere, ripgrep at scale, git operations including the pushes a sandbox structurally cannot do, persistent shells, long-running processes, SSH. If the next thing you were going to type is a command for him to paste, run it here instead.
+3. **Browser tools (Claude in Chrome).** Anything that would otherwise be "log into the dashboard and click around" : Vercel logs, Supabase settings, GitHub, GHL, Retell, Netlify. Uses his real logged-in session.
+4. **Computer use.** Native macOS apps and cross-app work nothing else reaches. Fallback, not a first move.
+5. **The sandbox shell.** Isolated compute that doesn't touch his machine.
+
+Only after all five come up empty is asking him legitimate : credentials only he holds, an OAuth flow, a paid action, a session nothing is logged into. When you do ask, give the exact command or click path in one move, say what you'll do with the result, and if a connectable tool would remove the ask entirely, name it in one line.
+
+An approval gate is about authority, not mechanics. "Ready to push?" is a legitimate ask. "Can you run git push for me" is not : Desktop Commander does it the moment he says yes.
+
+**Local-empty is not empty, and check the mounted folder first.** A filesystem search that finds nothing means the thing isn't where you looked, not that it doesn't exist. Before searching at all, check the folder already mounted into the session and the file already in context : that is where the current repo usually is. See ADR-019.
+
 ## Self-Approval Scope
 Self-approvable, no need to ask: any reversible local-only change (code edits, tests, docs, refactors), improvements following best practices (auth, rate limits, error handling, security scoping), anything that keeps tests passing and health check HEALTHY.
 
@@ -38,7 +54,7 @@ When acting: summarize clearly, e.g. "Completed X. Tests: N/N passing. Health: H
 - Tests: run on code changes, skip on doc-only commits.
 - Diffs: `git diff --stat` first, deep-read only implicated files.
 - Third-party claims (Lovable agent, vendor docs): verify independently before trusting a "fixed" report.
-- No subagents unless the founder asks for one.
+- Subagents: on by default for work that is parallel, broad-and-searchable, fresh-eyes review (an agent that didn't write the diff reviews it better), or long and grinding. Spawn and report what was delegated; don't ask permission each time. Supersedes the earlier "no subagents unless asked" rule, per the founder's 2026-07-28 direction. Don't delegate work needing the full conversation thread, single-file work, or anything with an approval gate mid-task : a subagent can't wait for a yes.
 
 ## CLAUDE.md Hygiene
 TASKS.md is the single source of truth for live status. This file records durable rules and invariants only -- no session addenda accumulate here; when a decision is made, it goes in `docs/DECISIONS.md` as a dated ADR instead.
