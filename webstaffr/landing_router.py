@@ -10,6 +10,20 @@ from fastapi import APIRouter
 
 landing_router = APIRouter(tags=["public"])
 
+# Single source of truth for the public contact details. These appear in the
+# investor JSON, the investor modal, and the lead-capture form, and previously
+# drifted apart across all three.
+#
+# Confirmed by the founder 2026-07-28: mail goes to his Gmail, not to a mailbox
+# on either webstaff.com or webstaffr.com. The stale keith@webstaff.com address
+# that used to be here never resolved the domain-spelling conflict between
+# LINK_MANIFEST.md ("webstaffr.com") and POST_DEPLOY_VERIFICATION.md
+# ("webstaff.com"); that conflict still needs settling for the site URLs, but it
+# no longer affects where mail lands. See TASKS.md Pending.
+_CONTACT_EMAIL = "keithtortorich@gmail.com"
+_CONTACT_PHONE = "(888) 302-8368"
+_CONTACT_PHONE_TEL = "+18883028368"
+
 
 @landing_router.get("/", response_class=None)
 async def landing_page():
@@ -19,7 +33,23 @@ async def landing_page():
     # Read the landing page HTML (created separately as static asset or inline)
     # For now, return a placeholder that redirects to the static version
     # In production, this will read from a file or serve inline
-    return HTMLResponse(content=_LANDING_PAGE_HTML)
+    return HTMLResponse(content=_render_landing_page())
+
+
+def _render_landing_page() -> str:
+    """Substitute contact details into the landing page template.
+
+    Plain token replacement rather than an f-string: the template is mostly
+    CSS and JavaScript, so every brace in it would have to be doubled to make
+    f-string interpolation safe. Tokens keep the markup readable and keep the
+    contact details defined in exactly one place.
+    """
+    return (
+        _LANDING_PAGE_HTML
+        .replace("__CONTACT_EMAIL__", _CONTACT_EMAIL)
+        .replace("__CONTACT_PHONE_TEL__", _CONTACT_PHONE_TEL)
+        .replace("__CONTACT_PHONE__", _CONTACT_PHONE)
+    )
 
 
 @landing_router.get("/investors/pitch")
@@ -47,10 +77,10 @@ async def investor_pitch():
         },
         "ask": "$15K-50K SAFE",
         "contact": {
-            "email": "keith@webstaff.com",
-            "phone": "(888) 302-8368"
+            "email": _CONTACT_EMAIL,
+            "phone": _CONTACT_PHONE
         },
-        "pdf": "Full PDF available at deployment — email for early access"
+        "pdf": "Full PDF available at deployment. Email for early access."
     })
 
 
@@ -81,13 +111,13 @@ _LANDING_PAGE_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebStaffr — AI Staff for Home Services</title>
+    <title>WebStaffr | 24/7 Receptionist for Home Services</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #0a0c0f; color: #f0f2f5;">
     <div style="max-width: 1200px; margin: 0 auto;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr — One Problem, One Solution</h1>
+        <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
 
         <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
             <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Problem</h2>
@@ -132,7 +162,7 @@ _LANDING_PAGE_HTML = """
             <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
                 It's not software. It's not AI. It's not a chatbot.
                 <br><br>
-                It's a <strong>24/7 Receptionist</strong> that picks up every call, pre-qualifies the lead, and books appointments directly into your calendar. While you're on a ladder, under a house, or driving to the next job, your phone is still ringing—and still getting answered.
+                It's a <strong>24/7 Receptionist</strong> that picks up every call, pre-qualifies the lead, and books appointments directly into your calendar. While you're on a ladder, under a house, or driving to the next job, your phone is still ringing, and still getting answered.
             </p>
         </div>
 
@@ -159,7 +189,7 @@ _LANDING_PAGE_HTML = """
         </div>
 
         <div style="margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live — 10 Home Service Industries</h3>
+            <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live: 10 Home Service Industries</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
                 <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
                     <strong style="color: #c8a25a;">1. HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span>
@@ -199,27 +229,57 @@ _LANDING_PAGE_HTML = """
                 <strong style="color: #c8a25a;">You don't need more leads.</strong><br>You need to stop losing the ones you already have.
             </h2>
             <p style="color: #8a94a6; margin: 0; max-width: 600px; margin-left: auto; margin-right: auto;">
-                WebStaffr recovers revenue by making sure you never miss another call. Everything else—the website, the reviews, the follow-ups—is just how we do it.
+                WebStaffr recovers revenue by making sure you never miss another call. Everything else is just how we do it: the website, the reviews, the follow-ups.
             </p>
         </div>
         <div id="lead-capture" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px;">
             <h2 style="margin-top: 0; color: #c8a25a;">Get Your Free Website</h2>
             <p style="color: #8a94a6; margin-bottom: 24px;">Answer 3 quick questions. We build it in 48 hours. Try it free for 30 days.</p>
-            <form style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
-                <input type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
+            <form id="lead-form" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
+                <input id="lead-biz" type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
+                <input id="lead-loc" type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
+                <input id="lead-email" type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
                 <button type="submit" style="padding: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                    Apply for Free Website →
+                    Apply for Free Website
                 </button>
             </form>
-            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px;">Or call: <a href="tel:+18883028368" style="color: #c8a25a; text-decoration: none;">(888) 302-8368</a></p>
+            <p id="lead-form-status" role="status" aria-live="polite" style="font-size: 0.9rem; color: #c8a25a; margin-top: 12px; min-height: 1.2em;"></p>
+            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" style="color: #c8a25a; text-decoration: none;">__CONTACT_PHONE__</a></p>
         </div>
     </div>
     <script>
         function openInvestorModal() {
-            alert('Investor materials coming soon. Email keith@webstaff.com for early access.');
+            alert('Investor materials coming soon. Email __CONTACT_EMAIL__ for early access.');
         }
+
+        // Interim lead capture. This hands the submission to the visitor's mail
+        // client rather than posting to the backend: /intake requires twelve
+        // fields (two of them internal-only and never public), so this three
+        // field form has no endpoint it can legitimately post to yet. Before
+        // this, the button did nothing at all and every submission was silently
+        // discarded. Replace with a real POST once the public intake contract
+        // is decided -- see TASKS.md.
+        (function () {
+            var form = document.getElementById('lead-form');
+            if (!form) { return; }
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                var biz = document.getElementById('lead-biz').value.trim();
+                var loc = document.getElementById('lead-loc').value.trim();
+                var email = document.getElementById('lead-email').value.trim();
+                if (!biz || !loc || !email) { return; }
+                var subject = 'Free website application: ' + biz;
+                var body = 'Business name: ' + biz + '\\n'
+                         + 'Location: ' + loc + '\\n'
+                         + 'Email: ' + email + '\\n';
+                var status = document.getElementById('lead-form-status');
+                status.textContent = 'Opening your email app to send this to our team. '
+                                   + 'If nothing happens, call __CONTACT_PHONE__.';
+                window.location.href = 'mailto:__CONTACT_EMAIL__'
+                    + '?subject=' + encodeURIComponent(subject)
+                    + '&body=' + encodeURIComponent(body);
+            });
+        })();
     </script>
 </body>
 </html>
