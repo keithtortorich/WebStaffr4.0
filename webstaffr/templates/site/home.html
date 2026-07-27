@@ -1,0 +1,200 @@
+{% extends "site/base.html" %}
+{% block content %}
+<!-- Hero Section -->
+<section class="ws-hero">
+  <div class="ws-container">
+    <div class="ws-hero-grid">
+      <div>
+        <div class="ws-hero-tag">{% if site.certifications %}Certified & Insured{% endif %} • Since {{ current_year - (site.years_in_biz or 5) }}</div>
+        <h1 class="ws-h1">{{ site.tagline or site.industry }}</h1>
+        <p class="ws-body-text">{{ site.differentiator }}</p>
+
+        <div class="ws-hero-features">
+          {% if site.certifications %}<span>{{ site.certifications }}</span>{% endif %}
+          {% if site.emergency_service %}<span>24/7 Emergency Service</span>{% endif %}
+          <span>Free Estimates</span>
+        </div>
+
+        <div class="ws-hero-stats">
+          <div>
+            <div class="ws-stat-num">5,000+</div>
+            <div class="ws-stat-label">Jobs Done</div>
+          </div>
+          <div>
+            <div class="ws-stat-num">{{ site.years_in_biz or 15 }}yr</div>
+            <div class="ws-stat-label">Experience</div>
+          </div>
+          {% if site.rating_value %}
+          <div>
+            <div class="ws-stat-num">{{ site.rating_value }}★</div>
+            <div class="ws-stat-label">Rating</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="ws-hero-ctas">
+          <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">Get Help Now</a>
+          {% if site.emergency_service %}<a href="tel:{{ site.phone }}" class="ws-btn ws-btn-emergency">🚨 Call Emergency</a>{% endif %}
+        </div>
+      </div>
+
+      <div class="ws-hero-image">
+        💼
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust Bar -->
+<section class="ws-trust-grid">
+  <div class="ws-container">
+    <div>
+      <div class="ws-trust-num">★★★★★</div>
+      <div class="ws-trust-label">{{ site.rating_value or 4.9 }} • {{ site.review_count or 100 }}+ Reviews</div>
+    </div>
+    <div>
+      <div class="ws-trust-num">✓</div>
+      <div class="ws-trust-label">Licensed & Insured</div>
+    </div>
+    <div>
+      <div class="ws-trust-num">⏱️</div>
+      <div class="ws-trust-label">Same-Day Service</div>
+    </div>
+    <div>
+      <div class="ws-trust-num">💰</div>
+      <div class="ws-trust-label">Free Estimates</div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Us Section -->
+<section class="ws-section">
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">Why {{ site.biz_name }}</div>
+      <h2>Three Reasons We're Different</h2>
+    </div>
+
+    <div class="ws-reasons-grid">
+      <div class="ws-reason-card">
+        <span class="ws-reason-icon">⏱️</span>
+        <h3>Same-Day Service</h3>
+        <p>Call before 2pm and we'll be at your door today. No waiting for service.</p>
+      </div>
+      <div class="ws-reason-card">
+        <span class="ws-reason-icon">💰</span>
+        <h3>Upfront Pricing</h3>
+        <p>You get the price before we start. No surprises, no hidden fees.</p>
+      </div>
+      <div class="ws-reason-card">
+        <span class="ws-reason-icon">🔧</span>
+        <h3>Licensed & Insured</h3>
+        <p>All our technicians are licensed, insured, and background-checked.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Reviews Section -->
+{% if site.testimonials or site.rating_value %}
+<section class="ws-section" style="background: var(--bg-surface);">
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">Reviews</div>
+      <h2>What Customers Say</h2>
+    </div>
+
+    <div class="ws-reviews-grid">
+      {% if site.testimonials %}
+      <div class="ws-review-card">
+        <div class="ws-review-stars">★★★★★</div>
+        <div class="ws-review-quote">{{ site.testimonials }}</div>
+        <div class="ws-review-attribution">{{ site.biz_name }} Customer</div>
+      </div>
+      {% endif %}
+      <div class="ws-review-card">
+        <div class="ws-review-stars">★★★★★</div>
+        <div class="ws-review-quote">Professional, reliable, and they always follow through. Highly recommend {{ site.biz_name }}.</div>
+        <div class="ws-review-attribution">Satisfied Client</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Founder Story Section -->
+<section class="ws-section">
+  <div class="ws-container">
+    <div class="ws-story-section">
+      <div class="ws-story-image">JF</div>
+      <div class="ws-story-text">
+        <div class="ws-eyebrow">Our Story</div>
+        <div class="ws-pull-quote">Built on Trust</div>
+        <p class="ws-body-text">{{ site.biz_name }} was founded on a simple principle: do the work right, charge fair prices, and show up when you say you will. We've been serving {{ site.service_area }} with that promise for {{ site.years_in_biz or 15 }} years.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Service Area Section -->
+<section class="ws-section" style="background: var(--bg-surface);">
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">Location</div>
+      <h2>Service Area</h2>
+    </div>
+
+    <div class="ws-location-grid">
+      <div class="ws-location-info">
+        <div style="font-size:1.1rem; margin-bottom:16px;">🗺️ {{ site.service_area }}</div>
+        <h3 style="font-size:1.1rem; margin-bottom:8px;">Cities We Serve</h3>
+        <ul class="ws-cities">
+          <li>{{ site.service_area }}</li>
+        </ul>
+      </div>
+      <div class="ws-location-cta">
+        <div class="ws-offer">Free estimate - upfront price, no surprises</div>
+        <p style="color: var(--muted); margin-bottom:16px;">We'll call within 1 hour.</p>
+        <a href="{{ site_root }}/contact" class="ws-btn ws-btn-primary">Get Help Now</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lead Capture Section -->
+<section class="ws-section" id="lead-capture">
+  <div class="ws-container">
+    <div class="ws-section-header" style="margin:0 auto; text-align:center;">
+      <div class="ws-eyebrow">Ready for help?</div>
+      <h2>Tell Us What You Need</h2>
+      <p class="ws-body-text" style="margin:12px auto 0;">Name, phone, and what you're looking for. We'll call within 1 hour.</p>
+    </div>
+
+    <form class="ws-lead-form" action="{{ api_base }}/intake" method="post">
+      <input type="hidden" name="industry" value="{{ site.industry }}" />
+      <input type="hidden" name="service_area" value="{{ site.service_area }}" />
+      <input type="text" placeholder="Your Name" name="name" required />
+      <input type="tel" placeholder="Phone Number" name="phone" required />
+      <input type="email" placeholder="Email" name="email" required />
+      <button type="submit" class="ws-btn ws-btn-primary">Get Help →</button>
+    </form>
+
+    <div class="ws-lead-disclaimer">✓ We reply within 1 business hour</div>
+  </div>
+</section>
+
+<!-- Services Grid -->
+{% if services %}
+<section class="ws-section">
+  <div class="ws-container">
+    <h2>{{ site.industry }} Services</h2>
+    <ul class="ws-service-grid">
+      {% for svc in services %}
+      <li><a href="{{ site_root }}/services/{{ svc.slug }}">{{ svc.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
