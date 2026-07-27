@@ -1,8 +1,57 @@
 # TASKS.md — WebStaffr 4.0
 
+## START HERE (state as of 2026-07-28 04:30 PST)
+
+**Committed and clean:** landing page governance fixes, commit `c76a203`, four files.
+Not pushed. One unpushed commit on `main`.
+
+**The single biggest open risk:** three of the four AI-employee workers have never run.
+Leo, Rita, and Sam are written and wired into `webstaffr/app.py`, but their test suites
+have never executed once, in any session. Only Angel is proven in production. Nothing
+downstream (billing, tier logic, further workers) should start until this clears.
+
+**Two of those three would fail against production today.** `migrations/postgres_manual/`
+has no DDL for Sam's `quotes` table or Rita's `review_requests` / `review_responses`.
+SQLite has them, Postgres does not, and production is Postgres. Leo is the only one of
+the three that is schema-complete (`0009_leo_leads.sql`).
+
+**Next task, concretely:** write the two missing Postgres migrations, then run `pytest`
+and `scripts/health_check.py` on the founder's Mac (this sandbox cannot run them). Fix
+what breaks. That is the whole next session.
+
+**Uncommitted work sitting in the tree:** Rita's five worker files are staged (`git add`
+was run in an earlier session, never committed). Leo's and Sam's files, their tests, the
+worker design docs, and a large amount of root-level markdown are untracked. Stage
+explicit paths when committing; a bare `git commit` will sweep staged Rita files into an
+unrelated commit. A bare `git add -A` is forbidden by CLAUDE.md and would be worse.
+
+**Blocked on the founder:**
+1. Which domain is live, `webstaff.com` or `webstaffr.com`. INVESTOR_EMAIL_FINAL.md
+   points at three `https://webstaff.com` URLs in a document already sent to investors.
+   If that is the wrong domain, those are dead links in front of investors right now.
+2. What the public intake contract is (see the landing page section below).
+3. GHL and Retell credentials are still unset by the founder's own call on spend, so GHL
+   sync is a no-op and Retell signatures are unverified. The flow cannot be proven end to
+   end until they are set.
+
+**Process note:** an `engineering-director` skill was created this session and installed.
+It calibrates how much process a task gets, decides routine engineering questions rather
+than escalating them, checks whether a subagent or an existing skill should handle the
+work, and gives direct verdicts on tool suggestions instead of agreeing with them. It
+amends one rule in CLAUDE.md: subagents are now on by default, at the founder's explicit
+request, rather than only when asked for. The skill was drafted but never fully
+evaluated: six of eight planned test runs died on a monthly spend limit. Two survived and
+both looked correct. Worth finishing the eval loop before trusting it broadly.
+
+---
+
 ## Session Handoff (2026-07-28, landing page governance + dead form)
 
-**Fixed in `webstaffr/landing_router.py` (local only, not committed):**
+**Committed as `c76a203` (not pushed).** Files: `webstaffr/landing_router.py`,
+`TASKS.md`, `INVESTOR_EMAIL_FINAL.md`, `POST_DEPLOY_VERIFICATION.md` (the last was
+untracked and entered as a new file).
+
+**Fixed in `webstaffr/landing_router.py`:**
 - `<title>` read "WebStaffr — AI Staff for Home Services". Two governance breaches in
   the single most public string on the site: "AI" in customer-facing copy, and an
   em-dash. Now "WebStaffr | 24/7 Receptionist for Home Services", which uses the

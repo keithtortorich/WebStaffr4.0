@@ -331,3 +331,56 @@ actually governing the deployed app.
 tool-only one -- it reintroduces exactly the failure mode this decision
 closes. Dependency version bumps (e.g. via Dependabot) only need to touch
 `requirements.txt`.
+
+---
+
+## ADR-017: Public lead-capture form posts to a mail draft, not to `/intake`
+
+**Date**: 2026-07-28
+
+**Decision**: The "Get Your Free Website" form on the landing page submits by
+opening a prefilled mail draft to the public contact address, rather than
+POSTing to a backend endpoint. This is explicitly interim.
+
+**Why**: The form collects three fields. `/intake` requires twelve, two of
+which (`lead_routing`, `approver`) are internal-only and on the never-leak
+list, so they can never appear on a public form. There is therefore no
+existing endpoint the form can legitimately post to. The alternatives were
+each worse: building a new public `POST /leads` endpoint plus a table means a
+schema change and new production surface for a page that CLAUDE.md already
+delegates to Lovable and that is labelled placeholder HTML in the source, so
+the code would be thrown away; and leaving the form as it was meant it kept
+promising a website in 48 hours while silently discarding every submission,
+which is worse than having no form.
+
+**Consequences**: Mail-draft submission depends on the visitor having a mail
+client configured, so some submissions will be lost. That is a known and
+accepted downgrade from a real endpoint, and a large upgrade from the previous
+behaviour of losing all of them. Replace this with a real POST once the public
+intake contract is decided. That decision is the founder's: either the landing
+form stays a short lead capture that hands off to a longer onboarding form, or
+`/intake` grows a public subset with the internal fields set server-side.
+
+---
+
+## ADR-018: Subagents are on by default, amending CLAUDE.md's token-efficiency rule
+
+**Date**: 2026-07-28
+
+**Decision**: Claude evaluates on every task whether to delegate to a subagent,
+and spawns one when the work fits, reporting the delegation rather than asking
+permission first. This amends the CLAUDE.md rule "No subagents unless the
+founder asks for one."
+
+**Why**: Founder request, made explicitly this session. The original rule was
+written as a token-efficiency measure, on the assumption that subagents are an
+escalation. For wide work they are the opposite: parallel agents keep the main
+context small, and a fresh agent that did not write the code is a materially
+better reviewer than the one that did.
+
+**Consequences**: Delegate for parallel work, broad searches, review by fresh
+eyes, and long grinding tasks. Do not delegate when the task needs the full
+conversation thread, when it is a single file, or when a founder approval gate
+sits in the middle, since a subagent cannot wait for a yes. The judgement is
+encoded in the `engineering-director` skill; if that skill is removed, this ADR
+still governs.
