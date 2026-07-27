@@ -68,6 +68,28 @@
 
 (none)
 
+- **Founder eyeball-check passed (2026-07-27, Site Weaver Lovable preview).** Loaded the live
+  tenant site for `webstaffr_e2e_verification_co_d07dc1d1`: hero, tagline, industry/location
+  badge, call/email CTAs all rendered correctly from the live backend. Angel widget loaded and
+  gave a real, on-topic Grok reply to "Do you offer emergency plumbing service?" -- confirmed
+  full round trip, not a Null/fallback response.
+  **Bug found and fixed en route:** Site Weaver's Lovable project had a stale runtime secret
+  `API_BASE_URL` pointing at `web-staffr3-0-snowy.vercel.app` (WS3.0's dead deployment,
+  503) that shadowed the already-correct `.env` value. `.env` was fixed via the Lovable
+  agent; the runtime secret required the founder to update directly in Lovable's Project
+  Settings -> Secrets (blocked from being changed programmatically, correctly, per this
+  repo's credential-handling rules). Both now point at `web-staffr3-3.vercel.app`.
+
+- **6 of 7 open Dependabot PRs reviewed and merged (2026-07-27).** All CI-green, no conflicts:
+  `actions/setup-python` 6->7 (#1), `actions/checkout` 6->7 (#2), `pytest` 8.4.2->9.1.1 (#3),
+  `fastapi` 0.139.2->0.140.0 (#6), `anyio` 4.12.1->4.14.2 (#7), `uvicorn` 0.39.0->0.51.0 (#5)
+  -- the last being the biggest version jump and the piece most tied to the Vercel-serverless
+  invariant, merged only after confirming CI (which boots the app and round-trips
+  `/chat`/`/book`/`/webhooks/ghl`) passed clean. **#4 (`pydantic-core` 2.46.4->2.47.0) left
+  open, correctly** -- CI fails with a real pip dependency conflict: `pydantic` 2.13.4 pins
+  `pydantic-core==2.46.4`, so bumping the sub-dependency alone is unresolvable. Not a repo bug;
+  waiting on Dependabot/upstream to bump `pydantic` itself before this is mergeable.
+
 ## Pending
 
 - **Set remaining production credentials on the Vercel project** -- all tied to paid vendors,
@@ -78,10 +100,6 @@
   Until set: GHL sync is a no-op and both webhook routes fail open (Null verifiers) -- safe,
   by design. Set (verified live 2026-07-27): `GROK_API_KEY` (`/chat` returns real Grok
   replies), `BOOK_API_KEY` (`/book` now 401s unauthenticated callers -- fail-open closed).
-- **Founder eyeball-check** of a real generated customer site (Lovable-hosted): Angel widget
-  loads and completes a chat round-trip against the live backend. Now meaningful --
-  `GROK_API_KEY` is live.
-- **Review 7 open Dependabot PRs** on the WebStaffr4.0 GitHub remote.
 - **Founder decision: disposition of `WebStaffr 3.0/` and `social-media-marketing-machine/`
   subfolders** inside the WS3.3 archive repo (leave as-is vs. prune).
 - **ServiceTitan socket workflow format** -- open design decision, needed before the next

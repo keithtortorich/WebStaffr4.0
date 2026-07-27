@@ -53,7 +53,7 @@ Business Manager Tier.
 | Booked-job attribution | `webstaffr/attribution.py` | Built. |
 | **Live web research** | — | **Not built anywhere yet; vendor decided (D1) — SearXNG.** See below. |
 | **Paid-ads platform APIs** | — | **Not built anywhere.** Deliberately deferred (Phase 4). |
-| **Two-way client comms channel** (SMS + email) | — | **Not built anywhere.** No Twilio, no email vendor, no re-contact mechanism exists in this repo today. Founder-directed shared infrastructure (see below); only the vendor choice (D4) is still open. |
+| **Two-way client comms channel** (SMS + email) | — | **Not built anywhere.** No re-contact mechanism exists in this repo today. Founder-directed shared infrastructure (see below); vendor choice (D4) recommended 2026-07-27 (Twilio + Postmark, see Founder decisions), awaiting sign-off. |
 
 ## Architecture (recommendation — approve at build start)
 
@@ -138,10 +138,15 @@ strategy run (budget, audience, timeline).
   (WebStaffr intake → GTM intake form), research module (needs D1), assessment report,
   5 copy variants stored as campaign drafts wired to the approval workflow.
   *Done =* a real tenant's intake produces an assessment + variants awaiting approval, every
-  step traced in `execution_nodes`. *Size: L — the largest phase.*
+  step traced in `execution_nodes`. *Size: L — the largest phase.* See "Phase 1 detailed
+  breakdown" below for the piece-by-piece build sequence and risk ranking.
 - **Phase 2 — Organic execution end-to-end.** Approved variants → schedule → publish via
   adapters → visible in calendar; trace on both sides; per-tenant weekly cadence config.
   *Done =* one approved post reaches a test platform account with a full trace. *Size: M.*
+  *Sequencing note (2026-07-27 review):* consider standing this phase up first, with
+  placeholder/dummy strategy content, ahead of finishing Phase 1's research module — it
+  validates the approval/publish/trace plumbing (already mostly built) at far lower cost
+  than debugging it simultaneously with a brand-new research pipeline. See risk review below.
 - **Phase 3 — Ads assembly + measurement loop.** GTM stage 4 (platform-specific paid-ad
   packages with manual-posting instructions) and stage 5 (weekly KPI report joining SMMM
   analytics with WebStaffr attribution; optimization memos; autonomous optimization strictly
@@ -150,6 +155,58 @@ strategy run (budget, audience, timeline).
 - **Phase 4 — Business Manager Tier packaging.** Tier gating/billing, productized
   white-label report path, optional paid-ads API automation (each ads API is its own vendor
   decision). Deliberately not designed in detail here.
+
+### Phase 1 detailed breakdown (added 2026-07-27, subagent-researched)
+
+Sequenced by realistic complexity, smallest to largest. Grounded in the actual `intake.py`
+inventory, the live `marketing-director-gtm` `SKILL.md` content, and the existing
+`execution_nodes` schema — not just the summary above.
+
+1. **Intake mapper — smallest, mostly data plumbing.** Most fields already exist per the
+   "what already exists" table; only budget, timeline, and target-customer-profile are
+   genuinely new, landing through the existing validated intake path. Real wrinkle:
+   reconciling the skill's fixed business-type enum against this repo's freer-text
+   `industry` field, and making sure `competitors`/`license_number` stay usable internally
+   for strategy without ever reaching generated output (never-leak list).
+2. **Assessment report + 5-variant copy generation — moderate.** Reuses SMMM's existing
+   multi-provider AI layer; new work is templating the skill's prompt content into SMMM's
+   existing `prompt_template` model, not new infrastructure. Main risk is rule-compliance
+   (never inventing social proof, always labeling benchmarks as benchmarks) — needs careful
+   template design and a validation pass on generated output, not just a good prompt.
+3. **Approval workflow wiring — small in code, high-stakes.** The state machine already
+   exists and is structurally enforced; the new work is making sure every draft campaign
+   the pipeline writes carries the correct tenant/org scope. This is exactly the shape of
+   bug flagged in "Landmines" below (publish task, no org filter) — write the tenant-scoping
+   test *before* the write path, not after.
+4. **Execution tracing — small, easy to under-build.** The table exists on both sides
+   already; the work is making sure every distinct step (mapped, query issued, result
+   retrieved, assessment generated, each variant generated, draft created) actually writes
+   a correctly-parented node, so "every step traced" is verifiable by querying the graph,
+   not just claimed.
+5. **Re-interview trigger within Phase 1 — small, currently ambiguous.** Given D4 (vendor,
+   now resolved below) still needs the comms channel itself built, Phase 1's honest scope
+   is: log the gap, omit the field, queue the re-interview request as a record — without
+   necessarily sending it yet if the comms channel isn't live. State this explicitly at
+   build time so nobody builds a stub that silently drops the field forever instead of a
+   real, if not-yet-delivered, queued request.
+6. **The research module — by far the largest single unknown, and the true critical path.**
+   The only piece with no existing code to lean on anywhere in either repo. Two problems
+   live inside it: standing up SearXNG itself (comparatively mechanical — config, health
+   checks, network wiring into SMMM's existing `docker-compose.yml`), and the actual
+   research logic — constructing search queries from intake data, deciding which results
+   are worth retrieving in full, fetching and parsing real page content, and turning that
+   into a structured report where every claim traces back to something actually retrieved
+   (making the "cite only reviews actually retrieved" rule real, not just stated). Most
+   likely piece to blow the phase's timeline: rate-limiting or blocking by the upstream
+   engines SearXNG aggregates, review/competitor sites blocking content retrieval, or
+   output that's technically well-sourced but still thin.
+
+**Build-order recommendation:** prove the research module works in isolation, on one real
+business profile, before writing a line of the copy-generation prompts — everything
+downstream (assessment, variants, approval writes, trace) depends on it producing real,
+sourced output, so testing those pieces against fixtures first just defers the real risk
+rather than retiring it. Build the intake mapper and tracing scaffolding in parallel with
+that, since both are small and well-understood regardless of how research turns out.
 
 ## Rules that override the skill
 
@@ -235,12 +292,36 @@ sender — same treatment as `/webhooks/ghl`).
   above. This approval (open-source category, self-hosted, no per-query fee) is the
   specific-choice sign-off `CLAUDE.md`'s security baseline requires for a new dependency.
 
-**Still open before build (the only escalation):**
+**D4 (vendor) — SMS + email provider — RECOMMENDED 2026-07-27, awaiting founder sign-off:**
 
-- **D4 (vendor) — SMS + email provider.** The comms channel still needs an SMS provider
-  (e.g. Twilio) and an email provider (e.g. Resend/SendGrid) picked — new dependencies,
-  each needing approval tied to the specific choice, per the security baseline. Left open
-  on the founder's instruction; not decided here.
+- **SMS: Twilio.** Compared against Telnyx, Plivo, and Vonage — pricing is close enough
+  across all four at this repo's expected volume (single digits to low dozens of Business
+  Manager Tier customers; likely under $20-50/month total either way) that it shouldn't
+  drive the choice. Twilio wins on reliability and support maturity, which matters most for
+  a channel real customers depend on for support — unlike D1/SearXNG, this is not a place
+  to optimize for lowest cost over proven reliability. Matching inbound texts to a stored
+  `phone` field is simple string comparison once numbers are normalized to E.164 on the way
+  into the database — that normalization has to happen at intake, not just at the webhook.
+  One customer-side edge case, not a vendor problem: VOIP-only business lines (Google Voice
+  etc.) sometimes can't send SMS at all; those customers would fall back to email.
+  **Real friction, not paperwork theater:** US carriers require one-time "10DLC" business
+  registration before a number can send/receive business texts (~$4-15 one-time + small
+  monthly fee, basic business info required, a few business days to clear). This applies to
+  any SMS vendor, not just Twilio, so it isn't avoided by picking a different one — start
+  registration as soon as this choice is approved, since it has real lead time.
+- **Email: Postmark.** SendGrid is worth actively avoiding — independent reviews flag real
+  deliverability problems (mail landing in spam) since its acquisition by Twilio, a serious
+  risk for a channel where "did the re-interview request even arrive" matters. Resend is a
+  reasonable outbound-only alternative but its inbound-email parsing (required here, since
+  replies get matched by sender address) is newer and less complete than needed out of the
+  box. Postmark is built specifically around transactional deliverability (refuses bulk
+  marketing mail to protect its sending reputation) and its inbound parsing hands over a
+  fully parsed email in one webhook — a direct match for this repo's requirement. ~$15/month
+  to start; no special registration needed beyond a verified sending domain (standard DNS).
+- Both are pay-as-you-go, no contract — low migration risk if volume grows. This is still a
+  new-dependency approval per `CLAUDE.md`'s security baseline and needs explicit founder
+  sign-off before either is wired in behind the `Protocol`/`Null*`/`*NotConfiguredError`
+  pattern described above.
 - Deferred to Phase 4: pricing/tier definition, paid-ads API vendors.
 
 ## Success criteria (adapted from the skill, made checkable)
@@ -258,6 +339,59 @@ sender — same treatment as `/webhooks/ghl`).
 - A client texting the dedicated number from their intake phone number is recognized and
   their message logged against the right tenant; an unrecognized sender lands in triage,
   never mis-attributed.
+
+## Risk review (2026-07-27, subagent pressure-test — not yet actioned)
+
+A deliberate adversarial review of this plan surfaced the following, ranked by real
+production severity rather than by section order. Nothing here has changed the plan above;
+these are flags for the founder and the eventual build session to weigh.
+
+**Most severe — no described failure mode for a dead pipeline.** The plan states execution
+tracing is "built both sides" and recovery is "deterministic from the graph," but nowhere
+does it describe what actually happens when the trace desyncs — e.g. SMMM's Celery worker
+dies mid-pipeline, or a webhook confirming a step never lands. A customer mid-kickoff-
+questionnaire would have no visible status and, per the plan as written, neither would
+WebStaffr's own operator. The plan's own landmine note ("a green SMMM suite proves less
+than you think") is an implicit admission this boundary has already caused trouble once.
+Worth a stated reconciliation/timeout mechanism before Phase 1 ships, not just before Phase 4.
+
+**High — no cost ceiling on the AI layer.** A 30-45 minute multi-stage research+generation
+run per customer, across a multi-provider AI layer, has no stated per-run token/cost cap,
+retry limit, or budget alarm anywhere in this plan. A stuck loop or bad prompt template
+could produce a surprise bill with nothing described to stop it.
+
+**Medium-high — D4 is a hidden hard dependency of Phase 1, not a parallel track.** Phase
+1's anti-fabrication guarantee ("omitted, never invented... just no longer permanent")
+depends on the re-interview mechanism actually being able to send, which depends on the
+comms channel being live, which depends on D4. Until the comms channel itself is built
+(not just the vendor chosen), "no longer permanent" is, in practice, still permanent. This
+doesn't change the design — omit-don't-fabricate is still correct — but it means the comms
+channel build should not lag Phase 1 by much, despite being scoped as separate/parallel
+infrastructure.
+
+**Medium — Phase 1 before Phase 2 is a risk-ordering choice, not a technical necessity.**
+Building the largest, least-proven piece (research, from scratch) before validating the
+smaller, mostly-already-built piece (approval → publish, per the "what already exists"
+table) means integration bugs in the approval/trace/scoping plumbing surface at the same
+time as a brand-new research pipeline is also being debugged. See the Phase 2 sequencing
+note above for the mitigation already folded into the phase list.
+
+**Medium — incomplete-questionnaire behavior is unstated.** The plan doesn't say what
+happens to a client who starts the Business Manager Tier questionnaire but never finishes
+it — whether they're nudged, stuck indefinitely with a gap-heavy strategy, or something
+else. Worth an explicit decision before Phase 1, not a default that emerges by accident.
+
+**Lower — CTR success criteria conflate build completion with market response.** The
+Phase 3 bullet ">1.5% Meta / >3% Google Search" ties a build milestone to ad performance
+the software can't control (creative quality, targeting, vertical, seasonality). Recommend
+reframing as a metric to *track* post-launch, not a gate on Phase 3 being "done" — the
+process-oriented criteria elsewhere in that bullet (packages pass validation, weekly report
+ties real spend to real attribution) are the actual completion criteria.
+
+**Reviewed and found sound, not overblown:** the two-repo split itself (WebStaffr
+serverless / SMMM stateful) and the "combining beats either piece alone" thesis both hold
+up — the real risk lives in the missing operational details around the split (reconciliation,
+cost caps, incomplete-questionnaire handling), not in the split's existence.
 
 ## What this plan deliberately does not do
 
