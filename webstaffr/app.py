@@ -29,6 +29,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from .attribution_router import attribution_router
 from .db import connect, migrate, using_postgres
 from .intake_router import intake_router
+from .landing_router import landing_router
+from .site_render_router import site_render_router
 from .site_router import site_router
 from .workers.angel.api_auth import SharedSecretVerifier
 from .workers.angel.ghl import GHLClient
@@ -145,8 +147,10 @@ def create_app(
 
     app = FastAPI(title="WebStaffr", lifespan=lifespan)
     app.state.db_path = db_path  # read by intake_router's/site_router's _get_connection()
+    app.include_router(landing_router)
     app.include_router(intake_router)
     app.include_router(site_router)
+    app.include_router(site_render_router)
     app.include_router(attribution_router)
     app.include_router(social_media_router)
     app.include_router(create_workflow_graph_router(verifier=workflow_graph_verifier))
