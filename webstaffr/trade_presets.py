@@ -10,6 +10,14 @@ Ported from the legacy webstaff repo's intake/intake.html (TRADE_HINTS,
 INDUSTRY_SOFTWARE) and builder/site_generator.py (INDUSTRY_PRESETS'
 default_services) -- see the CLAUDE.md session addendum for provenance.
 Values are illustrative placeholder copy, not real business data.
+
+SUPPORTED_INDUSTRIES narrowed to WebStaffr's priority trade list
+(founder direction, 2026-07-27): the trades where speed-to-lead most
+directly determines whether a call turns into revenue -- emergency
+demand, high-LTV jobs, or both. Contractor/Restaurant/Med Spa/Dentist/
+Salon (the prior list) are dropped from the curated set; "Other" stays
+as the always-available fallback so intake never hard-fails for a
+business type outside this list.
 """
 
 from __future__ import annotations
@@ -38,11 +46,12 @@ SUPPORTED_INDUSTRIES: list[str] = [
     "Plumber",
     "Electrician",
     "Roofing",
-    "Contractor",
-    "Restaurant",
-    "Med Spa",
-    "Dentist",
-    "Salon",
+    "Water Damage Restoration",
+    "Garage Door Repair",
+    "Pest Control",
+    "Landscaping",
+    "Tree Service",
+    "Cleaning Services",
     "Other",
 ]
 
@@ -51,9 +60,16 @@ SUPPORTED_INDUSTRIES: list[str] = [
 INDUSTRY_ALIASES: dict[str, str] = {
     "Plumbing": "Plumber",
     "Electrical": "Electrician",
-    "General Contractor": "Contractor",
-    "Dental": "Dentist",
-    "Salon / Beauty": "Salon",
+    "Restoration": "Water Damage Restoration",
+    "Water Damage": "Water Damage Restoration",
+    "Garage Door": "Garage Door Repair",
+    "Exterminator": "Pest Control",
+    "Lawn Care": "Landscaping",
+    "Lawn Maintenance": "Landscaping",
+    "Tree Trimming": "Tree Service",
+    "Tree Removal": "Tree Service",
+    "House Cleaning": "Cleaning Services",
+    "Maid Service": "Cleaning Services",
 }
 
 TRADE_HINTS: dict[str, TradeHint] = {
@@ -93,50 +109,59 @@ TRADE_HINTS: dict[str, TradeHint] = {
         "keywords": "roofing contractor phoenix, roof replacement scottsdale, storm damage roof repair, flat roof phoenix, free roof inspection",
         "certifications": "Owens Corning Preferred, GAF Master Elite, BBB A+",
     },
-    "Contractor": {
-        "biz": "Premier Home Solutions",
-        "tagline": "Phoenix general contractor - remodels, additions, and repairs done right.",
-        "differentiator": "Every project has a dedicated site supervisor on-site daily. You always know who's in charge.",
-        "services": ["Kitchen Remodeling", "Bathroom Renovation", "Home Additions", "Deck & Patio Build", "Handyman & Repairs"],
-        "license": "ROC 567890 - General Contractor",
-        "keywords": "general contractor phoenix, kitchen remodel scottsdale, bathroom renovation, home addition phoenix, contractor near me",
-        "certifications": "Licensed ROC, BBB A+, EPA Lead-Safe Certified",
+    "Water Damage Restoration": {
+        "biz": "Rapid Dry Restoration",
+        "tagline": "Phoenix water damage restoration - on-site in 60 minutes, day or night.",
+        "differentiator": "IICRC-certified technicians on-site within 60 minutes, 24/7 - no answering service, no waiting.",
+        "services": ["Water Extraction", "Structural Drying", "Mold Remediation", "Smoke & Fire Damage Restoration", "Emergency Board-Up"],
+        "license": "AZ ROC 678901 - IICRC Certified Firm",
+        "keywords": "water damage restoration phoenix, flood cleanup scottsdale, emergency water extraction, mold remediation phoenix, fire damage restoration",
+        "certifications": "IICRC Certified, BBB A+, Licensed & Insured",
     },
-    "Restaurant": {
-        "biz": "Mesa Grille & Bar",
-        "tagline": "Fresh, local ingredients - great food without the pretense.",
-        "differentiator": "Every dish is made to order from scratch. We don't have a freezer full of shortcuts.",
-        "services": ["Dine-In", "Takeout & Curbside", "Private Events & Catering", "Happy Hour", "Weekend Brunch"],
-        "license": "AZ Food Service License #12345",
-        "keywords": "restaurant mesa az, best burgers mesa, happy hour scottsdale, private event catering phoenix, brunch near me",
-        "certifications": "Health Dept A Rating, OpenTable Top Pick, Yelp Top Rated",
+    "Garage Door Repair": {
+        "biz": "Valley Garage Door Pros",
+        "tagline": "Phoenix garage door repair - same-day service, upfront pricing.",
+        "differentiator": "We carry parts for every major brand on the truck, so most repairs finish in one visit.",
+        "services": ["Spring Repair & Replacement", "Opener Installation & Repair", "Panel & Track Repair", "New Garage Door Installation", "Emergency Garage Door Repair"],
+        "license": "ROC 789012 - Licensed & Bonded",
+        "keywords": "garage door repair phoenix, garage door spring replacement scottsdale, garage door opener repair, same day garage door service, emergency garage door repair",
+        "certifications": "IDA Member, BBB A+, Licensed & Bonded",
     },
-    "Med Spa": {
-        "biz": "Radiance Medical Aesthetics",
-        "tagline": "Natural-looking results - expert injectors, zero pressure.",
-        "differentiator": "Every treatment plan is designed by a board-certified provider, not a sales coordinator.",
-        "services": ["Botox & Dysport", "Dermal Fillers", "Laser Skin Resurfacing", "Hydrafacial", "Body Contouring"],
-        "license": "AZ Medical Aesthetics License",
-        "keywords": "med spa scottsdale, botox phoenix, lip filler scottsdale, laser hair removal phoenix, hydrafacial near me",
-        "certifications": "AACS Member, RealSelf Top Doctor, Board Certified Providers",
+    "Pest Control": {
+        "biz": "Sonoran Pest Solutions",
+        "tagline": "Phoenix pest control - scorpions, termites, and everything in between.",
+        "differentiator": "Every treatment plan is backed by a written re-service guarantee - if pests come back between visits, so do we, free.",
+        "services": ["General Pest Control", "Scorpion Control", "Termite Treatment", "Rodent Exclusion", "Quarterly Maintenance Plans"],
+        "license": "AZ Pest Control License #34567",
+        "keywords": "pest control phoenix, scorpion control scottsdale, termite treatment phoenix, exterminator near me, rodent control phoenix",
+        "certifications": "AZ Structural Pest Control Licensed, BBB A+, QualityPro Certified",
     },
-    "Dentist": {
-        "biz": "Sunrise Family Dentistry",
-        "tagline": "Comfortable, modern dental care for the whole family - no wait, no judgment.",
-        "differentiator": "We offer same-day emergency appointments and accept most insurance plans.",
-        "services": ["Preventive Cleanings", "Teeth Whitening", "Dental Implants", "Invisalign", "Emergency Dental Care"],
-        "license": "AZ Dental License #98765",
-        "keywords": "dentist phoenix, family dentist scottsdale, teeth whitening phoenix, dental implants, emergency dentist near me",
-        "certifications": "ADA Member, BBB A+, Google 4.9 Stars",
+    "Landscaping": {
+        "biz": "Desert Bloom Landscaping",
+        "tagline": "Phoenix landscaping - xeriscape design, installation, and maintenance.",
+        "differentiator": "Every design is built for the Sonoran Desert climate first - low water use without sacrificing curb appeal.",
+        "services": ["Landscape Design & Installation", "Xeriscape & Drought-Tolerant Design", "Irrigation Repair", "Tree & Shrub Trimming", "Seasonal Maintenance Plans"],
+        "license": "AZ ROC 890123 - Landscape Contractor",
+        "keywords": "landscaping phoenix, xeriscape design scottsdale, irrigation repair phoenix, desert landscaping, landscape maintenance near me",
+        "certifications": "Licensed ROC, BBB A+, Certified Landscape Professional",
     },
-    "Salon": {
-        "biz": "Luxe Hair Studio",
-        "tagline": "Color, cuts, and blowouts - book online, walk out obsessed.",
-        "differentiator": "Every stylist is a senior colorist with 10+ years of experience. No junior stylists, ever.",
-        "services": ["Haircut & Blowout", "Color & Highlights", "Balayage & Ombre", "Keratin Treatment", "Bridal Party Packages"],
-        "license": "AZ Cosmetology License",
-        "keywords": "hair salon scottsdale, balayage phoenix, highlights near me, bridal hair scottsdale, best colorist phoenix",
-        "certifications": "Redken Elite Salon, NAHA Nominee, Yelp Top Rated",
+    "Tree Service": {
+        "biz": "Canopy Tree Care",
+        "tagline": "Phoenix tree service - trimming, removal, and storm cleanup.",
+        "differentiator": "Every crew is ISA Certified Arborist-led, so pruning decisions come from training, not guesswork.",
+        "services": ["Tree Trimming & Pruning", "Tree Removal", "Stump Grinding", "Storm Damage Cleanup", "Palm Tree Care"],
+        "license": "AZ ROC 901234 - Licensed & Insured",
+        "keywords": "tree service phoenix, tree removal scottsdale, tree trimming near me, stump grinding phoenix, storm damage tree cleanup",
+        "certifications": "ISA Certified Arborist, BBB A+, TCIA Member",
+    },
+    "Cleaning Services": {
+        "biz": "Sparkle Valley Cleaning",
+        "tagline": "Phoenix cleaning services - reliable, bonded, and background-checked.",
+        "differentiator": "The same two-person team cleans your home every visit - no rotating strangers, ever.",
+        "services": ["Recurring House Cleaning", "Deep Cleaning", "Move-In/Move-Out Cleaning", "Post-Construction Cleaning", "Office & Commercial Cleaning"],
+        "license": "AZ Business License - Bonded & Insured",
+        "keywords": "house cleaning phoenix, cleaning service scottsdale, deep cleaning near me, move out cleaning phoenix, office cleaning phoenix",
+        "certifications": "Bonded & Insured, BBB A+, Background-Checked Staff",
     },
     "Other": {
         "biz": "Your Business Name",
@@ -154,11 +179,12 @@ TRADE_SOFTWARE: dict[str, TradeSoftware] = {
     "Plumber": {"label": "Do you use a field service management system?", "options": ["ServiceTitan", "Jobber", "Housecall Pro", "ServiceFusion", "Other", "None"], "booking_placeholder": "e.g. Jobber, ServiceTitan, or none"},
     "Electrician": {"label": "Do you use a field service management system?", "options": ["ServiceTitan", "Jobber", "Housecall Pro", "ServiceFusion", "Other", "None"], "booking_placeholder": "e.g. Jobber, ServiceTitan, or none"},
     "Roofing": {"label": "Do you use a field service management system?", "options": ["JobNimbus", "AccuLynx", "Jobber", "Roofr", "Other", "None"], "booking_placeholder": "e.g. JobNimbus, AccuLynx, or none"},
-    "Contractor": {"label": "Do you use a project management system?", "options": ["BuilderTrend", "CoConstruct", "Jobber", "Procore", "Other", "None"], "booking_placeholder": "e.g. BuilderTrend, Jobber, or none"},
-    "Salon": {"label": "Do you use a salon booking or management system?", "options": ["Vagaro", "Mindbody", "Fresha", "Booksy", "Square Appointments", "GlossGenius", "Acuity", "Other", "None"], "booking_placeholder": "e.g. Vagaro, Mindbody, Fresha, or none"},
-    "Med Spa": {"label": "Do you use a booking or practice management system?", "options": ["Vagaro", "Mindbody", "Patientnow", "Aesthetix", "Square Appointments", "Other", "None"], "booking_placeholder": "e.g. Vagaro, Mindbody, or none"},
-    "Restaurant": {"label": "Do you use a POS or reservation system?", "options": ["Toast", "Square for Restaurants", "OpenTable", "Yelp Reservations", "Other", "None"], "booking_placeholder": "e.g. Toast, OpenTable, or none"},
-    "Dentist": {"label": "Do you use a practice management system?", "options": ["Dentrix", "Eaglesoft", "Open Dental", "Carestream", "Other", "None"], "booking_placeholder": "e.g. Dentrix, Eaglesoft, or none"},
+    "Water Damage Restoration": {"label": "Do you use a restoration job management system?", "options": ["Xactimate", "DASH", "Encircle", "Jobber", "Other", "None"], "booking_placeholder": "e.g. Xactimate, DASH, or none"},
+    "Garage Door Repair": {"label": "Do you use a field service management system?", "options": ["ServiceTitan", "Jobber", "Housecall Pro", "ServiceFusion", "Other", "None"], "booking_placeholder": "e.g. Jobber, ServiceTitan, or none"},
+    "Pest Control": {"label": "Do you use a pest control routing/service system?", "options": ["PestPac", "FieldRoutes", "Briostack", "ServSuite", "Other", "None"], "booking_placeholder": "e.g. PestPac, FieldRoutes, or none"},
+    "Landscaping": {"label": "Do you use a landscape business management system?", "options": ["Aspire", "Jobber", "LMN", "Service Autopilot", "Other", "None"], "booking_placeholder": "e.g. Aspire, Jobber, or none"},
+    "Tree Service": {"label": "Do you use a tree service business management system?", "options": ["Aspire", "Arborgold", "Jobber", "SingleOps", "Other", "None"], "booking_placeholder": "e.g. Arborgold, SingleOps, or none"},
+    "Cleaning Services": {"label": "Do you use a cleaning business management system?", "options": ["Jobber", "Housecall Pro", "ZenMaid", "Launch27", "Other", "None"], "booking_placeholder": "e.g. ZenMaid, Housecall Pro, or none"},
     "Other": {"label": "Do you use any scheduling or management software?", "options": ["Other", "None"], "booking_placeholder": "e.g. Calendly, or none"},
 }
 
