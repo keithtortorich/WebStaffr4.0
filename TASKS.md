@@ -1,5 +1,24 @@
 # TASKS.md — WebStaffr 4.0
 
+## Session Handoff (2026-07-27, latest)
+
+**Pushed to origin/main, verified live (189/189 tests, 9/9 health checks, this session):**
+- `643d4c6` Narrowed supported industries to the priority trade list.
+- `daa906f` Added the in-repo server-side site renderer (Jinja2 templates, SEO/schema, tests).
+- `edb0d75` Rewrote the landing page, wired 11 working links.
+- `c990e24` **Fixed no-fabrication violations in `home.html`** found during this session's review: a hardcoded "5,000+ Jobs Done" stat, a `years_in_biz or 15` fake-default, a trust bar that fabricated "4.9 stars / 100+ reviews" for tenants with zero real reviews, unconditional trust badges, and a fabricated second review card. All now gate on real `site_data` fields. Also added an objection-handling "Common Questions" (MFAQ) section, plain copy not schema.org markup, gated on real intake fields only.
+- `ce87ed7` Doc updates (README, TASKS.md).
+- `f0c5b44` Added `referral.md` (new Referral Program, founder-approved as its own source of truth — no prior governance doc for it). **One open item still unresolved:** the "Max per referral: $560+" figure doesn't reconcile against the stated upfront ($100) + recurring ($180) + retention ($150) = $430; flagged in the doc, not fixed, since the right fix depends on which component was meant to carry the extra multiplier.
+- Also caught and stripped mid-session: the landing page draft had reintroduced the "85% of voicemail callers never call back" stat (BIA/Kelsey), which had already failed independent verification twice earlier the same day and was deliberately excluded from the real website copy. Removed from all 3 occurrences before push.
+
+**Not committed — sitting as untracked reference material, founder review pending:**
+- `docs/POSITIONING_AUDIT_PROTOCOL.md` — a prospecting research protocol (review sentiment, website/social audit, competitor mapping, positioning logic) for a future outbound sales tool. Not code, not wired to anything.
+- `docs/LEAD_ENGINE_ARCHITECTURE.md` and `docs/LEAD_ENGINE_PHOENIX_INTEGRATION.md` — reference designs for WebStaffr's own outbound lead-gen system (AOKAI scoring rubric, fail-proof escalation, Phoenix HVAC beachhead rollout). Flagged issues in both docs: the SMS/voice vendor stack (Twilio + MessageBird, Privyr) conflicts with this repo's own GHL-native default; 7+ new paid vendors would need explicit approval before any get wired up; and the Phoenix doc's source material calls the system "proven" in the same sentence it admits is "documented but unexecuted" — treat all stated rates/targets as hypotheses, not results.
+- `sales-crm.html` — a standalone, self-contained HTML sales CRM tool (leads, AOKAI scorer, pitch deck, objection handler, referral kit, notes; `localStorage`-persisted). Saved verbatim at the founder's explicit request to defer fixes: it still contains the debunked 85%/78% stats in its pitch/objection copy, heavy emoji use (conflicts with the Governance Manual's no-emoji rule if this counts as brand-facing), and the same unreconciled "$560+" referral figure. The AOKAI scorer in its JS is a placeholder simulation, not the real 100-point rubric.
+- Also present, untouched, not reviewed this session (unclear provenance, likely from a separate tool/session): `DEMO-TEMPLATES-INDEX.md`, `DEPLOYMENT_SUMMARY.md`, `INVESTOR_EMAIL.md`, `INVESTOR_EMAIL_LIVE.md`, `INVESTOR_UPDATE_2026-07-27.md`, `MARKETING_COORDINATOR_PUBLISHING_API_OPTIONS.md`, `POST_DEPLOY_VERIFICATION.md`, `PUSH_COMMANDS.sh`, `WebStaffr 3 Consolidated Master Document (v1.md`, `demo-templates/`. None of these are wired into backend code (the landing page's demo links route through the site renderer, not the static `demo-templates/` files).
+
+**Repo state at handoff:** `main` in sync with `origin/main` at `f0c5b44`. Working tree has no modified tracked files, only the untracked items listed above.
+
 ## Completed
 
 - **Clean rebuild from WS3.3.** Carried forward only proven, running code (~95 files) into a
