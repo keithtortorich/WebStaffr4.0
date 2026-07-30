@@ -99,7 +99,7 @@ class TestGenerateQuote(SamRouterTestCase):
         self.assertEqual(resp.status_code, 400)
 
     def test_generate_quote_missing_service_scope(self):
-        """POST /quotes/generate with empty scope returns 400."""
+        """POST /quotes/generate with empty scope returns 422 from Pydantic validation."""
         req = {
             "tenant_id": "test_tenant",
             "contact_id": "ghl_123",
@@ -108,7 +108,9 @@ class TestGenerateQuote(SamRouterTestCase):
             "industry": "HVAC",
         }
         resp = self.client.post("/quotes/generate", json=req)
-        self.assertEqual(resp.status_code, 400)
+        # Empty string fails GenerateQuoteRequest's min_length=5 before the
+        # route handler runs; FastAPI/Pydantic returns 422 for validation errors.
+        self.assertEqual(resp.status_code, 422)
 
     def test_generate_quote_unknown_service_defaults_to_contact(self):
         """POST /quotes/generate with unknown service returns contact-for-quote."""
