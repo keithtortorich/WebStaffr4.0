@@ -421,3 +421,39 @@ loaded before searching, and check the remote before reporting that something
 does not exist. Asking the founder to confirm what could be verified directly
 is offloading, not diligence; a long manual workaround written out in prose is
 a tell that the ladder was skipped.
+
+---
+
+## ADR-020: Google Drive "Webstaffr4" folder docs confirmed canonical; em-dash conflict resolved
+
+**Date**: 2026-07-30
+
+**Decision**: The founder confirmed that the docs in the Google Drive
+"Webstaffr4" folder (WEBSTAFFR_GOVERNANCE.md and its shortcut siblings --
+WebStaffr_Training_Manual_real, Referral Program Handoff, Marketing Coordinator
+Bundle, THE PERFECT SITE) are the newest canonical versions of those documents.
+This directly resolves the open item in CLAUDE.md's brand-governance section:
+two governance sources disagreed on the em-dash rule (Brand Principles
+Handbook PDF: no stated ban; a separate Governance Manual doc: explicit ban).
+The canonical WEBSTAFFR_GOVERNANCE.md (read in full 2026-07-30) is unambiguous:
+"No em-dashes (--) anywhere in WebStaffr copy, internal or external," applying
+to "marketing, sales materials, investor decks, internal documentation,
+everything." The rule now stands as settled, not a stopgap default.
+
+**Why**: This repo's own CLAUDE.md had been carrying the conflict as
+unresolved since at least 2026-07-27 (see TASKS.md's Agency Site review entry,
+which found the same conflict live in a Lovable preview). The founder's direct
+statement resolves it without further guessing.
+
+**Note found in-path, not acted on**: the canonical WEBSTAFFR_GOVERNANCE.md
+itself states it "supersedes and consolidates" CLAUDE.md's operational history
+and unifies scattered project instructions into itself. That is a bigger claim
+than the em-dash resolution above, and this repo's actual CLAUDE.md remains the
+checked-in operating file until the founder explicitly says to restructure
+around the Drive doc as the new source of truth -- flagged here rather than
+acted on unilaterally.
+
+**Consequences**: Drop the "unresolved" framing anywhere it's cited (CLAUDE.md
+updated same day). No-em-dash enforcement continues exactly as it already
+runs in this repo (landing page, sales-crm.html, generated site templates) --
+this ADR only removes the caveat that the rule was provisional.
