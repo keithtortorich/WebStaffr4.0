@@ -174,6 +174,26 @@ class PricingEngine:
         )
 
     @staticmethod
+    def _normalize_text(text: str) -> str:
+        text = text.lower()
+        text = text.replace("&", " and ")
+        text = text.replace("/", " ")
+        text = re.sub(r"[^a-z0-9]+", " ", text)
+        return " ".join(text.split())
+
+    @classmethod
+    def _match_phrases_for_service(cls, service: str) -> list[str]:
+        phrases = {cls._normalize_text(service)}
+        if "/" in service:
+            for part in service.split("/"):
+                part_norm = cls._normalize_text(part)
+                if part_norm:
+                    phrases.add(part_norm)
+        if "&" in service:
+            phrases.add(cls._normalize_text(service.replace("&", " ")))
+        return [p for p in phrases if p]
+
+    @staticmethod
     def _extract_services(scope: str, industry: str) -> list[str]:
         """Extract service keywords mentioned in the scope text.
 
@@ -182,12 +202,13 @@ class PricingEngine:
         services_for_industry = TRADE_HINTS.get(industry, {}).get("services", [])
 
         identified = []
-        scope_lower = scope.lower()
+        scope_norm = PricingEngine._normalize_text(scope)
 
         for service in services_for_industry:
-            # Simple substring match; can be enhanced with NLP later
-            if service.lower() in scope_lower:
-                identified.append(service)
+            for phrase in PricingEngine._match_phrases_for_service(service):
+                if phrase in scope_norm:
+                    identified.append(service)
+                    break
 
         return identified
 

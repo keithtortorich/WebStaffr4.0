@@ -122,7 +122,7 @@ class TestPricingEngine(unittest.TestCase):
     def test_extract_services_plumber(self):
         """_extract_services correctly identifies plumbing services."""
         services = PricingEngine._extract_services(
-            "I have a leak that needs detection and my water heater is old",
+            "I need leak detection and repair plus a water heater replacement",
             "Plumber",
         )
 

@@ -8,7 +8,8 @@ import unittest
 from fastapi.testclient import TestClient
 
 from webstaffr.app import create_app
-from webstaffr.workers.angel.ghl import NullGHLClient
+from webstaffr.db import connect, migrate
+from webstaffr.workers.angel.api_auth import StaticSecretVerifier
 from webstaffr.workers.leo.protocol import GHLMessagingClient
 
 
@@ -29,7 +30,6 @@ class _FakeGHLMessagingClient(GHLMessagingClient):
 
 
 def _valid_lead_event(**overrides):
-    """Construct a valid lead webhook event."""
     event = {
         "tenant_id": "acme",
         "event_type": "lead_created",
@@ -60,20 +60,40 @@ def _valid_lead_event(**overrides):
 
 
 class LeoRouterTestCase(unittest.TestCase):
-    """Setup: temp db, app with test GHL client, TestClient."""
+    """Setup: transient temp DB, migrated schema, authenticated TestClient."""
 
     def setUp(self):
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
+
+        with connect(self.db_path) as conn:
+            migrate(conn)
+
         self.ghl_client = _FakeGHLMessagingClient()
+        self.webhook_verifier = StaticSecretVerifier("test-secret")
         app = create_app(
             db_path=self.db_path,
             ghl_messaging_client=self.ghl_client,
+            ghl_webhook_verifier=self.webhook_verifier,
         )
-        self.client = TestClient(app)
+        self._client_ctx = TestClient(app)
+        self.client = self._client_ctx.__enter__()
+
+    def _seed_tenant(self, tenant_id: str):
+        with connect(self.db_path) as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO tenants (tenant_id) VALUES (?)",
+                (tenant_id,),
+            )
+            conn.commit()
 
     def tearDown(self):
-        os.remove(self.db_path)
+        self._client_ctx.__exit__(None, None, None)
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
+
+    def _auth_headers(self):
+        return {"X-Webhook-Secret": "test-secret"}
 
 
 class TestLeoScoreEndpoint(LeoRouterTestCase):
@@ -96,7 +116,7 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
         resp = self.client.post(
             "/leo/score",
             json={
-                "phone_answered": True,  # 15
+                "company_phone_answered": True,  # 15
                 "owner_answered": True,  # 10
                 "text_enabled": True,  # 5
                 "email": "test@example.com",  # 5
@@ -105,6 +125,7 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
                 "currently_hiring": True,  # 3
                 "has_website": False,  # 8
                 "has_booking_system": False,  # 5
+                "has_crm": False,  # 5
                 "industry": "HVAC",  # 15
                 "active_reviews_count": 5,  # 2
                 "offers_financing": True,  # 2
@@ -113,20 +134,20 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
 
-        self.assertEqual(body["score_accessibility"], 25)  # 15 + 10
+        self.assertEqual(body["score_accessibility"], 35)  # 15 + 10 + 5 + 5
         self.assertEqual(body["score_business_size"], 16)  # 8 + 5 + 3
-        self.assertEqual(body["score_digital_maturity"], 13)  # 8 + 5
+        self.assertEqual(body["score_digital_maturity"], 18)  # 8 + 5 + 5
         self.assertEqual(body["score_revenue_potential"], 15)  # HVAC
         self.assertEqual(body["score_buying_signals"], 4)  # 2 + 2
-        # Total: 25 + 16 + 13 + 15 + 4 = 73
-        self.assertEqual(body["score_total"], 73)
-        self.assertEqual(body["tier"], 2)
+        # Total: 35 + 16 + 18 + 15 + 4 = 88
+        self.assertEqual(body["score_total"], 88)
+        self.assertEqual(body["tier"], 1)
 
     def test_score_endpoint_tier_1_threshold(self):
         resp = self.client.post(
             "/leo/score",
             json={
-                "phone_answered": True,  # 15
+                "company_phone_answered": True,  # 15
                 "owner_answered": True,  # 10
                 "text_enabled": True,  # 5
                 "email": "test@example.com",  # 5
@@ -145,36 +166,36 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
 
-        # Total: 15 + 10 + 5 + 5 + 8 + 5 + 3 + 8 + 5 + 5 + 15 + 3 + 2 + 2 = 91
-        self.assertGreaterEqual(body["score_total"], 85)
+        self.assertEqual(body["score_total"], 91)
         self.assertEqual(body["tier"], 1)
 
 
 class TestLeoWebhookNoVerifier(LeoRouterTestCase):
-    """Test webhook handling when verifier is Null (unconfigured)."""
+    """Test webhook handling with authenticated requests."""
 
     def test_webhook_valid_lead_creates_record(self):
-        """POST /webhooks/ghl/lead with valid event, no secret verification."""
+        """POST /webhooks/ghl/lead with valid event."""
+        self._seed_tenant("acme")
         event = _valid_lead_event()
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
 
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
 
         self.assertEqual(body["status"], "processed")
         self.assertGreater(body["lead_id"], 0)
-        self.assertEqual(body["score"], 71)  # Based on the test event signals
+        self.assertEqual(body["score"], 70)  # Based on the test event signals
         self.assertEqual(body["tier"], 2)
         self.assertEqual(body["first_touch"], "sms")
         self.assertEqual(body["sync_status"], "synced")
 
     def test_webhook_valid_lead_stores_in_database(self):
         """Verify lead was actually inserted into webstaffr_leads table."""
+        self._seed_tenant("acme")
         event = _valid_lead_event()
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         lead_id = resp.json()["lead_id"]
 
-        # Query database directly
         conn = sqlite3.connect(self.db_path)
         cursor = conn.execute(
             "SELECT lead_id, tenant_id, contact_name, score_total, tier, first_touch_channel FROM webstaffr_leads WHERE lead_id = ?",
@@ -187,14 +208,15 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         self.assertEqual(row[0], lead_id)
         self.assertEqual(row[1], "acme")
         self.assertEqual(row[2], "John Smith")
-        self.assertEqual(row[3], 71)  # score_total
+        self.assertEqual(row[3], 70)  # score_total
         self.assertEqual(row[4], 2)  # tier
         self.assertEqual(row[5], "sms")  # first_touch_channel
 
     def test_webhook_tier_1_sends_sms(self):
         """Tier 1 leads (85+) get SMS first touch."""
+        self._seed_tenant("acme")
         event = _valid_lead_event(
-            phone_answered=True,  # 15
+            company_phone_answered=True,  # 15
             owner_answered=True,  # 10
             text_enabled=True,  # 5
             email="test@example.com",  # 5
@@ -211,7 +233,7 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         )
         # Total: 91, Tier 1
 
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["tier"], 1)
@@ -227,17 +249,29 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
 
     def test_webhook_tier_3_sends_email(self):
         """Tier 3 leads (55-69) get email first touch."""
+        self._seed_tenant("acme")
         event = _valid_lead_event(
-            phone_answered=True,  # 15
+            company_phone_answered=True,  # 15
             owner_answered=True,  # 10
+            text_enabled=None,  # unknown
+            email=None,  # unknown
+            employee_count=None,  # unknown
+            vehicle_count=None,  # unknown
+            currently_hiring=None,  # unknown
+            multiple_locations=None,  # unknown
             has_website=False,  # 8
             has_booking_system=False,  # 5
+            has_crm=None,  # unknown
+            has_diy_platform=None,  # unknown
             industry="HVAC",  # 15
             hiring_office_staff=True,  # 3
+            active_reviews_count=None,  # unknown
+            offers_financing=None,  # unknown
+            recent_service_history=None,  # unknown
         )
         # Total: 56, Tier 3
 
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["tier"], 3)
@@ -252,8 +286,9 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
 
     def test_webhook_tier_4_sends_nothing(self):
         """Tier 4 leads (<55) are skipped, no outreach."""
+        self._seed_tenant("acme")
         event = _valid_lead_event(
-            phone_answered=False,
+            company_phone_answered=False,
             owner_answered=False,
             text_enabled=False,
             email=None,
@@ -264,7 +299,7 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         )
         # Total: 6, Tier 4
 
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["tier"], 4)
@@ -275,27 +310,29 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         self.assertEqual(len(self.ghl_client.sent_emails), 0)
 
     def test_webhook_invalid_tenant_returns_400(self):
-        """Missing tenant_id → 400."""
+        """Invalid tenant_id → 400."""
         event = _valid_lead_event(tenant_id="")
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 400)
 
     def test_webhook_invalid_event_type_returns_400(self):
         """Unsupported event_type → 400."""
+        self._seed_tenant("acme")
         event = _valid_lead_event(event_type="invalid_event")
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unsupported event_type", resp.json()["detail"])
 
     def test_webhook_missing_contact_data_still_scores(self):
         """Lead with minimal data still gets scored and stored."""
+        self._seed_tenant("acme")
         event = _valid_lead_event(
             contact_name=None,
             phone=None,
             email=None,
             company_phone_answered=None,
         )
-        resp = self.client.post("/webhooks/ghl/lead", json=event)
+        resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
 
@@ -306,12 +343,13 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
 
     def test_webhook_rate_limit_exceeded_returns_429(self):
         """Exceeding rate limit returns 429."""
+        self._seed_tenant("acme")
         event = _valid_lead_event()
 
         # Send many requests rapidly to hit rate limit
         # The rate limit is per-tenant and per-key; check rate_limit.py for limits
         for i in range(20):
-            resp = self.client.post("/webhooks/ghl/lead", json=event)
+            resp = self.client.post("/webhooks/ghl/lead", json=event, headers=self._auth_headers())
             if resp.status_code == 429:
                 self.assertEqual(resp.json()["detail"], "Rate limit exceeded, try again shortly.")
                 return
@@ -325,8 +363,10 @@ class TestLeoTenantIsolation(LeoRouterTestCase):
 
     def test_lead_created_for_one_tenant_invisible_to_another(self):
         """Create lead for tenant A, verify tenant B can't see it."""
+        self._seed_tenant("tenant_a")
+        self._seed_tenant("tenant_b")
         event_a = _valid_lead_event(tenant_id="tenant_a")
-        resp_a = self.client.post("/webhooks/ghl/lead", json=event_a)
+        resp_a = self.client.post("/webhooks/ghl/lead", json=event_a, headers=self._auth_headers())
         lead_id_a = resp_a.json()["lead_id"]
 
         # Query as tenant B via database

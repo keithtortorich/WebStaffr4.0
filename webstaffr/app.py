@@ -196,7 +196,7 @@ def create_app(
     app.include_router(
         create_leo_router(
             db_path=db_path,
-            ghl_messaging_client=ghl_client,
+            ghl_messaging_client=ghl_messaging_client or ghl_client,
             ghl_webhook_verifier=ghl_webhook_verifier,
         )
     )
