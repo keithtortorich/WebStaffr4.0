@@ -40,6 +40,9 @@ from .workers.angel.router import create_angel_router
 from .workers.angel.social_media_router import social_media_router
 from .workers.angel.voice import VoiceBackend
 from .workers.angel.workflow_graph_router import create_workflow_graph_router
+from .workers.rita.router import create_rita_router
+from .workers.leo.router import create_leo_router
+from .workers.sam.router import create_sam_router
 
 try:  # optional in minimal test/runtime envs without ServiceTitan configured
     from .integrations.servicetitan import ServiceTitanSync as _ServiceTitanSync
@@ -113,6 +116,7 @@ def create_app(
     db_path: str = "webstaffr.db",
     voice_backend: Optional[VoiceBackend] = None,
     ghl_client: Optional[GHLClient] = None,
+    ghl_messaging_client: Optional = None,  # For Leo's outreach (SMS/email)
     retell_verifier: Optional[RetellWebhookVerifier] = None,
     ghl_webhook_verifier: Optional[SharedSecretVerifier] = None,
     book_api_verifier: Optional[SharedSecretVerifier] = None,
@@ -176,6 +180,33 @@ def create_app(
             ghl_client=ghl_client,
             book_api_verifier=book_api_verifier,
             ghl_webhook_verifier=ghl_webhook_verifier,
+        )
+    )
+    # Rita's endpoints (/webhooks/ghl/job_completed, /workers/rita/draft-response)
+    # -- reputation management: automate review requests and response drafting.
+    app.include_router(
+        create_rita_router(
+            db_path=db_path,
+            ghl_client=ghl_client,
+            ghl_webhook_verifier=ghl_webhook_verifier,
+        )
+    )
+    # Leo's endpoints (/webhooks/ghl/lead, /leo/score) -- instantaneous
+    # lead follow-up with AOKAI scoring and first-touch outreach.
+    app.include_router(
+        create_leo_router(
+            db_path=db_path,
+            ghl_messaging_client=ghl_client,
+            ghl_webhook_verifier=ghl_webhook_verifier,
+        )
+    )
+    # Sam's endpoints (/quotes/generate, /quotes/{id}, /quotes/{id}/accept) --
+    # quote generation, objection handling, and quote-to-booking conversion.
+    # Server-to-server only, no CORS.
+    app.include_router(
+        create_sam_router(
+            db_path=db_path,
+            ghl_client=ghl_client,
         )
     )
 

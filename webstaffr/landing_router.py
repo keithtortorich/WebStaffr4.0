@@ -24,6 +24,37 @@ _CONTACT_EMAIL = "keithtortorich@gmail.com"
 _CONTACT_PHONE = "(888) 302-8368"
 _CONTACT_PHONE_TEL = "+18883028368"
 
+# Small inline SVG icon set for the landing page -- same rationale as the
+# customer-site renderer's icon set (webstaffr/templates/site/_icons.html):
+# replaces plain-text bullets/numbering with real iconography, no external
+# icon-library dependency, no build step. Defined as plain Python string
+# constants here (rather than Jinja macros) because this page is a single
+# inline-HTML string, not a Jinja template -- same visual language, native
+# to this file's own architecture.
+_ICON_CHECK = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<polyline points="20 6 9 17 4 12"/></svg>'
+)
+_ICON_X = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+)
+_ICON_PHONE = (
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 '
+    '19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 '
+    '2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 '
+    '2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
+)
+_ICON_ARROW = (
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
+)
+
 
 @landing_router.get("/", response_class=None)
 async def landing_page():
@@ -49,6 +80,10 @@ def _render_landing_page() -> str:
         .replace("__CONTACT_EMAIL__", _CONTACT_EMAIL)
         .replace("__CONTACT_PHONE_TEL__", _CONTACT_PHONE_TEL)
         .replace("__CONTACT_PHONE__", _CONTACT_PHONE)
+        .replace("__ICON_CHECK__", _ICON_CHECK)
+        .replace("__ICON_X__", _ICON_X)
+        .replace("__ICON_PHONE__", _ICON_PHONE)
+        .replace("__ICON_ARROW__", _ICON_ARROW)
     )
 
 
@@ -115,8 +150,12 @@ _LANDING_PAGE_HTML = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #0a0c0f; color: #f0f2f5;">
-    <div style="max-width: 1200px; margin: 0 auto;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #0a0c0f; color: #f0f2f5;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; background: rgba(10,12,15,0.92); backdrop-filter: blur(6px); z-index: 10;">
+        <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.02em; color: #f0f2f5;">WebStaffr</span>
+        <a href="tel:__CONTACT_PHONE_TEL__" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 9px 18px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.9rem;">__ICON_PHONE__ __CONTACT_PHONE__</a>
+    </div>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
         <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
 
         <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
@@ -142,12 +181,12 @@ _LANDING_PAGE_HTML = """
                         <div style="color: #8a94a6; font-size: 0.9rem;">of home service calls go unanswered</div>
                     </div>
                     <div>
-                        <div style="font-size: 2rem; font-weight: 600; color: #c8a25a;">78%</div>
-                        <div style="color: #8a94a6; font-size: 0.9rem;">of homeowners hire whoever responds first</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: #c8a25a; line-height: 1.25;">Speed wins the job</div>
+                        <div style="color: #8a94a6; font-size: 0.9rem;">Speed-to-lead research (MIT/Oldroyd) ties faster first response to higher close rates</div>
                     </div>
                 </div>
                 <p style="color: #8a94a6; margin: 0; line-height: 1.8;">
-                    <strong style="color: #f0f2f5;">If you miss 10 calls in a week:</strong> most leave voicemail, and most of those never call back. The majority hire your competitor.
+                    <strong style="color: #f0f2f5;">If you miss 10 calls in a week:</strong> most leave voicemail, and most of those never call back. Every one of them is a lead your competitor can pick up instead.
                     <br><br>
                     <strong style="color: #c8a25a;">A single missed job = $500–$5,000.</strong> A single missed call costs more than a month of WebStaffr.
                 </p>
@@ -170,19 +209,19 @@ _LANDING_PAGE_HTML = """
             <h3 style="color: #c8a25a; margin-bottom: 20px;">Why WebStaffr</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Hire a human receptionist</div>
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Hire a human receptionist</div>
                     <div style="color: #8a94a6; font-size: 0.9rem;">$3,500+/month. Can't work 24/7. Calls in sick. Takes vacations. Can't handle 3 calls at once.</div>
                 </div>
                 <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Let calls go to voicemail</div>
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Let calls go to voicemail</div>
                     <div style="color: #8a94a6; font-size: 0.9rem;">Most never call back. They call your competitor instead.</div>
                 </div>
                 <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px;">Call back later</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">The lead is already gone. 78% hire whoever responds first.</div>
+                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Call back later</div>
+                    <div style="color: #8a94a6; font-size: 0.9rem;">The lead's already talking to whoever picked up first.</div>
                 </div>
                 <div style="background: rgba(200,162,90,0.1); border: 1px solid rgba(200,162,90,0.3); padding: 16px; border-radius: 6px;">
-                    <div style="color: #c8a25a; font-weight: 600; margin-bottom: 8px;">WebStaffr</div>
+                    <div style="color: #c8a25a; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">__ICON_CHECK__ WebStaffr</div>
                     <div style="color: #8a94a6; font-size: 0.9rem;">$497/month. 24/7/365. Answers every call. Qualifies every lead. Books every job. Built for contractors.</div>
                 </div>
             </div>
@@ -191,35 +230,35 @@ _LANDING_PAGE_HTML = """
         <div style="margin-bottom: 60px;">
             <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live: 10 Home Service Industries</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">1. HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span>
+                <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/plumbing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">2. Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span>
+                <a href="/demos/plumbing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">3. Electrical</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24% unanswered</span>
+                <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Electrical</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/roofing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">4. Roofing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span>
+                <a href="/demos/roofing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Roofing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/water-damage" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">5. Water Damage</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 emergency</span>
+                <a href="/demos/water-damage" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Water Damage</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 emergency</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/garage-door" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">6. Garage Door</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">After-hours demand</span>
+                <a href="/demos/garage-door" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Garage Door</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">After-hours demand</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/pest-control" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">7. Pest Control</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">27% unanswered</span>
+                <a href="/demos/pest-control" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Pest Control</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">27% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/landscaping" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">8. Landscaping</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">High volume</span>
+                <a href="/demos/landscaping" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Landscaping</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">High volume</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/tree-service" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">9. Tree Service</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span>
+                <a href="/demos/tree-service" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Tree Service</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/cleaning" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: block;">
-                    <strong style="color: #c8a25a;">10. Cleaning</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Recurring</span>
+                <a href="/demos/cleaning" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span><strong style="color: #c8a25a;">Cleaning</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Recurring</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
             </div>
         </div>
@@ -244,7 +283,7 @@ _LANDING_PAGE_HTML = """
                 </button>
             </form>
             <p id="lead-form-status" role="status" aria-live="polite" style="font-size: 0.9rem; color: #c8a25a; margin-top: 12px; min-height: 1.2em;"></p>
-            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" style="color: #c8a25a; text-decoration: none;">__CONTACT_PHONE__</a></p>
+            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" style="color: #c8a25a; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">__ICON_PHONE__ __CONTACT_PHONE__</a></p>
         </div>
     </div>
     <script>

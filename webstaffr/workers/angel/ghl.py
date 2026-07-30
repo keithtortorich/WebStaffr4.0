@@ -28,6 +28,8 @@ class GHLClient(Protocol):
     def create_appointment(self, contact_id: str, starts_at: str, notes: str) -> dict: ...
     def update_appointment(self, appointment_id: str, starts_at: str, notes: str) -> dict: ...
     def cancel_appointment(self, appointment_id: str) -> dict: ...
+    def send_sms(self, contact_id: str, message: str) -> dict: ...
+    def send_email(self, contact_id: str, subject: str, body: str) -> dict: ...
 
 
 class NullGHLClient:
@@ -39,6 +41,8 @@ class NullGHLClient:
         self.created_appointments: list = []
         self.updated_appointments: list = []
         self.cancelled_appointments: list = []
+        self.sent_sms: list = []
+        self.sent_emails: list = []
 
     def log_note(self, contact_id: str, note: str) -> None:
         self.logged_notes.append({"contact_id": contact_id, "note": note})
@@ -62,6 +66,16 @@ class NullGHLClient:
         record = {"appointment_id": appointment_id, "action": "cancelled"}
         self.cancelled_appointments.append(record)
         return record
+
+    def send_sms(self, contact_id: str, message: str) -> dict:
+        record = {"contact_id": contact_id, "message": message}
+        self.sent_sms.append(record)
+        return {"status": "sent"}
+
+    def send_email(self, contact_id: str, subject: str, body: str) -> dict:
+        record = {"contact_id": contact_id, "subject": subject, "body": body}
+        self.sent_emails.append(record)
+        return {"status": "sent"}
 
 
 class GoHighLevelClient:
@@ -140,3 +154,24 @@ class GoHighLevelClient:
         # segment, unlike create/update. Confirmed against docs;
         # still [Unverified] against a live account/response shape.
         return self._request("DELETE", f"/calendars/events/{appointment_id}")
+
+    def send_sms(self, contact_id: str, message: str) -> dict:
+        """Send SMS to contact via GHL's messaging API. Used by Leo for
+        first-touch outreach to Tier 1-2 leads."""
+        return self._request(
+            "POST",
+            f"/contacts/{contact_id}/send-sms",
+            {"body": message},
+        )
+
+    def send_email(self, contact_id: str, subject: str, body: str) -> dict:
+        """Send email to contact via GHL's messaging API. Used by Leo for
+        first-touch outreach to Tier 3 leads."""
+        return self._request(
+            "POST",
+            f"/contacts/{contact_id}/send-email",
+            {
+                "subject": subject,
+                "body": body,
+            },
+        )

@@ -46,6 +46,8 @@ _MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 _LASTROWID_PK = {
     "appointments": "appointment_id",
     "intake_submissions": "submission_id",
+    "review_requests": "request_id",
+    "review_responses": "response_id",
 }
 
 

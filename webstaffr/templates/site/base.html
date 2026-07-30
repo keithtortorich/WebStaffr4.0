@@ -18,6 +18,14 @@
 {% block extra_head %}{% endblock %}
 </head>
 <body>
+{% import "site/_icons.html" as icons %}
+<div class="ws-utility-bar">
+  <div class="ws-utility-bar-inner">
+    <span class="ws-utility-item">{{ icons.icon('clock', 15) }} Available 24/7</span>
+    {% if site.emergency_service %}<span class="ws-utility-item ws-utility-item-accent">{{ icons.icon('bolt', 15) }} Emergency service</span>{% endif %}
+    <a class="ws-utility-phone" href="tel:{{ site.phone }}">{{ icons.icon('phone', 15) }} {{ site.phone }}</a>
+  </div>
+</div>
 <header class="ws-header">
   <div class="ws-header-inner">
     <a class="ws-brand" href="{{ site_root }}">{{ site.biz_name }}</a>
@@ -28,7 +36,7 @@
       {% if has_reviews %}<a href="{{ site_root }}/reviews">Reviews</a>{% endif %}
       <a href="{{ site_root }}/contact">Contact</a>
     </nav>
-    <a class="ws-nav-cta" href="tel:{{ site.phone }}">{{ site.phone }}</a>
+    <a class="ws-nav-cta" href="tel:{{ site.phone }}">{{ icons.icon('phone', 15) }} {{ site.phone }}</a>
   </div>
 </header>
 

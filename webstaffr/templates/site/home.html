@@ -1,4 +1,5 @@
 {% extends "site/base.html" %}
+{% import "site/_icons.html" as icons %}
 {% block content %}
 <!-- Hero Section -->
 <section class="ws-hero">
@@ -32,14 +33,22 @@
         </div>
         {% endif %}
 
+        {% if site.certifications or site.emergency_service %}
+        <div class="ws-badge-row">
+          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} Licensed &amp; Insured</span>{% endif %}
+          {% if site.emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
+        </div>
+        {% endif %}
+
         <div class="ws-hero-ctas">
-          <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">Start 30-Day Free Trial</a>
-          <a href="#lead-form" class="ws-btn ws-btn-secondary">See How It Works</a>
+          <a href="tel:{{ site.phone }}" class="ws-btn {{ 'ws-btn-emergency' if site.emergency_service else 'ws-btn-primary' }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
+          <a href="#lead-capture" class="ws-btn ws-btn-secondary">Get a Free Estimate</a>
         </div>
       </div>
 
-      <div class="ws-hero-image">
-        💼
+      <div class="ws-hero-badge">
+        {{ icons.icon('shield', 56) }}
+        <div class="ws-hero-badge-label">{{ site.industry }}<br>{{ site.service_area }}</div>
       </div>
     </div>
   </div>
@@ -50,27 +59,31 @@
 <section class="ws-trust-grid">
   <div class="ws-container">
     {% if site.rating_value and site.review_count %}
-    <div>
-      <div class="ws-trust-num">★★★★★</div>
-      <div class="ws-trust-label">{{ site.rating_value }} • {{ site.review_count }}+ Reviews</div>
+    <div class="ws-trust-item">
+      <div class="ws-trust-icon">{{ icons.icon('star', 20) }}</div>
+      <div class="ws-trust-num">{{ site.rating_value }} / 5</div>
+      <div class="ws-trust-label">{{ site.review_count }}+ Reviews</div>
     </div>
     {% endif %}
     {% if site.certifications %}
-    <div>
-      <div class="ws-trust-num">✓</div>
+    <div class="ws-trust-item">
+      <div class="ws-trust-icon">{{ icons.icon('shield', 20) }}</div>
+      <div class="ws-trust-num">Licensed</div>
       <div class="ws-trust-label">{{ site.certifications }}</div>
     </div>
     {% endif %}
     {% if site.emergency_service %}
-    <div>
-      <div class="ws-trust-num">⏱️</div>
-      <div class="ws-trust-label">Same-Day Service</div>
+    <div class="ws-trust-item">
+      <div class="ws-trust-icon">{{ icons.icon('clock', 20) }}</div>
+      <div class="ws-trust-num">24/7</div>
+      <div class="ws-trust-label">Emergency Service</div>
     </div>
     {% endif %}
     {% if site.pricing_shown %}
-    <div>
-      <div class="ws-trust-num">💰</div>
-      <div class="ws-trust-label">Free Estimates</div>
+    <div class="ws-trust-item">
+      <div class="ws-trust-icon">{{ icons.icon('dollar', 20) }}</div>
+      <div class="ws-trust-num">Free</div>
+      <div class="ws-trust-label">Estimates</div>
     </div>
     {% endif %}
   </div>
@@ -89,21 +102,21 @@
     <div class="ws-reasons-grid">
       {% if site.differentiator %}
       <div class="ws-reason-card">
-        <span class="ws-reason-icon">⭐</span>
+        <span class="ws-reason-icon">{{ icons.icon('star', 26) }}</span>
         <h3>What Sets Us Apart</h3>
         <p>{{ site.differentiator }}</p>
       </div>
       {% endif %}
       {% if site.emergency_service %}
       <div class="ws-reason-card">
-        <span class="ws-reason-icon">⏱️</span>
+        <span class="ws-reason-icon">{{ icons.icon('clock', 26) }}</span>
         <h3>24/7 Emergency Service</h3>
         <p>We're available around the clock for {{ site.industry | lower }} emergencies in {{ site.service_area }}.</p>
       </div>
       {% endif %}
       {% if site.certifications %}
       <div class="ws-reason-card">
-        <span class="ws-reason-icon">🔧</span>
+        <span class="ws-reason-icon">{{ icons.icon('wrench', 26) }}</span>
         <h3>Licensed & Certified</h3>
         <p>{{ site.certifications }}</p>
       </div>
@@ -114,7 +127,7 @@
 {% endif %}
 
 <!-- Common Questions (objection-handling FAQ) -->
-<section class="ws-section" style="background: var(--bg-surface);">
+<section class="ws-section ws-section-muted">
   <div class="ws-container">
     <div class="ws-section-header">
       <div class="ws-eyebrow">Common Questions</div>
@@ -175,7 +188,7 @@
     <div class="ws-reviews-grid">
       {% if site.testimonials %}
       <div class="ws-review-card">
-        <div class="ws-review-stars">★★★★★</div>
+        <div class="ws-review-stars">{% for _ in range(5) %}{{ icons.icon('star', 15) }}{% endfor %}</div>
         <div class="ws-review-quote">{{ site.testimonials }}</div>
         <div class="ws-review-attribution">{{ site.biz_name }} Customer</div>
       </div>
@@ -186,21 +199,23 @@
 {% endif %}
 
 <!-- Founder Story Section -->
+{% if site.years_in_biz %}
 <section class="ws-section">
   <div class="ws-container">
     <div class="ws-story-section">
-      <div class="ws-story-image">JF</div>
+      <div class="ws-story-image">{{ icons.icon('briefcase', 40) }}</div>
       <div class="ws-story-text">
         <div class="ws-eyebrow">Our Story</div>
         <div class="ws-pull-quote">Built on Trust</div>
-        <p class="ws-body-text">{{ site.biz_name }} was founded on a simple principle: do the work right, charge fair prices, and show up when you say you will. We've been serving {{ site.service_area }} with that promise for {{ site.years_in_biz or 15 }} years.</p>
+        <p class="ws-body-text">{{ site.biz_name }} was founded on a simple principle: do the work right, charge fair prices, and show up when you say you will. We've been serving {{ site.service_area }} with that promise for {{ site.years_in_biz }} years.</p>
       </div>
     </div>
   </div>
 </section>
+{% endif %}
 
 <!-- Service Area Section -->
-<section class="ws-section" style="background: var(--bg-surface);">
+<section class="ws-section ws-section-muted">
   <div class="ws-container">
     <div class="ws-section-header">
       <div class="ws-eyebrow">Location</div>
@@ -209,7 +224,7 @@
 
     <div class="ws-location-grid">
       <div class="ws-location-info">
-        <div style="font-size:1.1rem; margin-bottom:16px;">🗺️ {{ site.service_area }}</div>
+        <div style="font-size:1.1rem; margin-bottom:16px; display:flex; align-items:center; gap:8px;">{{ icons.icon('pin', 18) }} {{ site.service_area }}</div>
         <h3 style="font-size:1.1rem; margin-bottom:8px;">Cities We Serve</h3>
         <ul class="ws-cities">
           <li>{{ site.service_area }}</li>
@@ -217,7 +232,7 @@
       </div>
       <div class="ws-location-cta">
         <div class="ws-offer">Free estimate - upfront price, no surprises</div>
-        <p style="color: var(--muted); margin-bottom:16px;">We'll call within 1 hour.</p>
+        <p style="color: var(--ws-muted); margin-bottom:16px;">We'll call within 1 hour.</p>
         <a href="{{ site_root }}/contact" class="ws-btn ws-btn-primary">Get Help Now</a>
       </div>
     </div>
@@ -225,7 +240,7 @@
 </section>
 
 <!-- Lead Capture Section -->
-<section class="ws-section" id="lead-capture">
+<section class="ws-section ws-cta-band" id="lead-capture">
   <div class="ws-container">
     <div class="ws-section-header" style="margin:0 auto; text-align:center;">
       <div class="ws-eyebrow">Ready for help?</div>
@@ -239,10 +254,10 @@
       <input type="text" placeholder="Your Name" name="name" required />
       <input type="tel" placeholder="Phone Number" name="phone" required />
       <input type="email" placeholder="Email" name="email" required />
-      <button type="submit" class="ws-btn ws-btn-primary">Get Help →</button>
+      <button type="submit" class="ws-btn ws-btn-primary">Get Help &rarr;</button>
     </form>
 
-    <div class="ws-lead-disclaimer">✓ We reply within 1 business hour</div>
+    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} We reply within 1 business hour</div>
   </div>
 </section>
 

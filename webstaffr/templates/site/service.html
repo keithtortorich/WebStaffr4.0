@@ -1,10 +1,11 @@
 {% extends "site/base.html" %}
+{% import "site/_icons.html" as icons %}
 {% block content %}
 <section class="ws-hero ws-hero-sub">
   <div class="ws-hero-inner">
     <h1>{{ current_service }} in {{ site.service_area }} &mdash; Fast &amp; Reliable Service</h1>
     <div class="ws-hero-ctas">
-      <a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">Call {{ site.phone }}</a>
+      <a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
     </div>
   </div>
 </section>

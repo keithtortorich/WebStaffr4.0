@@ -1,4 +1,5 @@
 {% extends "site/base.html" %}
+{% import "site/_icons.html" as icons %}
 {% block content %}
 <section class="ws-hero ws-hero-sub">
   <div class="ws-hero-inner">
@@ -7,8 +8,8 @@
 </section>
 
 <section class="ws-section">
-  <p><a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">Call {{ site.phone }}</a></p>
-  <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
-  <p>Serving {{ site.service_area }}.</p>
+  <p><a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a></p>
+  <p>{{ icons.icon('mail', 15) }} <a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+  <p>{{ icons.icon('pin', 15) }} Serving {{ site.service_area }}.</p>
 </section>
 {% endblock %}
