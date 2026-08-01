@@ -27,6 +27,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .attribution_router import attribution_router
+from .custom_domain_middleware import CustomDomainMiddleware
 from .db import connect, migrate, using_postgres
 from .intake_router import intake_router
 from .landing_router import landing_router
@@ -209,6 +210,12 @@ def create_app(
             ghl_client=ghl_client,
         )
     )
+
+    # Custom domain middleware rewrites requests to custom domains to the
+    # internal /sites/{tenant_id}/web routing structure via Host header lookup.
+    # Must run before CORS (and most other middleware) so path rewriting happens
+    # before routing decisions are made.
+    app.add_middleware(CustomDomainMiddleware)
 
     # The widget is embedded on customer websites (arbitrary origins), so
     # /chat needs CORS enabled; the intake form (wherever it's hosted) needs

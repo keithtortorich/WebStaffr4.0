@@ -20,6 +20,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
+from .custom_domain import resolve_tenant_from_host
 from .db import DB_ERRORS, get_connection
 from .intake import IntakeRepository
 from .site_data import build_public_site_data
@@ -88,12 +89,24 @@ def _load_site_data(tenant_id: str, request: Request) -> dict:
     return build_public_site_data(submission)
 
 
-def _site_root(request: Request, tenant_id: str) -> str:
+def _site_root(request: Request, tenant_id: str, is_custom_domain: bool = False) -> str:
+    """Build the site root URL for a tenant.
+
+    For path-based routes: /sites/{tenant_id}/web
+    For custom domain routes: https://customdomain.com (root)
+    """
+    if is_custom_domain:
+        # Custom domain: site root is the domain root itself
+        return str(request.base_url).rstrip("/")
+    # Path-based: site root is under /sites/{tenant_id}/web
     return f"{str(request.base_url).rstrip('/')}/sites/{tenant_id}/web"
 
 
-def _render(request: Request, template_name: str, site_data: dict, tenant_id: str, *, path: str = "", service_name=None) -> Response:
-    site_root = _site_root(request, tenant_id)
+def _render(
+    request: Request, template_name: str, site_data: dict, tenant_id: str,
+    *, path: str = "", service_name=None, is_custom_domain: bool = False
+) -> Response:
+    site_root = _site_root(request, tenant_id, is_custom_domain=is_custom_domain)
     context = build_page_context(
         site_data,
         site_root=site_root,
@@ -165,6 +178,9 @@ def render_robots(tenant_id: str, request: Request) -> Response:
     context = build_page_context(site_data, site_root=site_root, page_url=site_root)
     body = templates.get_template("site/robots.txt").render(context)
     return Response(content=body, media_type="text/plain")
+
+
+pass  # Custom domain routing handled via middleware in app.py
 
 
 # Static assets shared by every tenant's rendered site. Explicit routes
