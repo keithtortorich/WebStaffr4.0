@@ -254,7 +254,6 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
             company_phone_answered=True,  # 15
             owner_answered=True,  # 10
             text_enabled=None,  # unknown
-            email=None,  # unknown
             employee_count=None,  # unknown
             vehicle_count=None,  # unknown
             currently_hiring=None,  # unknown
