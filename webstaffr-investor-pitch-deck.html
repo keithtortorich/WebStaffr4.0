@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>WebStaffr — Investor Pitch</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0b0c10;color:#f1f5f9;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.slide{display:none;min-height:100vh;padding:48px 36px 72px;overflow-y:auto}
+.slide.active{display:block}
+.eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3em;color:#38bdf8;margin-bottom:10px}
+h1{font-size:clamp(2rem,5vw,3.4rem);font-weight:800;margin-bottom:14px;line-height:1.1}
+h2{font-size:clamp(1.5rem,3.2vw,2.3rem);font-weight:700;margin-bottom:10px;line-height:1.15}
+.lead{font-size:1rem;color:#a5b4c4;line-height:1.6;max-width:70ch}
+.metric{font-size:2.2rem;font-weight:800;color:#22d3ee;line-height:1}
+.ml{font-size:12px;color:#a5b4c4;margin-top:4px}
+.grid{display:grid;gap:12px;margin-top:18px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px}
+.footer{position:fixed;bottom:0;left:0;right:0;height:52px;background:linear-gradient(to top,rgba(11,12,16,.96),transparent);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:10;border-top:1px solid rgba(255,255,255,.06)}
+.dots{display:flex;gap:6px;align-items:center}
+.bt{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);cursor:pointer;transition:all .2s}
+.bt.on{background:#38bdf8;width:22px;border-radius:4px}
+.bt:hover{background:rgba(56,189,248,.5)}
+button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#f1f5f9;padding:6px 16px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .2s}
+button:hover{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.35)}
+.pill{display:inline-block;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.28);color:#38bdf8;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:600;margin:4px 4px 0 0}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:22px}
+.ch{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);padding:11px 15px;border-radius:12px;font-size:13px;white-space:nowrap}
+.ca{color:#38bdf8;font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:99px 10px;color:#a5b4c4;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
+tr:last-child td{border-bottom:none}
+.good{color:#34d399}.warn{color:#fbbf24}.acc{color:#22d3ee}.dim{color:#a5b4c4}
+.step{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:10px;vertical-align:middle}
+.step.g{background:#34d399}.step.b{background:#38bdf8;border-radius:2px}
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:20px}
+.tl-card .tl-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#38bdf8,#22d3ee);transition:width .3s;z-index:60;border-radius:0 2px 0 0}
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+
+<!-- 0 TITLE -->
+<section class="slide active">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.4em;text-transform:uppercase;color:#38bdf8;margin-bottom:16px">Investor Pitch Deck · 2026</div>
+    <div style="font-size:clamp(2.5rem,6.5vw,5rem);font-weight:800;letter-spacing:-.03em">WebStaffr</div>
+    <div style="width:60px;height:3px;background:linear-gradient(90deg,#38bdf8,#22d3ee);margin:20px 0;border-radius:2px"></div>
+    <div style="font-size:clamp(1rem,1.8vw,1.2rem);color:#a5b4c4;max-width:600px;line-height:1.6">We don't sell software.<br/>We recover revenue.</div>
+    <div style="margin-top:28px"><span class="pill">🚀 Call Center Accelerated</span><span class="pill">💰 SAFE @ $150K cap</span><span class="pill">📈 $212K Phase 4 MRR</span><span class="pill">📊 20.5×–29.5× LTV:CAC</span></div>
+    <div style="margin-top:auto;padding-top:18px;color:#a5b4c4;font-size:12px">Press <b style="color:#f1f5f9">space</b> or <b style="color:#f1f5f9">→</b> to begin</div>
+  </div>
+</section>
+
+<!-- 1 PROBLEM -->
+<section class="slide">
+  <div class="eyebrow">Chapter 01 · The Problem</div>
+  <h2>62% of home-service calls go unanswered.</h2>
+  <p class="lead" style="margin-top:10px">85% of those callers never try again—62% contact a competitor immediately. Behind every missed call: $126,000 lost per year.</p>
+  <div class="grid g3" style="margin-top:22px">
+    <div class="card"><div class="metric">62%</div><div class="ml">calls missed by small businesses</div></div>
+    <div class="card"><div class="metric">85%</div><div class="ml">never call back</div></div>
+    <div class="card"><div class="metric">$126K</div><div class="ml">average lost revenue / year</div></div>
+  </div>
+  <p style="margin-top:16px;font-size:13px" class="dim">TAM <b class="acc">$14.6B</b> · Serviceable <b class="acc">$2.9B</b> · 2.5M contractors</p>
+</section>
+
+<!-- 2 SOLUTION -->
+<section class="slide">
+  <div class="eyebrow">Chapter 02 · The Solution</div>
+  <h2>The Angel Program.<br/><span class="acc">"Get a job or it's free."</span></h2>
+  <div class="chain">
+    <div class="ch">🌐 Site & Intake Live</div><div class="ca">→</div>
+    <div class="ch">📞 Call Center Engine</div><div class="ca">→</div>
+    <div class="ch">📅 24/7 Voice Booking</div><div class="ca">→</div>
+    <div class="ch">🔔 Lead Coordinator</div><div class="ca">→</div>
+    <div class="ch">⭐ Reputation Mgr</div><div class="ca">→</div>
+    <div class="ch">🛠 Site Ops Mgr</div>
+  </div>
+  <p class="lead" style="margin-top:20px">A 14-day risk-free test drive with zero card required. Capturing just 1.25 calls/month completely pays for the service. Office Staff isn't software — it's revenue recovery.</p>
+</section>
+
+<!-- 3 PROOF -->
+<section class="slide">
+  <div class="eyebrow">Chapter 03 · Proof of Work</div>
+  <h2>Live. Today. Now.</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><span class="step g"></span><b>Backend deployed & healthy</b><br/><span class="dim" style="font-size:12px">/health returns 200 OK</span></div>
+    <div class="card"><span class="step g"></span><b>Intake → website: live</b><br/><span class="dim" style="font-size:12px">Full pipeline operational</span></div>
+    <div class="card"><span class="step g"></span><b>Receptionist: live & answering</b><br/><span class="dim" style="font-size:12px">Phone & chat bookings now</span></div>
+    <div class="card"><span class="step g"></span><b>Test suite: 183/183 passing*</b><br/><span class="dim" style="font-size:12px">Observable performance gates</span></div>
+    <div class="card"><span class="step b"></span><b>Voice by telephone — built & tested</b><br/><span class="dim" style="font-size:12px">Next milestone: live call booking</span></div>
+    <div class="card"><span class="step b"></span><b>Customer site builder — shipping</b><br/><span class="dim" style="font-size:12px">Sites publishing now</span></div>
+  </div>
+  <p style="margin-top:14px;font-size:12px" class="dim">🔗 github.com/keithtortorich/WebStaffr3.0 · web-staffr3-0-snowy.vercel.app</p>
+</section>
+
+<!-- 4 UNIT ECON -->
+<section class="slide">
+  <div class="eyebrow">Chapter 04 · Accelerated Unit Economics</div>
+  <h2>The numbers at scale.</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:#f1f5f9">Angel Program — Revenue Model</div>
+      <table>
+        <tr><td>Charge to customer</td><td style="text-align:right" class="good" style="font-weight:700">$497/mo</td></tr>
+        <tr><td class="dim">Phase 1 CAC</td><td style="text-align:right" class="dim">~$436</td></tr>
+        <tr><td class="dim">Phase 4 CAC (Scaled)</td><td style="text-align:right" class="acc">~$303</td></tr>
+        <tr><td><b>LTV:CAC Ratio</b></td><td style="text-align:right" class="acc" style="font-weight:800"><b>20.5× → 29.5×</b></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:#f1f5f9">Call Center Acceleration Efficiency</div>
+      <table>
+        <tr><td>Payback Period</td><td style="text-align:right" class="good" style="font-weight:700">~0.88 → ~0.6 mo</td></tr>
+        <tr><td class="dim">Trial-to-Paid Conversion</td><td style="text-align:right" class="acc">50% – 65%</td></tr>
+        <tr><td><b>6-Month Marketing ROI</b></td><td style="text-align:right" class="good" style="font-weight:800"><b>8.2×</b></td></tr>
+        <tr><td class="dim">Breakeven Threshold</td><td style="text-align:right" class="good">1.25 calls/mo</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 5 BEACHHEAD -->
+<section class="slide">
+  <div class="eyebrow">Chapter 05 · Territory & Niche Roll-out</div>
+  <h2>Water Damage & HVAC First.<br/>Four-Phase Expansion.</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:#f1f5f9">Target Niche Prioritization</div>
+      <ul style="color:#a5b4c4;line-height:1.9;list-style:none;font-size:13px">
+        <li>• <b>Phase 1:</b> Water Damage + HVAC (Score 28 & 27/30)</li>
+        <li>• <b>Phase 2:</b> Plumbing + Electrical (Score 25 & 24/30)</li>
+        <li>• <b>Phase 3:</b> Garage Door + Pest Control</li>
+        <li>• <b>Phase 4:</b> Cleaning Services & Expanded Metros</li>
+      </ul>
+      <p style="margin-top:10px;font-size:13px" class="dim">Phase 1 Metros: <b class="acc">Houston, Dallas, Tampa, Phoenix</b></p>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:#f1f5f9">Scale Milestones</div>
+      <div style="display:grid;gap:7px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.06)"><span class="dim">Phase 1 MRR</span><b class="acc">$37,275</b></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.06)"><span class="dim">Phase 2 MRR</span><b class="acc">$92,939</b></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.06)"><span class="dim">Phase 3 MRR</span><b class="acc">$137,669</b></div>
+        <div style="display:flex;justify-content:space-between"><span class="dim">Phase 4 MRR</span><b class="acc" style="font-weight:800">$212,219</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 PROJECTIONS -->
+<section class="slide">
+  <div class="eyebrow">Chapter 06 · Accelerated Financial Projections</div>
+  <h2>Path to $212K+ Monthly Recurring Revenue.</h2>
+  <div class="tl-grid">
+    <div class="card tl-card">
+      <div class="tl-head" style="color:#38bdf8">Phase 1 — Launch</div>
+      <div style="font-size:13px;color:#a5b4c4;line-height:1.7"><b style="color:#f1f5f9">75 Customers</b><br/>$37,275 MRR<br/><br/><span class="dim">Budget: $32,687/mo</span></div>
+    </div>
+    <div class="card tl-card">
+      <div class="tl-head" style="color:#22d3ee">Phase 2 — Scale</div>
+      <div style="font-size:13px;color:#a5b4c4;line-height:1.7"><b style="color:#f1f5f9">187 Customers</b><br/>$92,939 MRR<br/><br/><span class="dim">Budget: $37,187/mo</span></div>
+    </div>
+    <div class="card tl-card">
+      <div class="tl-head" style="color:#34d399">Phase 3 & 4 — Market Dominance</div>
+      <div style="font-size:13px;color:#a5b4c4;line-height:1.7"><b style="color:#f1f5f9">427 Customers</b><br/><b class="good" style="font-size:15px">$212,219 MRR</b><br/><br/><span class="dim">Phase 4 Budget: $45,387/mo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 DOCTRINE -->
+<section class="slide">
+  <div class="eyebrow">Chapter 07 · Doctrine</div>
+  <h2>Every decision answers<br/>the same question.</h2>
+  <div class="card" style="margin-top:22px;padding:26px 30px;max-width:720px">
+    <div style="font-size:clamp(1.1rem,2vw,1.4rem);font-weight:600;line-height:1.4;color:#22d3ee">"Will this recover more revenue<br/>than it costs?"</div>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:18px 0"></div>
+    <div style="font-size:14px;color:#a5b4c4;line-height:1.75">Contractors don't lose jobs to a lack of software. They lose them to missed opportunities: <span class="warn">missed calls</span> · <span class="warn">late voicemails</span> · <span class="warn">slow follow-ups</span></div>
+    <div style="height:1px;background:rgba(255,255,255,.08);margin:18px 0"></div>
+    <div style="font-size:13px;color:#a5b4c4;line-height:1.6"><b style="color:#38bdf8">We don't sell technology.</b> We sell the one rare commodity any service company needs: a warm, qualified appointment tomorrow morning.</div>
+  </div>
+</section>
+
+<!-- 8 WHY NOW -->
+<section class="slide">
+  <div class="eyebrow">Chapter 08 · Why Now</div>
+  <h2>Three convergences.<br/>One window.</h2>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:8px">🎙️</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:7px;color:#f1f5f9">Voice AI Quality</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">AI voice now handles real nuance — pauses, accents, scheduling edge cases. The quality threshold that blocked this in 2019 is gone.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:8px">📞</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:7px;color:#f1f5f9">Call Center Acceleration</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">Our 6-FTE Phase 1 sales engine combined with automated outbound sequences generates predictable, ultra-low CAC customer acquisition.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:28px;margin-bottom:8px">⚡</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:7px;color:#f1f5f9">Cost Economics</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">Lean tech stacks & efficient call floor operations achieve a payback period of under 1 month (0.58 mo at scale).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 USE OF FUNDS -->
+<section class="slide">
+  <div class="eyebrow">Chapter 09 · Use of Funds</div>
+  <h2>Where your capital goes.</h2>
+  <div class="card" style="margin-top:18px;max-width:640px;padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Category</th><th style="text-align:right">Amount</th><th style="text-align:left">Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>⚖ Legal & ops setup</td><td style="text-align:right">$1,580</td><td class="dim">Inc, EIN, compliance</td></tr>
+        <tr><td>🧪 Product development</td><td style="text-align:right">$3,049</td><td class="dim">Voice calls · site builder</td></tr>
+        <tr><td>🚀 Go-to-market & Call Floor</td><td style="text-align:right">$2,040</td><td class="dim">Customer acquisition engine</td></tr>
+        <tr><td>🏦 Operational reserve</td><td style="text-align:right">$3,331</td><td class="dim">90-day buffer</td></tr>
+        <tr><td><b>Total minimum</b></td><td style="text-align:right" class="good"><b>$10,000</b></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card" style="text-align:center"><div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.1em">$10K</div><div style="font-weight:600;color:#22d3ee;font-size:13px;margin-top:3px">Live voice + site builder</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.1em">$10K → $25K</div><div style="font-weight:600;font-size:13px;margin-top:3px">ServiceTitan integration</div></div>
+    <div class="card" style="text-align:center"><div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.1em">$25K → $50K</div><div style="font-weight:600;font-size:13px;margin-top:3px">Call floor expansion</div></div>
+  </div>
+</section>
+
+<!-- 10 TEAM -->
+<section class="slide">
+  <div class="eyebrow">Chapter 10 · Team & Call Center Engine</div>
+  <h2>Structured for Scale.</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card">
+      <div style="font-size:11px;color:#38bdf8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Founder & Executive Leadership</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:5px">K. Michael Tortorich, MD</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">Builder, operator, strategist. Architecting the full-stack handoff chain.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:11px;color:#38bdf8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Launch Call Floor Team (6 FTEs)</div>
+      <div style="font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:5px">1 Team Lead/QA · 2 Senior SDR · 2 Junior SDR · 1 Inbound Qualifier</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">~$3,300/mo base payroll. Scales to 10 FTEs (adds Ops Mgr) by Phase 4. Incentivized directly on closes & MRR growth.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:11px;color:#38bdf8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Engineering & Operations</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:5px">Wenjie Tong & Patrick Bukowski</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">Architecture, reliability, day-to-day customer success, and retention.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:5px;color:#fbbf24">Performance Discipline</div>
+      <p style="font-size:13px;color:#a5b4c4;line-height:1.6">100 dials/day per SDR, targeting sub-$250 CPA and 50–65% trial-to-paid conversion.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 RISKS -->
+<section class="slide">
+  <div class="eyebrow">Chapter 11 · Key Risks</div>
+  <h2>Called out. Mitigated.</h2>
+  <div class="card" style="margin-top:18px;padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td><b>Conversion < 10%</b></td><td class="warn">Medium</td><td class="dim">Angel "Get a job or it's free" 14-day trial eliminates friction</td></tr>
+        <tr><td><b>CAC > $300</b></td><td class="dim">Low</td><td class="dim">High-volume call center dials + outbound scoring keeps CAC low</td></tr>
+        <tr><td><b>Churn > 6%/mo</b></td><td class="dim">Low</td><td class="dim">Capturing just 1.25 calls/mo yields clear, measurable ROI</td></tr>
+        <tr><td><b>Voice booking unproven</b></td><td class="dim">Medium</td><td class="dim">Next milestone: 10 live call-bookings confirmed</td></tr>
+        <tr><td><b>Competition</b></td><td class="dim">High</td><td class="dim">Defended by handoff-chain depth and Angel offer positioning</td></tr>
+        <tr><td><b>Single voice vendor</b></td><td class="warn">Medium</td><td class="dim">Failover architecture in roadmap; follows existing abstractions</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 12 TERMS -->
+<section class="slide">
+  <div class="eyebrow">Chapter 12 · Investment Terms</div>
+  <h2>Simple. Clean. Standard.</h2>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.12em">Total Raise</div>
+      <div class="metric" style="color:#22d3ee">$25K</div>
+      <div style="font-size:12px;color:#a5b4c4;margin-top:2px">Target · $50K max</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.12em">Valuation Cap</div>
+      <div class="metric">$150K</div>
+      <div style="font-size:12px;color:#a5b4c4;margin-top:2px">SAFE · no interest · no maturity</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.12em">Minimum Check</div>
+      <div class="metric" style="color:#38bdf8">$10K</div>
+      <div style="font-size:12px;color:#a5b4c4;margin-top:2px">Pro-rata rights · 20% discount</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;max-width:560px;font-size:13px;color:#a5b4c4;line-height:1.7"><b style="color:#f1f5f9">Structure:</b> YC Standard SAFE · convertible at next priced round, acquisition, or IPO. <b style="color:#f1f5f9">Discount:</b> 20% on next round · <b style="color:#f1f5f9">Pro-rata:</b> Yes.</div>
+</section>
+
+<!-- 13 CTA -->
+<section class="slide">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px 72px">
+    <div class="eyebrow" style="text-align:center">Let's Talk</div>
+    <h1 style="font-size:clamp(1.8rem,4.5vw,2.8rem);text-align:center;margin-top:8px">Ten minutes can<br/>change your fund.</h1>
+    <p class="lead" style="text-align:center;margin:12px auto 0;max-width:520px;font-size:.9rem">Every day a contractor loses missed-call revenue is a day they'll pay WebStaffr. Let's find a time.</p>
+    <div class="grid g3" style="max-width:600px;margin:20px auto 10px;text-align:center">
+      <div class="card" style="padding:14px 12px"><div style="font-size:10px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.08em">Live Backend</div><div style="font-weight:600;color:#22d3ee;font-size:12px;margin-top:3px;word-break:break-all">web-staffr3-0-snowy.vercel.app</div></div>
+      <div class="card" style="padding:14px 12px"><div style="font-size:10px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.08em">Code</div><div style="font-weight:600;color:#22d3ee;font-size:12px;margin-top:3px;word-break:break-all">github.com/keithtortorich/WebStaffr3.0</div></div>
+      <div class="card" style="padding:14px 12px"><div style="font-size:10px;color:#a5b4c4;text-transform:uppercase;letter-spacing:.08em">Terms</div><div style="font-weight:600;color:#22d3ee;font-size:12px;margin-top:3px">$25K SAFE · $150K cap</div></div>
+    </div>
+    <p style="font-size:11px" class="dim">Raising <b class="acc">$25K SAFE @ $150K cap</b> · Min $10K · Max $50K</p>
+  </div>
+</section>
+
+</div>
+
+<div class="footer" id="footer">
+  <div style="font-size:12px;font-weight:700;letter-spacing:.15em;color:#38bdf8">WebStaffr</div>
+  <div class="dots" id="dots"></div>
+  <div style="display:flex;gap:6px"><button onclick="go(cur-1)">‹ Prev</button><button onclick="go(cur+1)">Next ›</button></div>
+</div>
+
+<script>
+var S=document.querySelectorAll('.slide'),D=document.getElementById('dots'),cur=0;
+S.forEach(function(_,i){var d=document.createElement('div');d.className='bt'+(i===0?' on':'');d.onclick=function(){go(i)};D.appendChild(d)});
+function go(i){if(i<0||i>=S.length)return;S[cur].classList.remove('active');D.children[cur].classList.remove('on');cur=i;S[cur].classList.add('active');D.children[cur].classList.add('on')}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(cur+1)}if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1)}if(e.key==='Home'){e.preventDefault();go(0)}if(e.key==='End'){e.preventDefault();go(S.length-1)}});
+var ts=0;document.addEventListener('touchstart',function(e){ts=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-ts;if(Math.abs(dx)>50)go(dx<0?1:-1)});
+document.getElementById('prog').style.width=((1)/S.length*100)+'%';
+</script>
+</body>
+</html>
