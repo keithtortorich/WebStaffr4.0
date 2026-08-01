@@ -21,10 +21,15 @@ top of the blueprint doc).
 
 from __future__ import annotations
 
+import colorsys
+import logging
 import re
+from dataclasses import dataclass
 from typing import Optional
 
 from .trade_presets import normalize_industry
+
+logger = logging.getLogger("webstaffr.site_renderer")
 
 _SLUG_PATTERN = re.compile(r"[^a-z0-9]+")
 
@@ -65,6 +70,127 @@ def slugify(text: str) -> str:
 def schema_business_type(industry: str) -> str:
     """schema.org type for the LocalBusiness JSON-LD block."""
     return _SCHEMA_TYPE_BY_INDUSTRY.get(normalize_industry(industry), "LocalBusiness")
+
+
+@dataclass
+class ContrastWarning:
+    """Accessibility issue for a color pair."""
+
+    issue: str  # e.g., "primary-on-muted-bg"
+    actual_ratio: float  # e.g., 3.2
+    required_ratio: float  # e.g., 4.5
+
+
+def _hex_to_hsl(hex_color: str) -> tuple[float, float, float]:
+    """Convert #rrggbb hex to (hue, saturation, lightness) in [0,1] range."""
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) == 3:
+        hex_color = "".join(c * 2 for c in hex_color)
+    r, g, b = (int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    return h, l, s
+
+
+def _hsl_to_hex(h: float, l: float, s: float) -> str:
+    """Convert (hue, saturation, lightness) in [0,1] to #rrggbb hex."""
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
+    return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+
+
+def generate_palette(brand_primary: Optional[str]) -> dict[str, str]:
+    """Generate a 5-color palette from a brand primary hex color.
+
+    Returns a dict with keys: primary, primary_dark, primary_light, neutral_dark,
+    neutral_light. If brand_primary is None or invalid, returns the default
+    hardcoded palette.
+
+    Algorithm: HSL-based lightening/darkening of the brand primary, plus
+    neutral grays derived from the primary's hue and saturation."""
+    default_palette = {
+        "primary": "#2a6df5",
+        "primary_dark": "#1f4fb8",
+        "primary_light": "#5b8dff",
+        "neutral_dark": "#16202e",
+        "neutral_light": "#f4f6f9",
+    }
+
+    if not brand_primary:
+        return default_palette
+
+    try:
+        h, l, s = _hex_to_hsl(brand_primary)
+    except (ValueError, IndexError):
+        logger.warning("Invalid brand color %s, using default palette", brand_primary)
+        return default_palette
+
+    return {
+        "primary": brand_primary,
+        "primary_dark": _hsl_to_hex(h, max(0.2, l - 0.25), s),  # darken 25%
+        "primary_light": _hsl_to_hex(h, min(0.9, l + 0.25), s),  # lighten 25%
+        "neutral_dark": "#16202e",  # fixed dark (not derived)
+        "neutral_light": "#f4f6f9",  # fixed light (not derived)
+    }
+
+
+def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """Convert #rrggbb or #rgb to RGB tuple."""
+    h = hex_color.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
+
+
+def _relative_luminance(rgb: tuple[int, int, int]) -> float:
+    """WCAG 2.1 relative luminance of an RGB color."""
+
+    def channel(c: int) -> float:
+        c_srgb = c / 255.0
+        return c_srgb / 12.92 if c_srgb <= 0.03928 else ((c_srgb + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (channel(c) for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast_ratio(hex_a: str, hex_b: str) -> float:
+    """WCAG 2.1 contrast ratio between two hex colors (1:1 to 21:1)."""
+    rgb_a = _hex_to_rgb(hex_a)
+    rgb_b = _hex_to_rgb(hex_b)
+    l_a = _relative_luminance(rgb_a)
+    l_b = _relative_luminance(rgb_b)
+    lighter = max(l_a, l_b)
+    darker = min(l_a, l_b)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def validate_palette_contrast(palette: dict[str, str]) -> list[ContrastWarning]:
+    """Validate WCAG 2.1 AA contrast ratios for key color pairs.
+
+    Returns a list of ContrastWarning objects (empty if all pass). Does NOT block
+    rendering; warnings are logged for manual review."""
+    warnings = []
+    checks = [
+        ("primary-on-neutral-light", palette["primary"], palette["neutral_light"], 4.5),
+        ("primary-dark-on-neutral-light", palette["primary_dark"], palette["neutral_light"], 4.5),
+        ("neutral-dark-on-neutral-light", palette["neutral_dark"], palette["neutral_light"], 4.5),
+    ]
+
+    for issue, fg, bg, required in checks:
+        try:
+            ratio = _contrast_ratio(fg, bg)
+            if ratio < required:
+                warnings.append(
+                    ContrastWarning(issue=issue, actual_ratio=round(ratio, 2), required_ratio=required)
+                )
+        except (ValueError, IndexError) as e:
+            logger.warning("Failed to compute contrast for %s: %s", issue, e)
+
+    if warnings:
+        logger.warning(
+            "Palette contrast warnings: %s",
+            "; ".join(f"{w.issue} {w.actual_ratio:.1f}:1 (need {w.required_ratio}:1)" for w in warnings),
+        )
+
+    return warnings
 
 
 def service_pages(site_data: dict) -> list[dict]:
@@ -202,9 +328,8 @@ def build_page_context(
 ) -> dict:
     """Everything a template needs for one page: the raw public site data,
     derived SEO fields (title, meta description, schema type, the
-    service-page list, the reviews gate), and the JSON-LD schema dict(s)
-    for that specific page. Templates never compute SEO strings or build
-    schema themselves -- that logic stays here, in one tested place.
+    service-page list, the reviews gate), the JSON-LD schema dict(s),
+    and the color palette (from brand_colors or default).
 
     `site_root` is this tenant's site root (e.g.
     `https://host/sites/{tenant_id}/web`, no trailing slash) -- what nav
@@ -221,6 +346,9 @@ def build_page_context(
     Same reasoning for individual `Review` objects: `testimonials` is a
     single free-text field with no author/date, so it renders as visible
     page copy only, never as invented structured Review entries."""
+    palette = generate_palette(site_data.get("brand_colors"))
+    validate_palette_contrast(palette)
+
     return {
         "site": site_data,
         "title": page_title(site_data, service_name),
@@ -235,4 +363,5 @@ def build_page_context(
         "service_schema": (
             service_schema(site_data, service_name, page_url) if service_name else None
         ),
+        "palette": palette,  # color palette for CSS injection
     }

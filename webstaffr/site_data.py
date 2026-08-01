@@ -13,8 +13,12 @@ a public website, and must never be exposed here:
   - has_site / site_url / site_platform / site_issues: about the
     business's OLD site, relevant to us migrating them, meaningless on
     their NEW site.
-  - has_logo / brand_colors / inspo_sites / brand_words / competitors /
-    fsm_system / booking_system: internal design/ops inputs, not content.
+  - brand_colors: EXPOSED (see docs/DECISIONS.md ADR-001 for rationale).
+    Primary brand hex used to generate dynamic site palette. Hex string
+    only (#rrggbb format), validated at intake, low-risk exposure.
+  - inspo_sites / brand_words / competitors / fsm_system / booking_system:
+    internal design/ops inputs, not content.
+  - has_logo: internal flag (logo upload planned for phase 2).
   - license_number: removed per a security review and a direct founder
     decision. Supabase's own advisor had already flagged
     `intake_submissions.license_number` as a `sensitive_columns_exposed`
@@ -57,6 +61,7 @@ def build_public_site_data(submission: IntakeSubmission) -> dict:
     }
 
     optional_fields = (
+        "brand_colors",  # primary hex for dynamic palette generation
         "years_in_biz",
         "emergency_service",
         "gbp_url",
