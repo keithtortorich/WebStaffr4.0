@@ -30,6 +30,27 @@ a:hover { text-decoration: underline; }
 
 .ws-icon { display: inline-block; vertical-align: -3px; flex-shrink: 0; }
 
+.ws-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+a:focus-visible,
+button:focus-visible,
+.ws-btn:focus-visible,
+.ws-nav-cta:focus-visible,
+.ws-nav a:focus-visible {
+  outline: 2px solid var(--ws-primary);
+  outline-offset: 2px;
+}
+
 .ws-utility-bar {
   background: var(--ws-header-dark);
   color: var(--ws-ink-invert);

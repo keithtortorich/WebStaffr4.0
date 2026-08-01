@@ -1,5 +1,51 @@
 # TASKS.md — WebStaffr 4.0
 
+## 2026-08-01: Site renderer design/a11y/governance audit — 5-skill polish pass, gate cleared
+
+Ran design-critique, accessibility-review (WCAG 2.1 AA), design-system audit, and
+governance-compliance-linter against a live-rendered tenant page (`/sites/{tenant}/web`,
+real intake round-trip via TestClient, not a static mockup). Full session write-up and
+methodology in the research-synthesis output; summary here.
+
+**Fixed in-path (trivial, converged findings from 2+ audits):**
+- Lead-capture form (`home.html`) had no `<label>`/`aria-label` on its 3 inputs
+  (WCAG 3.3.2) — added visually-hidden labels.
+- No `:focus-visible` state on buttons/nav links/CTAs outside the form — added a
+  shared rule in `site.css`.
+- 5 em-dashes shipped in customer-facing copy (`home.html` FAQ x3, `service.html` x2)
+  as `&mdash;` HTML entities — passed the governance linter's literal-character regex
+  but rendered as real em dashes to every visitor, violating the "no exceptions"
+  em-dash ban. Rewritten to plain punctuation. **Linter gap noted**: entity-encoded
+  dashes are a blind spot worth adding to the ruleset.
+
+**Verified after fixes:** `tests/test_site_render_router.py` + `test_landing_page.py`
+26/26, `scripts/health_check.py` 9/9 HEALTHY, both reproduced fresh this session (not
+quoted from a prior run).
+
+**Logged, not fixed (real but out of this session's path):**
+- `service.html`/`about.html`/`contact.html` never received the 2026-07-29 homepage
+  restyle — still on the older `ws-hero-sub` visual language. Two independent audits
+  flagged this before a follow-up grep confirmed it's live code, not dead CSS. Next
+  restyle pass should extend the icon/utility-bar/hero-grid pattern to these templates.
+- Trust-bar section (`ws-trust-grid`) renders dead empty `<div>`s on low-signal tenants
+  (e.g. only `emergency_service` set → 3 blank cells, 1 real). Needs a minimum-signal
+  count gate instead of per-item conditionals. Product judgment on the threshold, not
+  purely an engineering call.
+- Duplicate `rgba(42, 109, 245, 0.1)` primary-tint hand-typed 4 times in `site.css`;
+  low-priority token consolidation.
+
+**Scope note:** founder named 4 site surfaces this session (WebStaffr Agency site +
+investor site, 10 demo sites, site-renderer output). Confirmed with founder to scope
+this pass to the site renderer only — Agency/investor site is Lovable-hosted and out
+of this repo's stated scope per CLAUDE.md; demo sites not yet located/audited.
+
+**Not done:** no push yet (see below).
+
+**Ready for:** `docs/SITE_RENDERER_PLAN.md`'s verification gate is now clear — full
+suite green, health HEALTHY, governance clean including the encoded-entity fix. This
+closes the founder-review-pending item open since 2026-07-29. Push?
+
+
 ## 2026-07-30: Marketing Coordinator "9-agent bundle" reviewed, rejected
 
 Founder pasted a proposal to build the Marketing Coordinator as 9 new agent classes
@@ -867,3 +913,54 @@ paragraphs (was 150), all 42 tables intact. Worth a check-in with the founder on
 fully resolves it in his actual Google Docs view, since this is now the second distinct
 rendering bug found in a doc that was never opened in real Word (generator tool produced
 non-standard structure both times).
+
+## 2026-08-01: Fish Audio Parallel Test Handoff
+
+**Spike: Parallel voice provider test (Fish Audio vs. Retell)**
+
+Founder decision: Fish Audio is free and low-risk to test in parallel. Standing up a second
+Angel instance with Fish Audio backend while Retell remains live for pilot customers.
+
+**Goal:** Measure whether Fish Audio offers better voice quality, lower latency, or better cost than
+Retell (currently in use, working, no known blockers).
+
+**Setup (D2 scope — new surface, existing pattern):**
+
+1. **Parallel Retell instance** — already live, no change needed. Handles real pilot calls.
+
+2. **Fish Audio instance (new):**
+   - Separate Retell project for Fish Audio testing (parallel endpoint)
+   - Same Angel prompt, same routing logic (GHL + ServiceTitan integration)
+   - Route test traffic 50/50 (or run dark/silent first, log outcomes)
+   - Collect metrics: booking rate, call duration, voice quality (subjective), customer feedback
+
+3. **Metrics to track for 1–2 weeks:**
+   - **Booking rate:** % of calls ending in appointment scheduled (same as Retell)
+   - **Call duration:** avg time on call (Fish Audio latency vs. Retell)
+   - **Voice quality:** A/B comparison (naturalness, clarity, accents)
+   - **Customer satisfaction:** any mentions of voice differences in feedback
+   - **Cost:** Fish Audio pricing model vs. Retell's (free tier limits, overages)
+
+4. **Decision criteria (end of spike):**
+   - If Fish Audio is clearly better on booking rate, duration, or voice quality → migrate
+   - If Retell is fine → keep it, keep Fish Audio as backup
+   - If Fish Audio fails (latency spikes, dropped calls) → stay on Retell
+
+**Implementation checklist:**
+- [ ] Read `webstaffr/workers/angel/` Angel implementation (Retell wiring, GHL integration)
+- [ ] Stand up Fish Audio MCP (or REST API, TBD)
+- [ ] Create parallel Retell project for Fish Audio testing
+- [ ] Wire Fish Audio voice backend alongside Retell (same router pattern)
+- [ ] Add call routing logic (50/50 split or dark mode)
+- [ ] Log outcomes to `webstaffr_calls` table (provider, booking_status, call_duration)
+- [ ] Run for 1–2 weeks with pilot customers
+- [ ] Measure and report
+
+**Approval gate:** This touches Angel (production agent), so flagging it as D2 before action.
+Founder confirms direction, then next session builds the spike.
+
+**Out of scope (post-spike):**
+- Database schema changes beyond call logging
+- UI changes to call dashboard
+- Replaying historical Retell calls through Fish Audio
+- Full migration until metrics are analyzed

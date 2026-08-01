@@ -3,7 +3,7 @@
 {% block content %}
 <section class="ws-hero ws-hero-sub">
   <div class="ws-hero-inner">
-    <h1>{{ current_service }} in {{ site.service_area }} &mdash; Fast &amp; Reliable Service</h1>
+    <h1>{{ current_service }} in {{ site.service_area }}: Fast &amp; Reliable Service</h1>
     <div class="ws-hero-ctas">
       <a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
     </div>
@@ -11,7 +11,7 @@
 </section>
 
 <section class="ws-section">
-  <p>When you need {{ current_service.lower() }} in {{ site.service_area }}, {{ site.biz_name }} responds fast{% if site.differentiator %} &mdash; {{ site.differentiator }}{% endif %}.</p>
+  <p>When you need {{ current_service.lower() }} in {{ site.service_area }}, {{ site.biz_name }} responds fast{% if site.differentiator %}. {{ site.differentiator }}{% else %}.{% endif %}</p>
 </section>
 
 <section class="ws-section">
