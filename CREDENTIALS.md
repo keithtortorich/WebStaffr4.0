@@ -112,6 +112,25 @@
   model hosting required in this repo either way.
 - **Security**: never commit if it embeds any credential in the URL.
 
+### 9. `OPENROUTER_API_KEY` + `DESIGN_CRITIQUE_MODEL` (optional, for `OpenRouterDesignCritiqueClient`)
+- **Purpose**: on-demand design/UI critique of one rendered tenant site
+  page (`scripts/design_critique.py`) -- founder- or session-invoked, not
+  part of any automatic path. `site_renderer.py`'s render path and
+  `scripts/health_check.py`'s a11y check
+  (`webstaffr/site_a11y_check.py`) both stay free and mechanical; this is
+  the separate, judgment-based half, which costs real per-call money and
+  therefore never runs unattended.
+- **How to get**: an OpenRouter account API key (openrouter.ai).
+- **Behavior**:
+  - `OPENROUTER_API_KEY` set -> `OpenRouterDesignCritiqueClient` is used.
+  - Unset -> `NullDesignCritiqueClient` (no network call, returns a plain
+    "not configured" message) -- safe default for tests and any
+    environment that hasn't opted in.
+  - `DESIGN_CRITIQUE_MODEL` optional, defaults to a cheap OpenRouter model
+    tier (`meta-llama/llama-3.1-8b-instruct` as of 2026-08-01) -- override
+    without a code change if OpenRouter's pricing or lineup shifts.
+- **Security**: never commit. Same as above.
+
 ## Local Development Setup
 
 ```bash

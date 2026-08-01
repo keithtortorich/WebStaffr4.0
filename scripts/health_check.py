@@ -42,6 +42,10 @@ def main() -> int:
         from webstaffr.integrations.servicetitan.client import ServiceTitanClient  # noqa: F401
         from webstaffr.integrations.social_media.client import SocialMediaClient  # noqa: F401
         from webstaffr.integrations.workflow_graph.client import WorkflowGraphClient  # noqa: F401
+        from webstaffr.integrations.design_critique.client import (  # noqa: F401
+            NullDesignCritiqueClient,
+            OpenRouterDesignCritiqueClient,
+        )
 
     def check_migrations_create_expected_tables():
         """A fresh SQLite DB migrated from empty must end up with exactly
