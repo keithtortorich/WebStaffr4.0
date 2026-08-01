@@ -180,7 +180,11 @@ def render_robots(tenant_id: str, request: Request) -> Response:
     return Response(content=body, media_type="text/plain")
 
 
-pass  # Custom domain routing handled via middleware in app.py
+# Custom domain routing is handled via middleware in app.py (see CustomDomainMiddleware).
+# The middleware intercepts requests with custom-domain Host headers, resolves the
+# tenant_id, and rewrites the request path to /sites/{tenant_id}/web{path} before
+# FastAPI routing. This approach avoids duplicate route handlers and reuses the
+# existing path-based rendering pipeline seamlessly.
 
 
 # Static assets shared by every tenant's rendered site. Explicit routes

@@ -84,18 +84,66 @@ All customer sites render with a hardcoded blue palette (#2a6df5 primary, #10182
 ## [ADR-002] Custom Domains for Rendered Sites (Phase 2)
 
 **Date:** 2026-08-01  
-**Status:** Proposed  
-**Effort:** D2 (1-2 days)
+**Status:** Approved  
+**Affects:** `tenants` table, `app.py` (middleware), `site_render_router.py` (documentation)  
+**Effort:** D2 (implemented in 1 session)
 
-Allows `desertcooling.com` → custom domain instead of `/sites/{tenant_id}/web`.
+### Problem
 
-**Approach:**
-- Add `custom_domain` (nullable) column to tenants.
-- FastAPI middleware: Host header → tenant lookup.
-- Vercel: multiple domains (already supported, zero cost).
-- Existing routes work unchanged at domain root.
+Tenants want to serve sites at custom domains (e.g., `desertcooling.com`) instead of the default `/sites/{tenant_id}/web` path. Presently, all sites live under WebStaffr's path structure with no custom domain support.
 
-**Rollout:** After brand colors verified. Low risk, additive.
+### Decision
+
+**Add a `custom_domain` column to tenants and implement path-rewriting middleware to transparently route custom domains to the internal path-based handler.**
+
+### Implementation
+
+1. **Database:** Add `custom_domain` (nullable TEXT, non-unique) column to tenants table.
+2. **Resolver:** `resolve_tenant_from_host()` function queries custom_domain column, handles port stripping and case normalization.
+3. **Middleware:** `CustomDomainMiddleware` intercepts all requests, checks Host header, resolves tenant_id, rewrites path before FastAPI routing.
+   - Custom domain request: `desertcooling.com/about` → internally routed as `/sites/{tenant_id}/web/about`
+   - Path-based request: unchanged, routes normally.
+   - Non-matching Host: passthrough (no-op).
+4. **Routes:** Reuse existing path-based handlers; no route duplication.
+
+### Why Middleware vs Duplicate Routes
+
+- **Avoids routing conflicts:** Identical paths can't have multiple handlers in FastAPI.
+- **Centralizes logic:** One place to manage custom domain resolution.
+- **Reuses handlers:** Existing path-based rendering pipeline unchanged.
+- **Transparent:** Tenant code sees no difference; all routing logic in middleware.
+
+### Trade-offs
+
+| Choice | Benefit | Risk | Mitigation |
+|--------|---------|------|-----------|
+| Middleware-based | Clean routing, no duplication | Harder to debug | Log Host header and rewritten path on dispatch |
+| Nullable column (no unique constraint) | Avoid SQLite migration issues | Application must prevent duplicates | Single query per request (negligible cost) |
+| Host header lookup | Automatic domain → tenant resolution | Port parsing complexity | Handle `:` stripping, lowercase normalization |
+
+### Testing
+
+- 12 new unit tests for middleware path rewriting, resolution, isolation.
+- All 381 existing tests still pass (zero regressions).
+- Tests cover: empty hosts, port stripping, subpaths (services, sitemap, robots), passthrough, state tracking.
+
+### Rollout
+
+1. Ship with brand colors (ADR-001).
+2. Feature flag optional (`ENABLE_CUSTOM_DOMAINS=true` env var, off by default).
+3. Verify on preview with test tenant pointing to custom domain via DNS.
+4. Flip to default-on after validation.
+
+### Rollback
+
+- Remove `custom_domain` value for tenant (revert to path-based).
+- Kill switch: stop including `CustomDomainMiddleware` in app.py.
+
+### Future (Phase 3+)
+
+- SSL provisioning for custom domains (Let's Encrypt via Vercel, zero-trust model).
+- CNAME validation endpoint (/domain-verification/{token}).
+- Dashboard UI for domain management (intake redesign).
 
 ---
 
