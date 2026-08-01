@@ -275,6 +275,70 @@ def main() -> int:
         finally:
             os.remove(db_path)
 
+    def check_rendered_site_a11y():
+        """Mechanical accessibility checks (webstaffr/site_a11y_check.py)
+        against the real rendered output of every page type -- contrast on
+        the shared stylesheet (once), plus alt text / form labels / heading
+        order on each of home, about, contact, and one service page. Same
+        real-HTTP-round-trip pattern as check_rendered_site_smoke_test
+        above; this is the deterministic half of design QA (see
+        docs/DECISIONS.md), the judgment half stays a human-invoked skill,
+        not an automatic check."""
+        import tempfile
+        from fastapi.testclient import TestClient
+        from webstaffr.app import create_app
+        from webstaffr.site_a11y_check import check_css_contrast, check_focus_visible, check_page
+
+        fd, db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            app = create_app(db_path=db_path)
+            with TestClient(app) as client:
+                submit = client.post(
+                    "/intake",
+                    json={
+                        "biz_name": "Healthcheck Plumbing",
+                        "phone": "555-0100",
+                        "email": "owner@healthcheckplumbing.example",
+                        "industry": "Plumber",
+                        "service_area": "Metro area",
+                        "tagline": "We fix it right the first time.",
+                        "differentiator": "24/7 emergency response.",
+                        "services": ["Drain Cleaning"],
+                        "license_number": "LIC-12345",
+                        "plan": "growth",
+                        "lead_routing": "owner@healthcheckplumbing.example",
+                        "approver": "Owner",
+                        "competitors": "Acme Plumbing",
+                    },
+                )
+                assert submit.status_code == 200, f"intake failed: {submit.text}"
+                tenant_id = submit.json()["tenant_id"]
+
+                css = client.get("/static/site.css")
+                assert css.status_code == 200
+
+                all_issues = []
+                all_issues += check_css_contrast(css.text).issues
+                all_issues += check_focus_visible(css.text).issues
+
+                pages = {
+                    "home": f"/sites/{tenant_id}/web",
+                    "about": f"/sites/{tenant_id}/web/about",
+                    "contact": f"/sites/{tenant_id}/web/contact",
+                    "service": f"/sites/{tenant_id}/web/services/drain-cleaning",
+                }
+                for label, path in pages.items():
+                    resp = client.get(path)
+                    assert resp.status_code == 200, f"{label} page failed to render: {resp.status_code}"
+                    all_issues += check_page(resp.text, page_label=label).issues
+
+                assert not all_issues, "a11y issues found: " + "; ".join(
+                    f"[{i.check}] {i.detail}" for i in all_issues
+                )
+        finally:
+            os.remove(db_path)
+
     def check_rate_limit_trips():
         """An unauthenticated caller must eventually be rejected -- this
         is what closes the unbounded-billed-xAI-usage gap on /chat."""
@@ -304,6 +368,7 @@ def main() -> int:
     check("intake_round_trip_and_tenant_scoping", check_intake_round_trip_and_tenant_scoping)
     check("site_data_never_leaks_internal_fields", check_site_data_never_leaks_internal_fields)
     check("rendered_site_smoke_test", check_rendered_site_smoke_test)
+    check("rendered_site_a11y", check_rendered_site_a11y)
     check("cors_scoped_correctly", check_cors_scoped_correctly)
     check("rate_limit_trips", check_rate_limit_trips)
     check("angel_prompt_loads", check_angel_prompt_loads)

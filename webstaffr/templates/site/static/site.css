@@ -11,7 +11,7 @@
   --ws-bg-muted: #f4f6f9;
   --ws-border: #e2e6ec;
   --ws-header-dark: #101826;
-  --ws-emergency: #e74c3c;
+  --ws-emergency: #c0392b;
   --ws-shadow: 0 1px 2px rgba(16, 24, 38, 0.06);
   --ws-shadow-lift: 0 10px 30px rgba(16, 24, 38, 0.1);
 }
@@ -228,8 +228,8 @@ button:focus-visible,
 
 .ws-hero-ctas { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
 
-.ws-btn-emergency { background: var(--ws-emergency); color: #fff; box-shadow: 0 6px 18px rgba(231, 76, 60, 0.32); }
-.ws-btn-emergency:hover { text-decoration: none; background: #c0392b; opacity: .94; }
+.ws-btn-emergency { background: var(--ws-emergency); color: #fff; box-shadow: 0 6px 18px rgba(192, 57, 43, 0.32); }
+.ws-btn-emergency:hover { text-decoration: none; background: #a93226; opacity: .94; }
 
 .ws-trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; padding: 40px 0; border-top: 1px solid var(--ws-border); border-bottom: 1px solid var(--ws-border); }
 @media (max-width: 768px) { .ws-trust-grid { grid-template-columns: repeat(2, 1fr); } }
