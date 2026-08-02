@@ -30,7 +30,7 @@ An AI workforce layer that takes on the recurring, people-shaped work of running
 This repo's scope is defined in `CLAUDE.md` (MVP, backend, Angel worker, integration bridges, tests). WebStaffr 4.0 is a clean rebuild of WS3.3, carrying forward only proven, running code -- see `docs/DECISIONS.md` for what changed and why.
 
 ## MVP Scope (this repo)
-Full flow: intake → generated customer site → Angel widget embedded and working, plus live voice via Retell. Frontend/site-generation is delegated to Lovable; this repo owns backend logic (Angel, tenant isolation, GHL/voice integration, attribution, integration bridges, tests).
+Full flow: intake → generated customer site → Angel widget embedded and working, plus live voice via Retell. Frontend/site-generation is in-repo Jinja2 renderer (site_renderer.py); this repo owns backend logic (Angel, tenant isolation, GHL/voice integration, attribution, integration bridges, tests).
 
 ## Post-MVP Roadmap
 

@@ -8,10 +8,10 @@ Founder is not a coder. Do not assume technical background to evaluate implement
 
 ## MVP Scope
 Full flow: intake → generated customer site → Angel widget embedded and working, plus live voice via Retell.
-- Frontend/site generation: delegated to Lovable (MCP). Iterate customer sites there, not token-by-token here.
+- Frontend/site generation: in-repo Jinja2 renderer (site_renderer.py). Customer sites render at `/sites/{tenant_id}/web`.
 - This repo's scope: backend logic : Angel (voice, GHL, booking), tenant isolation, attribution, integration bridges (social media, workflow graph, ServiceTitan), tests.
 - Out of scope until MVP ships: the other AI-employee roles (Marketing Coordinator -- see `docs/MARKETING_COORDINATOR_PLAN.md`), workflow builder UI, ops dashboard, billing/tier logic, ServiceTitan/Jobber sync going live (code exists, wiring it live is post-MVP).
-- Brand/naming governance for all customer-facing and marketing surfaces (site copy, Lovable projects, investor materials) is set by the founder's brand source docs, not by this repo. Company name is always **WebStaffr** (capital W, capital S) -- never "WebStaff" or other variants. Never say "AI" in customer-facing copy; no emojis in brand-facing assets. Check against the actual source doc before trusting any older cached ruleset -- see TASKS.md's 2026-07-27 entries for a case where a stale captured ruleset cited governance docs that don't exist in this repo. **Resolved 2026-07-30:** founder confirmed the Google Drive "Webstaffr4" folder's docs (WEBSTAFFR_GOVERNANCE.md, WebStaffr_Training_Manual_real, and siblings) are the newest canonical sources. WEBSTAFFR_GOVERNANCE.md is explicit and unconditional: no em-dashes anywhere in WebStaffr copy, internal or external, no exceptions. That supersedes the Brand Principles Handbook PDF's looser (no-ban) treatment wherever the two conflict. See `docs/DECISIONS.md` ADR-020.
+- Brand/naming governance for all customer-facing and marketing surfaces (site copy, investor materials) is set by the founder's brand source docs, not by this repo. Company name is always **WebStaffr** (capital W, capital S) -- never "WebStaff" or other variants. Never say "AI" in customer-facing copy; no emojis in brand-facing assets. Check against the actual source doc before trusting any older cached ruleset -- see TASKS.md's 2026-07-27 entries for a case where a stale captured ruleset cited governance docs that don't exist in this repo. **Resolved 2026-07-30:** founder confirmed the Google Drive "Webstaffr4" folder's docs (WEBSTAFFR_GOVERNANCE.md, WebStaffr_Training_Manual_real, and siblings) are the newest canonical sources. WEBSTAFFR_GOVERNANCE.md is explicit and unconditional: no em-dashes anywhere in WebStaffr copy, internal or external, no exceptions. That supersedes the Brand Principles Handbook PDF's looser (no-ban) treatment wherever the two conflict. See `docs/DECISIONS.md` ADR-020.
 
 ## Process
 Claude-only. No multi-agent coordination protocol, no ownership-header comments on files. Short, single-purpose turns. Decisions get made once, logged, executed : not re-litigated. One task per turn; side-issues discovered mid-task get logged in TASKS.md, not fixed inline, unless trivially in-path.
@@ -20,7 +20,7 @@ Claude-only. No multi-agent coordination protocol, no ownership-header comments 
 Runs before every response, ahead of the scope call. Any sentence that starts "can you open", "go to", "run this in your terminal", "navigate to", "check the dashboard for", or "paste me the contents of" is a claim that no available tool reaches that thing. Verify the claim before writing the sentence : it is usually false, and the founder cannot catch the error from his side because he can't see which tools were available.
 
 Ladder, stop at the first rung that works:
-1. **A dedicated MCP for that exact service.** Supabase (project settings, connection strings, keys, logs, SQL, advisors), Vercel (deployments, build logs, runtime logs, runtime errors), GitHub, Netlify, Lovable, Drive. If unsure one exists, search the MCP registry before concluding it doesn't.
+1. **A dedicated MCP for that exact service.** Supabase (project settings, connection strings, keys, logs, SQL, advisors), Vercel (deployments, build logs, runtime logs, runtime errors), GitHub, Netlify, Drive. If unsure one exists, search the MCP registry before concluding it doesn't.
 2. **Desktop Commander.** Real shell and real filesystem on the founder's Mac : file reads/writes anywhere, ripgrep at scale, git operations including the pushes a sandbox structurally cannot do, persistent shells, long-running processes, SSH. If the next thing you were going to type is a command for him to paste, run it here instead.
 3. **Browser tools (Claude in Chrome).** Anything that would otherwise be "log into the dashboard and click around" : Vercel logs, Supabase settings, GitHub, GHL, Retell, Netlify. Uses his real logged-in session.
 4. **Computer use.** Native macOS apps and cross-app work nothing else reaches. Fallback, not a first move.
@@ -35,7 +35,7 @@ An approval gate is about authority, not mechanics. "Ready to push?" is a legiti
 ## Self-Approval Scope
 Self-approvable, no need to ask: any reversible local-only change (code edits, tests, docs, refactors), improvements following best practices (auth, rate limits, error handling, security scoping), anything that keeps tests passing and health check HEALTHY.
 
-Requires explicit founder approval first: git push or any deploy, new dependency (package or SaaS vendor), architecture/data-model/DB schema changes, anything touching credentials/secrets/production systems/Lovable/Vercel/Supabase, high-ambiguity decisions with material cost or live-behavior impact.
+Requires explicit founder approval first: git push or any deploy, new dependency (package or SaaS vendor), architecture/data-model/DB schema changes, anything touching credentials/secrets/production systems/Vercel/Supabase, high-ambiguity decisions with material cost or live-behavior impact.
 
 When acting: summarize clearly, e.g. "Completed X. Tests: N/N passing. Health: HEALTHY. Ready for push?"
 
@@ -53,7 +53,7 @@ When acting: summarize clearly, e.g. "Completed X. Tests: N/N passing. Health: H
 - Orientation: read TASKS.md only. Full doc set only when reconciling.
 - Tests: run on code changes, skip on doc-only commits.
 - Diffs: `git diff --stat` first, deep-read only implicated files.
-- Third-party claims (Lovable agent, vendor docs): verify independently before trusting a "fixed" report.
+- Third-party claims (vendor docs): verify independently before trusting a "fixed" report.
 - Subagents: on by default for work that is parallel, broad-and-searchable, fresh-eyes review (an agent that didn't write the diff reviews it better), or long and grinding. Spawn and report what was delegated; don't ask permission each time. Supersedes the earlier "no subagents unless asked" rule, per the founder's 2026-07-28 direction. Don't delegate work needing the full conversation thread, single-file work, or anything with an approval gate mid-task : a subagent can't wait for a yes.
 
 ## CLAUDE.md Hygiene

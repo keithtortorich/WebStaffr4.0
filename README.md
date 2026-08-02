@@ -46,7 +46,7 @@ See `CREDENTIALS.md` for a complete list of required env vars:
 - **Deploy entrypoint**: `index.py` -- re-exports `app` for Vercel's Python builder.
 - **Tests**: `python -m pytest` (run all, or target a module).
 - **Health check**: `python scripts/health_check.py` (9 checks against the live product surface -- imports, migrations, app boot, intake round-trip, site-data leak prevention, rendered-site smoke test, CORS scoping, rate limiting, prompt loading).
-- **Customer site rendering**: `webstaffr/site_renderer.py` + `webstaffr/templates/` -- server-side Jinja2 templates over the same public projection `/sites/{tenant_id}` returns as JSON. Rendered pages live at `/sites/{tenant_id}/web` and below (see `docs/SITE_RENDERER_PLAN.md`). Replaces Lovable's Site Weaver as the generation mechanism for customer/tenant sites; Site Weaver stays as fallback until this is verified live.
+- **Customer site rendering**: `webstaffr/site_renderer.py` + `webstaffr/templates/` -- server-side Jinja2 templates over the same public projection `/sites/{tenant_id}` returns as JSON. Rendered pages live at `/sites/{tenant_id}/web` and below (see `docs/SITE_RENDERER_PLAN.md`).
 
 ## Repository Rules & Process
 

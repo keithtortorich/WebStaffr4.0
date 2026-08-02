@@ -12,10 +12,9 @@ re-export of `app`. No persistent process, no background workers, no held-open
 connections -- every request opens a DB connection, does its work, and closes it.
 This constraint shapes several other decisions below (see DECISIONS.md).
 
-Customer-facing site generation is delegated to Lovable (a separate hosted
-project, "Site Weaver"), not built in this repo. This repo owns backend logic
-only: Angel (the AI receptionist), tenant isolation, attribution, and
-integration bridges.
+Customer-facing site generation is in-repo (site_renderer.py, Jinja2 templates).
+This repo owns backend logic only: Angel (the AI receptionist), tenant isolation,
+attribution, and integration bridges.
 
 ## Composition root: `webstaffr/app.py`
 
