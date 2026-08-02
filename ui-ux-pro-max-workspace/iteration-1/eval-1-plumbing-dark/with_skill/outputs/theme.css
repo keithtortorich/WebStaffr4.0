@@ -1,0 +1,296 @@
+/* Theme CSS - Dark Mode Design System
+ * Plumbing Company Site
+ * Primary: Slate Blue (#1E293B)
+ * Accent: Warm Gold (#D4AF37)
+ * Font: System Sans-Serif
+ * All colors WCAG AA validated for contrast
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ==================== COLOR PALETTE ==================== */
+  /* Dark Mode - WCAG AA Validated */
+  
+  /* Backgrounds - True dark surfaces (L < 0.18) */
+  --color-bg-primary: #0F172A;      /* L = 0.009 - Deepest background */
+  --color-bg-secondary: #1E293B;    /* L = 0.022 - Secondary surfaces */
+  --color-bg-tertiary: #334155;     /* L = 0.051 - Tertiary elements */
+  
+  /* Foreground - High contrast on dark */
+  --color-fg-primary: #F8FAFC;      /* L = 0.954 - Primary text, 17.06:1 contrast */
+  --color-fg-muted: #94A3B8;        /* L = 0.360 - Secondary text, 6.96:1 contrast */
+  --color-fg-subtle: #B0B8C6;       /* L = 0.476 - Subtle text, 7.33:1 contrast */
+  
+  /* Accent - Warm gold for CTAs and highlights */
+  --color-accent-primary: #D4AF37;  /* L = 0.449 - Primary accent, 8.49:1 contrast */
+  --color-accent-hover: #C9A227;    /* L = 0.384 - Hover state, 6.96:1 contrast */
+  --color-accent-light: #E6C547;    /* L = 0.540 - Light accent variant */
+  
+  /* Status colors - All WCAG AA validated */
+  --color-success: #10B981;         /* L = 0.364 - Success messaging, 7.04:1 */
+  --color-error: #EF4444;           /* L = 0.229 - Error messaging, 4.74:1 */
+  --color-warning: #F59E0B;         /* L = 0.439 - Warning messaging, 8.31:1 */
+  
+  /* Borders and dividers */
+  --color-border: #334155;          /* Same as bg-tertiary */
+  --color-border-subtle: #1E293B;   /* Subtle divider */
+  
+  /* ==================== TYPOGRAPHY ==================== */
+  --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Monaco', 'Courier New', monospace;
+  
+  /* Font sizes */
+  --text-xs: 0.75rem;         /* 12px */
+  --text-sm: 0.875rem;        /* 14px */
+  --text-base: 1rem;          /* 16px */
+  --text-lg: 1.125rem;        /* 18px */
+  --text-xl: 1.25rem;         /* 20px */
+  --text-2xl: 1.5rem;         /* 24px */
+  --text-3xl: 1.875rem;       /* 30px */
+  --text-4xl: 2.25rem;        /* 36px */
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 2;
+  
+  /* ==================== SPACING ==================== */
+  --space-xs: 0.25rem;        /* 4px */
+  --space-sm: 0.5rem;         /* 8px */
+  --space-md: 1rem;           /* 16px */
+  --space-lg: 1.5rem;         /* 24px */
+  --space-xl: 2rem;           /* 32px */
+  --space-2xl: 2.5rem;        /* 40px */
+  --space-3xl: 3rem;          /* 48px */
+  
+  /* ==================== SHADOWS & ELEVATION ==================== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.2);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  
+  /* ==================== BORDERS & RADIUS ==================== */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  
+  /* ==================== TRANSITIONS ==================== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+}
+
+/* ==================== BASE STYLES ==================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: var(--line-height-normal);
+  color: var(--color-fg-primary);
+  background-color: var(--color-bg-primary);
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-fg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== TYPOGRAPHY ==================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-md);
+}
+
+h1 {
+  font-size: var(--text-4xl);
+}
+
+h2 {
+  font-size: var(--text-3xl);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+}
+
+h4 {
+  font-size: var(--text-xl);
+}
+
+h5 {
+  font-size: var(--text-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
+}
+
+p {
+  margin-bottom: var(--space-md);
+  line-height: var(--line-height-relaxed);
+}
+
+a {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+a:focus {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+/* ==================== BUTTONS ==================== */
+
+button, [role="button"] {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+button:focus {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+/* ==================== FORM ELEMENTS ==================== */
+
+input, textarea, select {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-fg-primary);
+  transition: all var(--transition-fast);
+  min-height: 44px;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-fg-muted);
+}
+
+label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-sm);
+  color: var(--color-fg-primary);
+}
+
+/* ==================== CARDS ==================== */
+
+.card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-accent-primary);
+}
+
+/* ==================== UTILITIES ==================== */
+
+.text-muted {
+  color: var(--color-fg-muted);
+}
+
+.text-subtle {
+  color: var(--color-fg-subtle);
+}
+
+.text-accent {
+  color: var(--color-accent-primary);
+}
+
+.bg-accent-light {
+  background-color: rgba(212, 175, 55, 0.1);
+}
+
+.border-accent {
+  border-color: var(--color-accent-primary);
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Ensure visible focus outlines */
+:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode class (for JavaScript-based switching) */
+.dark {
+  color-scheme: dark;
+}

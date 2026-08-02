@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evaluation>
+  <qa_pair>
+    <question>Search the WebStaffr repository for all SQL queries that check tenant_id in WHERE clauses. How many files contain this pattern? What's the path to the most recent one based on git commit date?</question>
+    <answer>4</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>List all open issues in the WebStaffr repository. What is the title of the oldest open issue (by creation date)?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Get the last 5 commits to the main branch of WebStaffr4.0. Who authored the most recent commit? What was their commit message?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Find all Python test files in the WebStaffr repository. How many files match the pattern 'test_*.py'? List the first 3 file paths.</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Search for the Protocol class import pattern across WebStaffr codebase (look for 'from typing import Protocol' or similar). How many files use this pattern? In which module is it defined?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>List all open pull requests on WebStaffr4.0 labeled with 'ready-for-review'. What are their PR numbers?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Find all files in the webstaffr/workers directory. How many Python files are in that directory? What's the path to the main worker file?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Search for all instances of the 'Null*' pattern in the codebase (NullIntegration, NullWorker, etc). How many distinct null-pattern classes are there? What are their names?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Get commit information for the 'develop' branch. What's the most recent commit SHA on that branch? When was it authored?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+
+  <qa_pair>
+    <question>Search for all database error handling patterns (look for 'DB_ERRORS' or 'database' patterns). How many files reference the error handling mechanism? What module is DB_ERRORS defined in?</question>
+    <answer>Depends on actual repo state</answer>
+  </qa_pair>
+</evaluation>

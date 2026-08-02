@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="WebStaffr - AI-powered employee platform for agencies"
+  />
+  <title>WebStaffr - AI Employees for Agencies</title>
+
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="design-system.css" />
+
+  <style>
+    /* Page-specific styles */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      background-color: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4);
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-accent-primary);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: var(--space-6);
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: var(--font-weight-medium);
+      transition: color var(--transition-fast);
+    }
+
+    .nav-links a:hover {
+      color: var(--color-accent-primary);
+    }
+
+    .nav-links a.active {
+      color: var(--color-accent-primary);
+      border-bottom: 2px solid var(--color-accent-primary);
+    }
+
+    [data-menu-toggle] {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+      [data-menu-toggle] {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--bg-primary);
+        padding: var(--space-4);
+        gap: var(--space-2);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .nav-links.open a {
+        display: block;
+        padding: var(--space-2) 0;
+      }
+    }
+
+    footer {
+      background-color: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: var(--space-16) var(--space-4);
+      margin-top: var(--space-16);
+    }
+
+    .footer-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-8);
+      margin-bottom: var(--space-8);
+    }
+
+    .footer-section h4 {
+      margin-bottom: var(--space-4);
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-section ul li {
+      margin: var(--space-2) 0;
+    }
+
+    .footer-section a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-section a:hover {
+      color: var(--color-accent-primary);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border-color);
+      padding-top: var(--space-6);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: var(--font-size-sm);
+    }
+
+    [data-theme-toggle] {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: var(--font-size-lg);
+      padding: var(--space-2);
+      border-radius: var(--radius-base);
+      transition: background-color var(--transition-fast);
+    }
+
+    [data-theme-toggle]:hover {
+      background-color: var(--bg-secondary);
+    }
+
+    .cta-section {
+      background: linear-gradient(
+        135deg,
+        var(--color-accent-primary) 0%,
+        var(--color-accent-primary-hover) 100%
+      );
+      color: white;
+      padding: var(--space-16) var(--space-4);
+      text-align: center;
+      border-radius: var(--radius-lg);
+      margin: var(--space-16) 0;
+    }
+
+    .cta-section h2 {
+      color: white;
+    }
+
+    .cta-section .btn-secondary {
+      background-color: white;
+      color: var(--color-accent-primary);
+      border: none;
+    }
+
+    .cta-section .btn-secondary:hover {
+      background-color: var(--color-accent-primary-light);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <nav>
+      <a href="#" class="logo">WebStaffr</a>
+
+      <ul class="nav-links" data-menu>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#booking">Book Demo</a></li>
+      </ul>
+
+      <div style="display: flex; gap: var(--space-4); align-items: center">
+        <button
+          data-theme-toggle
+          aria-label="Toggle dark mode"
+          title="Toggle theme"
+        >
+          🌙
+        </button>
+        <button data-menu-toggle aria-label="Toggle menu" aria-expanded="false">
+          ☰
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <h1>The AI Employee for Your Agency</h1>
+        <p class="hero-subtitle">
+          Meet Angel. Available 24/7, trained on your processes, speaking your
+          language. WebStaffr's AI employee handles intake, scheduling, and
+          customer conversations — freeing your team for strategy.
+        </p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg">Start Free Trial</button>
+          <button class="btn btn-secondary btn-lg">Watch Demo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-title">
+          <h2>Powerful Features</h2>
+          <p class="section-subtitle">
+            Everything you need to deploy AI employees in your agency
+          </p>
+        </div>
+
+        <div class="features">
+          <div class="feature card card-sm">
+            <div class="feature-icon">📞</div>
+            <h3>Live Voice Conversations</h3>
+            <p>
+              Angel speaks naturally with your customers, understands context,
+              and routes complex issues to your team.
+            </p>
+          </div>
+
+          <div class="feature card card-sm">
+            <div class="feature-icon">📅</div>
+            <h3>Smart Scheduling</h3>
+            <p>
+              Automatically books appointments, sends confirmations, and
+              integrates with your calendar system.
+            </p>
+          </div>
+
+          <div class="feature card card-sm">
+            <div class="feature-icon">🎯</div>
+            <h3>Lead Intake</h3>
+            <p>
+              Qualify leads automatically, gather information, and handoff to
+              your sales team with full context.
+            </p>
+          </div>
+
+          <div class="feature card card-sm">
+            <div class="feature-icon">🔗</div>
+            <h3>Workflow Integration</h3>
+            <p>
+              Connects with ServiceTitan, HubSpot, Slack, and your existing
+              tools. Extend with custom workflows.
+            </p>
+          </div>
+
+          <div class="feature card card-sm">
+            <div class="feature-icon">🌙</div>
+            <h3>Always Available</h3>
+            <p>
+              No scheduling conflicts. No time-off. Angel responds to customers
+              24/7 without burnout.
+            </p>
+          </div>
+
+          <div class="feature card card-sm">
+            <div class="feature-icon">📊</div>
+            <h3>Real-time Analytics</h3>
+            <p>
+              Track conversations, response times, lead quality, and ROI. Make
+              data-driven improvements.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="section" id="pricing">
+      <div class="container">
+        <div class="section-title">
+          <h2>Transparent Pricing</h2>
+          <p class="section-subtitle">Pay only for what you use</p>
+        </div>
+
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="text-center">Starter</th>
+              <th class="text-center">Professional</th>
+              <th class="highlight text-center">Enterprise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Angel AI Employee</td>
+              <td class="text-center">✓</td>
+              <td class="text-center">✓</td>
+              <td class="highlight text-center">✓</td>
+            </tr>
+            <tr>
+              <td>Live Voice Calls</td>
+              <td class="text-center">100/mo</td>
+              <td class="text-center">1,000/mo</td>
+              <td class="highlight text-center">Unlimited</td>
+            </tr>
+            <tr>
+              <td>Lead Intake</td>
+              <td class="text-center">✓</td>
+              <td class="text-center">✓</td>
+              <td class="highlight text-center">✓</td>
+            </tr>
+            <tr>
+              <td>Integrations</td>
+              <td class="text-center">3</td>
+              <td class="text-center">10+</td>
+              <td class="highlight text-center">Custom</td>
+            </tr>
+            <tr>
+              <td>Support</td>
+              <td class="text-center">Email</td>
+              <td class="text-center">Priority</td>
+              <td class="highlight text-center">Dedicated</td>
+            </tr>
+            <tr>
+              <td>Price</td>
+              <td class="text-center font-bold">$99/mo</td>
+              <td class="text-center font-bold">$499/mo</td>
+              <td class="highlight text-center font-bold">Custom</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="text-center">
+                <button class="btn btn-secondary">Get Started</button>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-primary">Get Started</button>
+              </td>
+              <td class="highlight text-center">
+                <button class="btn btn-ghost">Contact Sales</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section" id="testimonials">
+      <div class="container">
+        <div class="section-title">
+          <h2>Loved by Agencies</h2>
+          <p class="section-subtitle">See what our customers are saying</p>
+        </div>
+
+        <div class="testimonial-carousel">
+          <div class="testimonial-slide active">
+            <p class="testimonial-quote">
+              "WebStaffr's Angel has transformed how we handle lead intake. We've
+              reduced response time from hours to minutes and our sales team spends
+              more time closing deals instead of answering phones."
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">JD</div>
+              <div class="testimonial-info">
+                <h4>John Davis</h4>
+                <p>Founder, Davis Plumbing Co</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-slide">
+            <p class="testimonial-quote">
+              "The ROI was immediate. Angel handles 80% of our customer inquiries
+              and I finally have time to focus on growth. This is the future of
+              agency operations."
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">SM</div>
+              <div class="testimonial-info">
+                <h4>Sarah Martinez</h4>
+                <p>Operations Manager, Elite HVAC</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-slide">
+            <p class="testimonial-quote">
+              "Implementing Angel was seamless. The team was supportive every step
+              of the way, and within two weeks we were handling 60+ leads per week
+              without any additional headcount."
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">RK</div>
+              <div class="testimonial-info">
+                <h4>Robert Kim</h4>
+                <p>VP Marketing, TechServe Solutions</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="carousel-controls">
+            <button
+              class="carousel-dot active"
+              aria-label="Testimonial 1"
+              aria-current="true"
+            ></button>
+            <button
+              class="carousel-dot"
+              aria-label="Testimonial 2"
+              aria-current="false"
+            ></button>
+            <button
+              class="carousel-dot"
+              aria-label="Testimonial 3"
+              aria-current="false"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call-to-Action Section -->
+    <section class="cta-section container">
+      <h2>Ready to Transform Your Agency?</h2>
+      <p style="font-size: var(--font-size-lg); margin: var(--space-4) 0">
+        Start your free 14-day trial today. No credit card required.
+      </p>
+      <button class="btn btn-secondary btn-lg">Start Your Free Trial</button>
+    </section>
+
+    <!-- Booking Widget Section -->
+    <section class="section" id="booking">
+      <div class="container">
+        <div class="section-title">
+          <h2>Schedule a Demo</h2>
+          <p class="section-subtitle">
+            See Angel in action tailored to your agency
+          </p>
+        </div>
+
+        <div class="booking-widget">
+          <h3 class="booking-title">Book a 30-minute demo</h3>
+          <form>
+            <div class="form-group">
+              <label for="name" class="form-label">
+                Full Name <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-field"
+                required
+                placeholder="John Doe"
+                aria-required="true"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email" class="form-label">
+                Email <span class="required">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-field"
+                required
+                placeholder="john@example.com"
+                aria-required="true"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="company" class="form-label">
+                Company <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="company"
+                name="company"
+                class="form-field"
+                required
+                placeholder="Your Agency Name"
+                aria-required="true"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="phone" class="form-label">
+                Phone <span class="required">*</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                class="form-field"
+                required
+                placeholder="+1 (555) 000-0000"
+                aria-required="true"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="message" class="form-label">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                class="form-field"
+                placeholder="Tell us about your agency and what you're looking to solve..."
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary booking-submit">
+              Book Now
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>WebStaffr</h4>
+        <p style="color: var(--text-secondary); margin: var(--space-2) 0">
+          AI employees for agencies. 24/7. Always available.
+        </p>
+      </div>
+
+      <div class="footer-section">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#booking">Book Demo</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">Security</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        &copy; 2025 WebStaffr. All rights reserved. | Built with accessibility
+        first.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="components.js"></script>
+</body>
+</html>

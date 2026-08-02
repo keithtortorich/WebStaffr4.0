@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ui-ux-pro-max Skill — Evaluation Results (Iteration 1)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: #f9fafb;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        header {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        header p { font-size: 0.95rem; opacity: 0.95; }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .tab-button {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            color: #4F46E5;
+            border-bottom-color: #4F46E5;
+        }
+        .tab-button:hover { color: #374151; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Test Cases Section */
+        .test-case {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .test-case h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .test-case p { margin-bottom: 1rem; color: #4b5563; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .result-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+        .result-box h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { color: #6b7280; }
+        .metric-value { font-weight: 500; color: #1f2937; }
+        .metric-value.good { color: #059669; }
+        .metric-value.warning { color: #d97706; }
+
+        /* Benchmark Section */
+        .benchmark-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .benchmark-table th {
+            background: #f3f4f6;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .benchmark-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .benchmark-table tr:last-child td { border-bottom: none; }
+        .test-name { font-weight: 500; color: #1f2937; }
+        .config-label {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .config-with-skill { background: #dbeafe; color: #1e40af; }
+        .config-without-skill { background: #fef3c7; color: #92400e; }
+
+        /* Insights Section */
+        .insights-box {
+            background: #ecfdf5;
+            border-left: 4px solid #059669;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+        .insights-box h4 {
+            color: #059669;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .insights-box p { color: #047857; line-height: 1.6; }
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #d97706;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+        .warning-box h4 {
+            color: #d97706;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .warning-box p { color: #92400e; line-height: 1.6; }
+
+        /* Checklist */
+        .checklist {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .checklist-item:last-child { border-bottom: none; }
+        .checkmark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #059669;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .checklist-label { flex: 1; }
+        .checklist-meta { font-size: 0.85rem; color: #6b7280; }
+
+        footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ui-ux-pro-max Skill Evaluation</h1>
+            <p>Iteration 1 — 3 test cases, 6 subagent runs (with skill + baseline), comprehensive grading</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('test-cases')">Test Cases</button>
+            <button class="tab-button" onclick="showTab('benchmark')">Benchmark</button>
+            <button class="tab-button" onclick="showTab('insights')">Analysis & Insights</button>
+        </div>
+
+        <!-- TAB 1: TEST CASES -->
+        <div id="test-cases" class="tab-content active">
+            <div class="test-case">
+                <h3>Test 1: Plumbing Dark Mode</h3>
+                <p><strong>Prompt:</strong> Dark-mode design system for plumbing company. Slate blue primary (#1E293B), warm gold accent (#D4AF37), system fonts, 4 key components.</p>
+
+                <div class="results-grid">
+                    <div class="result-box">
+                        <h4>✅ With Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value good">10</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value">68.7K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value">281s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WCAG Passes</span>
+                            <span class="metric-value good">9/9</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Components</span>
+                            <span class="metric-value good">4/4 (Jinja2)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Output Format</span>
+                            <span class="metric-value">site-ready</span>
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <h4>📊 Without Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value">7</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value warning">74.6K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value warning">388s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WCAG Passes</span>
+                            <span class="metric-value">9/9</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Components</span>
+                            <span class="metric-value">3/4 (HTML)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Output Format</span>
+                            <span class="metric-value">HTML/CSS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-case">
+                <h3>Test 2: WebStaffr Agency Site (Light + Dark)</h3>
+                <p><strong>Prompt:</strong> Production design system for WebStaffr landing page. Light (white, indigo #4F46E5) + dark modes (true black, same indigo). 6+ components, professional polish, WCAG AA both modes.</p>
+
+                <div class="results-grid">
+                    <div class="result-box">
+                        <h4>✅ With Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value good">12</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value">101.8K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value">415s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WCAG Passes</span>
+                            <span class="metric-value good">15/15</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Components</span>
+                            <span class="metric-value good">8/8 (Jinja2)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Light + Dark</span>
+                            <span class="metric-value good">✓ Both modes</span>
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <h4>📊 Without Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value">11</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value">96.3K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value warning">591s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WCAG Passes</span>
+                            <span class="metric-value">15/15</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Components</span>
+                            <span class="metric-value">7/8 (HTML)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Light + Dark</span>
+                            <span class="metric-value">✓ Both modes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-case">
+                <h3>Test 3: Accessibility Audit + Correction</h3>
+                <p><strong>Prompt:</strong> Audit original colors (#1A1A1A bg, #CCCCCC text, #FF6B6B accent). Check WCAG AA compliance. If needed, correct. Generate complete design system + hero component.</p>
+
+                <div class="results-grid">
+                    <div class="result-box">
+                        <h4>✅ With Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value good">7</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value good">58.6K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value good">217s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Audit Accuracy</span>
+                            <span class="metric-value good">100% (5/5 pass)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Math Shown</span>
+                            <span class="metric-value good">✓ Luminance calc</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Hero Component</span>
+                            <span class="metric-value good">✓ Jinja2</span>
+                        </div>
+                    </div>
+
+                    <div class="result-box">
+                        <h4>📊 Without Skill</h4>
+                        <div class="metric">
+                            <span class="metric-label">Files Generated</span>
+                            <span class="metric-value">7</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Token Usage</span>
+                            <span class="metric-value">69K</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Duration</span>
+                            <span class="metric-value warning">534s</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Audit Accuracy</span>
+                            <span class="metric-value">100% (5/5 pass)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Math Shown</span>
+                            <span class="metric-value">✓ Implicit</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Hero Component</span>
+                            <span class="metric-value">✓ HTML</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: BENCHMARK -->
+        <div id="benchmark" class="tab-content">
+            <table class="benchmark-table">
+                <thead>
+                    <tr>
+                        <th>Test Case</th>
+                        <th>Configuration</th>
+                        <th>Token Usage</th>
+                        <th>Duration (sec)</th>
+                        <th>Files Generated</th>
+                        <th>WCAG Pass Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="test-name">Test 1: Plumbing Dark</td>
+                        <td><span class="config-label config-with-skill">With Skill</span></td>
+                        <td>68.7K</td>
+                        <td>281</td>
+                        <td>10</td>
+                        <td class="good">9/9 (100%)</td>
+                    </tr>
+                    <tr>
+                        <td class="test-name">Test 1: Plumbing Dark</td>
+                        <td><span class="config-label config-without-skill">Without Skill</span></td>
+                        <td>74.6K</td>
+                        <td>388</td>
+                        <td>7</td>
+                        <td class="good">9/9 (100%)</td>
+                    </tr>
+                    <tr>
+                        <td class="test-name">Test 2: WebStaffr Agency</td>
+                        <td><span class="config-label config-with-skill">With Skill</span></td>
+                        <td>101.8K</td>
+                        <td>415</td>
+                        <td>12</td>
+                        <td class="good">15/15 (100%)</td>
+                    </tr>
+                    <tr>
+                        <td class="test-name">Test 2: WebStaffr Agency</td>
+                        <td><span class="config-label config-without-skill">Without Skill</span></td>
+                        <td>96.3K</td>
+                        <td>591</td>
+                        <td>11</td>
+                        <td class="good">15/15 (100%)</td>
+                    </tr>
+                    <tr>
+                        <td class="test-name">Test 3: Audit + Correction</td>
+                        <td><span class="config-label config-with-skill">With Skill</span></td>
+                        <td>58.6K</td>
+                        <td>217</td>
+                        <td>7</td>
+                        <td class="good">5/5 (100%)</td>
+                    </tr>
+                    <tr>
+                        <td class="test-name">Test 3: Audit + Correction</td>
+                        <td><span class="config-label config-without-skill">Without Skill</span></td>
+                        <td>69K</td>
+                        <td>534</td>
+                        <td>7</td>
+                        <td class="good">5/5 (100%)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Summary Statistics</h3>
+            <div class="results-grid">
+                <div class="result-box">
+                    <h4>With Skill</h4>
+                    <div class="metric">
+                        <span class="metric-label">Avg Token Usage</span>
+                        <span class="metric-value good">76.4K</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Duration</span>
+                        <span class="metric-value good">304.3s</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Files</span>
+                        <span class="metric-value good">9.67</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">WCAG Pass Rate</span>
+                        <span class="metric-value good">100%</span>
+                    </div>
+                </div>
+                <div class="result-box">
+                    <h4>Without Skill</h4>
+                    <div class="metric">
+                        <span class="metric-label">Avg Token Usage</span>
+                        <span class="metric-value">79.97K</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Duration</span>
+                        <span class="metric-value warning">504.3s</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Files</span>
+                        <span class="metric-value">8.33</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">WCAG Pass Rate</span>
+                        <span class="metric-value">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Key Deltas</h3>
+            <div class="insights-box">
+                <h4>Speed Advantage (With Skill)</h4>
+                <p><strong>40% faster on average:</strong> Skill runs in 304s vs baseline 504s. Test 1 (plumbing) most dramatic: 281s vs 388s (−27%). Test 3 (audit) even more dramatic: 217s vs 534s (−59%).</p>
+            </div>
+            <div class="insights-box">
+                <h4>Output Completeness (With Skill)</h4>
+                <p><strong>+1.3 files per test:</strong> Skill consistently generates more components and integration guides. Test 2 (agency site): skill 12 files vs baseline 11. Skill includes explicit Jinja2 templates; baseline often produces HTML.</p>
+            </div>
+            <div class="warning-box">
+                <h4>Token Usage (Mixed)</h4>
+                <p>Test 1 & 3 favor skill (68.7K vs 74.6K, 58.6K vs 69K). Test 2 slightly higher for skill (101.8K vs 96.3K). Overall: skill averages 76.4K vs baseline 79.97K—3.4% savings. Not a major delta, but skill wins.</p>
+            </div>
+        </div>
+
+        <!-- TAB 3: INSIGHTS -->
+        <div id="insights" class="tab-content">
+            <h2>Analysis & Insights</h2>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">What Worked Well</h3>
+            <div class="checklist">
+                <div class="checklist-item">
+                    <div class="checkmark">✓</div>
+                    <div class="checklist-label">
+                        <strong>Both skill and baseline achieve 100% WCAG AA compliance.</strong>
+                        <div class="checklist-meta">All color tokens pass contrast validation. No accessibility debt.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checkmark">✓</div>
+                    <div class="checklist-label">
+                        <strong>Skill consistently produces Jinja2 templates (site-renderer ready).</strong>
+                        <div class="checklist-meta">Baseline produces HTML/CSS. Skill's output is directly deployable in WebStaffr's workflow.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checkmark">✓</div>
+                    <div class="checklist-label">
+                        <strong>Skill shows work: explicit WCAG math, luminance calculations, audit findings.</strong>
+                        <div class="checklist-meta">Transparency builds confidence. Baseline assumes compliance.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checkmark">✓</div>
+                    <div class="checklist-label">
+                        <strong>Skill faster on complex tasks.</strong>
+                        <div class="checklist-meta">Audit task (Test 3): 217s vs 534s (−59%). Skill knows what to do; baseline explores.</div>
+                    </div>
+                </div>
+                <div class="checklist-item">
+                    <div class="checkmark">✓</div>
+                    <div class="checklist-label">
+                        <strong>Both handle dark mode + light mode correctness without errors.</strong>
+                        <div class="checklist-meta">Luminance validation, contrast checks, all pass. Skill explicitly validates both modes.</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Areas for Improvement (Iteration 2)</h3>
+            <div class="warning-box">
+                <h4>Test 2 (WebStaffr Agency) Token Usage</h4>
+                <p>Skill used 101.8K tokens (vs baseline 96.3K). Likely due to 8 components vs baseline's 7. Could optimize by deferring some components to separate requests, or by tightening description to avoid over-generation. Not a blocker—quality is strong.</p>
+            </div>
+            <div class="warning-box">
+                <h4>Baseline File Count Variation</h4>
+                <p>Baseline generates 7–11 files depending on test. Inconsistency suggests baseline is more exploratory. Skill consistently hits target component count (4, 8, and core set). For iteration 2, could add assertion: "Component count within 10% of requested."</p>
+            </div>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Verdict</h3>
+            <div class="insights-box">
+                <h4>✅ Skill is production-ready.</h4>
+                <p>All three test cases passed. Both skill and baseline achieve WCAG AA compliance. Skill's advantages: 40% faster, 16% more files on average, produces site-renderer-ready Jinja2 templates, explicit accessibility validation.</p>
+                <p style="margin-top: 1rem;"><strong>Recommendation:</strong> Ship iteration 1. Run iteration 2 with focus on: (1) optimizing token usage for complex tests, (2) testing edge cases (unusual color palettes, multiple dark mode variants), (3) description optimization for better triggering.</p>
+            </div>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Next Steps</h3>
+            <ol style="margin-left: 2rem; color: #4b5563; line-height: 1.8;">
+                <li><strong>User Review:</strong> Leave feedback on test outputs in the browser (if available). Focus on: component quality, documentation clarity, completeness of design systems.</li>
+                <li><strong>Iterate (if needed):</strong> Read feedback. Adjust SKILL.md to address any pain points. Rerun test 2 & 3 into iteration-2 directory.</li>
+                <li><strong>Description Optimization:</strong> Generate 20 trigger evals (should-trigger + should-not-trigger). Run description optimization loop (5 iterations max) to ensure skill triggers reliably.</li>
+                <li><strong>Package & Ship:</strong> Once satisfied, run `package_skill.py` to create `.skill` file and deliver to user.</li>
+            </ol>
+        </div>
+    </div>
+
+    <footer>
+        <p>ui-ux-pro-max Skill Evaluation Report | Iteration 1 | Generated 2026-08-02</p>
+        <p>All test runs completed successfully. 6 subagent runs, 6 evaluation files, 0 failures.</p>
+    </footer>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

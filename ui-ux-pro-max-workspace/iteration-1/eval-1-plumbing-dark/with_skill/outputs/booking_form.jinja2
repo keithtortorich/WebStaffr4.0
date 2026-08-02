@@ -1,0 +1,92 @@
+{# Booking Form Component
+   Reusable form for service booking with validation
+   Usage: {% include 'components/booking_form.jinja2' with context %}
+   Props: action_url, tenant_id, form_title, form_description, fields (list of field dicts), submit_text
+#}
+
+<form 
+  action="{{ action_url }}" 
+  method="POST"
+  class="bg-bg-secondary border border-border rounded-lg p-8 max-w-2xl"
+>
+  
+  {% if form_title %}
+  <h2 class="text-2xl font-heading font-bold text-fg-primary mb-2">
+    {{ form_title }}
+  </h2>
+  {% endif %}
+  
+  {% if form_description %}
+  <p class="text-fg-muted mb-6">
+    {{ form_description }}
+  </p>
+  {% endif %}
+  
+  <input type="hidden" name="tenant_id" value="{{ tenant_id }}" />
+  
+  {% for field in fields or [] %}
+    {% if field.type == 'select' %}
+    <div class="mb-5">
+      <label for="{{ field.name }}" class="block text-sm font-semibold text-fg-primary mb-2">
+        {{ field.label }}
+        {% if field.required %}<span class="text-error">*</span>{% endif %}
+      </label>
+      <select 
+        id="{{ field.name }}"
+        name="{{ field.name }}"
+        {% if field.required %}required{% endif %}
+        class="w-full bg-bg-primary border border-border rounded-md px-4 py-3 text-fg-primary focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+      >
+        <option value="">{{ field.placeholder or 'Select an option' }}</option>
+        {% for option in field.options or [] %}
+        <option value="{{ option.value }}">{{ option.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    {% elif field.type == 'textarea' %}
+    <div class="mb-5">
+      <label for="{{ field.name }}" class="block text-sm font-semibold text-fg-primary mb-2">
+        {{ field.label }}
+        {% if field.required %}<span class="text-error">*</span>{% endif %}
+      </label>
+      <textarea 
+        id="{{ field.name }}"
+        name="{{ field.name }}"
+        placeholder="{{ field.placeholder or '' }}"
+        rows="{{ field.rows or 4 }}"
+        {% if field.required %}required{% endif %}
+        class="w-full bg-bg-primary border border-border rounded-md px-4 py-3 text-fg-primary placeholder-fg-muted focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 resize-none"
+      ></textarea>
+    </div>
+    
+    {% else %}
+    <div class="mb-5">
+      <label for="{{ field.name }}" class="block text-sm font-semibold text-fg-primary mb-2">
+        {{ field.label }}
+        {% if field.required %}<span class="text-error">*</span>{% endif %}
+      </label>
+      <input 
+        type="{{ field.type or 'text' }}"
+        id="{{ field.name }}"
+        name="{{ field.name }}"
+        placeholder="{{ field.placeholder or '' }}"
+        {% if field.required %}required{% endif %}
+        class="w-full bg-bg-primary border border-border rounded-md px-4 py-3 text-fg-primary placeholder-fg-muted focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+      />
+    </div>
+    {% endif %}
+  {% endfor %}
+  
+  <button 
+    type="submit"
+    class="w-full bg-accent-primary hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-fast focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary mt-2"
+  >
+    {{ submit_text or 'Book Service' }}
+  </button>
+  
+  <p class="text-xs text-fg-muted text-center mt-4">
+    We respect your privacy. Your information is secure and will only be used to contact you about your service request.
+  </p>
+  
+</form>

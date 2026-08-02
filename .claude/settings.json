@@ -1,0 +1,21 @@
+{
+  "enableWorkflows": true,
+  "enabledPlugins": {
+    "caveman@caveman": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pgrep -f 'headroom proxy' > /dev/null || (/Users/doc/.local/share/uv/tools/headroom-ai/bin/headroom proxy --port 8787 > /tmp/headroom.log 2>&1 &)",
+            "async": true,
+            "statusMessage": "Starting headroom proxy for WebStaffr..."
+          }
+        ]
+      }
+    ]
+  }
+}

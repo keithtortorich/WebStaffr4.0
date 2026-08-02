@@ -1,0 +1,23 @@
+{
+  "skill_name": "caveman",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a bug in my FastAPI route where the JWT token validation is failing. The middleware is checking `token_expiry <= current_time` but it should be `token_expiry > current_time`. Can you explain what's wrong and how to fix it?",
+      "expected_output": "Explanation of the bug using caveman compression: direct statement of what's wrong, why it matters, and the fix. No pleasantries or filler. Should be ~40-50% of the normal explanation length.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need to debug why my database query is slow. The query joins three tables and filters on a tenant_id. Can you walk me through how to diagnose this?",
+      "expected_output": "Step-by-step debugging approach in caveman mode. Fragments OK. Direct instructions without explanatory prose. Should identify the likely culprit (missing index) and how to verify.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Status update: I've finished the auth middleware refactor. Tests are passing. The security review is scheduled for tomorrow. What should I check before the review?",
+      "expected_output": "Brief checklist in caveman mode. No explanation, just actionable items. Compressed from what would normally be a paragraph-long response.",
+      "files": []
+    }
+  ]
+}

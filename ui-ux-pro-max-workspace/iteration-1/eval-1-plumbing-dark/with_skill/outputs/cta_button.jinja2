@@ -1,0 +1,43 @@
+{# CTA Button Component
+   Call-to-action button with multiple variants
+   Usage: {% include 'components/cta_button.jinja2' with context %}
+   Props: text, url, variant (primary | secondary | tertiary), size (sm | md | lg), icon_url (optional), disabled (false)
+#}
+
+<a 
+  href="{{ url }}"
+  class="
+    inline-flex items-center justify-center gap-2
+    font-semibold rounded-lg
+    transition-all duration-fast
+    focus-visible:outline-2 focus-visible:outline-offset-2
+    min-h-11 min-w-11
+    {% if size == 'sm' %}
+      text-sm px-3 py-2
+    {% elif size == 'lg' %}
+      text-lg px-6 py-4
+    {% else %}
+      text-base px-4 py-3
+    {% endif %}
+    {% if variant == 'secondary' %}
+      bg-bg-secondary border-2 border-accent-primary text-accent-primary
+      hover:bg-accent-primary hover:text-white
+      focus-visible:outline-accent-primary
+    {% elif variant == 'tertiary' %}
+      bg-transparent border-2 border-fg-muted text-fg-primary
+      hover:bg-bg-secondary hover:border-accent-primary hover:text-accent-primary
+      focus-visible:outline-fg-primary
+    {% else %}
+      bg-accent-primary text-white hover:bg-accent-hover
+      focus-visible:outline-accent-primary
+    {% endif %}
+    {% if disabled %}disabled:opacity-50 disabled:cursor-not-allowed{% endif %}
+  "
+  {% if disabled %}aria-disabled="true" onclick="return false"{% endif %}
+  role="button"
+>
+  {% if icon_url %}
+  <img src="{{ icon_url }}" alt="" class="w-4 h-4" loading="lazy" />
+  {% endif %}
+  <span>{{ text }}</span>
+</a>
