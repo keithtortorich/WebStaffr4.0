@@ -153,13 +153,13 @@ class CustomDomainResolutionTestCase(unittest.TestCase):
             mock_db = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone = MagicMock(return_value=("tenant-123",))
-            mock_db.cursor = MagicMock(return_value=mock_cursor)
+            mock_db.execute = MagicMock(return_value=mock_cursor)
             mock_conn.return_value = mock_db
 
             result = resolve_tenant_from_host("desertcooling.com", ":memory:")
 
             self.assertEqual(result, "tenant-123")
-            mock_cursor.execute.assert_called_once()
+            mock_db.execute.assert_called_once()
 
     def test_resolve_tenant_from_host_strips_port(self):
         """resolve_tenant_from_host should strip port from Host header."""
@@ -167,14 +167,14 @@ class CustomDomainResolutionTestCase(unittest.TestCase):
             mock_db = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone = MagicMock(return_value=("tenant-port",))
-            mock_db.cursor = MagicMock(return_value=mock_cursor)
+            mock_db.execute = MagicMock(return_value=mock_cursor)
             mock_conn.return_value = mock_db
 
             result = resolve_tenant_from_host("desertcooling.com:8080", ":memory:")
 
             self.assertEqual(result, "tenant-port")
             # Verify the query was made for the domain without port
-            args, kwargs = mock_cursor.execute.call_args
+            args, kwargs = mock_db.execute.call_args
             self.assertIn("desertcooling.com", str(args))
 
     def test_resolve_tenant_from_host_not_found(self):
@@ -183,7 +183,7 @@ class CustomDomainResolutionTestCase(unittest.TestCase):
             mock_db = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone = MagicMock(return_value=None)
-            mock_db.cursor = MagicMock(return_value=mock_cursor)
+            mock_db.execute = MagicMock(return_value=mock_cursor)
             mock_conn.return_value = mock_db
 
             result = resolve_tenant_from_host("unknown.com", ":memory:")
@@ -201,7 +201,7 @@ class CustomDomainResolutionTestCase(unittest.TestCase):
             mock_db = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone = MagicMock(return_value=("tenant-case",))
-            mock_db.cursor = MagicMock(return_value=mock_cursor)
+            mock_db.execute = MagicMock(return_value=mock_cursor)
             mock_conn.return_value = mock_db
 
             # Call with mixed case
@@ -209,7 +209,7 @@ class CustomDomainResolutionTestCase(unittest.TestCase):
 
             self.assertEqual(result, "tenant-case")
             # Verify domain was lowercased in query
-            args, kwargs = mock_cursor.execute.call_args
+            args, kwargs = mock_db.execute.call_args
             self.assertIn("desertcooling.com", str(args).lower())
 
 

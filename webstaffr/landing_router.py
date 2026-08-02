@@ -149,6 +149,39 @@ _LANDING_PAGE_HTML = """
     <title>WebStaffr | 24/7 Receptionist for Home Services</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-fade-up { animation: fadeInUp 0.7s ease-out forwards; }
+        .animate-slide-in { animation: slideInRight 0.8s ease-out forwards; }
+        .demo-card { transition: all 0.3s ease; }
+        .demo-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.08) !important;
+            border-color: rgba(200,162,90,0.5) !important;
+        }
+        .cta-button { transition: all 0.2s ease; }
+        .cta-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(200,162,90,0.3);
+        }
+        .phone-link { transition: all 0.2s ease; }
+        .phone-link:hover {
+            opacity: 0.85;
+            transform: scale(1.03);
+        }
+    </style>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #0a0c0f; color: #f0f2f5;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; background: rgba(10,12,15,0.92); backdrop-filter: blur(6px); z-index: 10;">
@@ -156,9 +189,9 @@ _LANDING_PAGE_HTML = """
         <a href="tel:__CONTACT_PHONE_TEL__" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 9px 18px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.9rem;">__ICON_PHONE__ __CONTACT_PHONE__</a>
     </div>
     <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
+        <h1 class="animate-fade-up" style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
 
-        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
+        <div class="animate-fade-up" style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px; animation-delay: 0.1s;">
             <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Problem</h2>
             <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
                 <strong>Contractors lose revenue because they can't answer the phone while they're working.</strong>
@@ -172,7 +205,7 @@ _LANDING_PAGE_HTML = """
             </p>
         </div>
 
-        <div style="margin-bottom: 60px;">
+        <div class="animate-fade-up" style="margin-bottom: 60px; animation-delay: 0.2s;">
             <h3 style="color: #c8a25a; margin-bottom: 20px;">The Math That Makes It Real</h3>
             <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 24px; border-radius: 8px; margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
@@ -193,7 +226,7 @@ _LANDING_PAGE_HTML = """
             </div>
         </div>
 
-        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
+        <div class="animate-fade-up" style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px; animation-delay: 0.3s;">
             <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Solution</h2>
             <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
                 <strong>WebStaffr answers your phone so you don't have to.</strong>
@@ -205,7 +238,7 @@ _LANDING_PAGE_HTML = """
             </p>
         </div>
 
-        <div style="margin-bottom: 60px;">
+        <div class="animate-fade-up" style="margin-bottom: 60px; animation-delay: 0.4s;">
             <h3 style="color: #c8a25a; margin-bottom: 20px;">Why WebStaffr</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
@@ -230,10 +263,10 @@ _LANDING_PAGE_HTML = """
         <div style="margin-bottom: 60px;">
             <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live: 10 Home Service Industries</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <a href="/demos/hvac" class="demo-card" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <span><strong style="color: #c8a25a;">HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
-                <a href="/demos/plumbing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <a href="/demos/plumbing" class="demo-card" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <span><strong style="color: #c8a25a;">Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
                 </a>
                 <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
@@ -271,19 +304,19 @@ _LANDING_PAGE_HTML = """
                 WebStaffr recovers revenue by making sure you never miss another call. Everything else is just how we do it: the website, the reviews, the follow-ups.
             </p>
         </div>
-        <div id="lead-capture" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px;">
+        <div id="lead-capture" class="animate-fade-up" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px; animation-delay: 0.5s;">
             <h2 style="margin-top: 0; color: #c8a25a;">Get Your Free Website</h2>
             <p style="color: #8a94a6; margin-bottom: 24px;">Answer 3 quick questions. We build it in 48 hours. Try it free for 30 days.</p>
             <form id="lead-form" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
-                <input id="lead-biz" type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input id="lead-loc" type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input id="lead-email" type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <button type="submit" style="padding: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                <input id="lead-biz" type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
+                <input id="lead-loc" type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
+                <input id="lead-email" type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
+                <button type="submit" class="cta-button" style="padding: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
                     Apply for Free Website
                 </button>
             </form>
             <p id="lead-form-status" role="status" aria-live="polite" style="font-size: 0.9rem; color: #c8a25a; margin-top: 12px; min-height: 1.2em;"></p>
-            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" style="color: #c8a25a; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">__ICON_PHONE__ __CONTACT_PHONE__</a></p>
+            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" class="phone-link" style="color: #c8a25a; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">__ICON_PHONE__ __CONTACT_PHONE__</a></p>
         </div>
     </div>
     <script>
