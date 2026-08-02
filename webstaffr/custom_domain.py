@@ -38,8 +38,7 @@ def resolve_tenant_from_host(host_header: str, db_path: str) -> Optional[str]:
     try:
         conn = get_connection(db_path)
         try:
-            cursor = conn.cursor()
-            cursor.execute(
+            cursor = conn.execute(
                 "SELECT tenant_id FROM tenants WHERE custom_domain = ?",
                 (domain,),
             )
