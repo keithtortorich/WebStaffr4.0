@@ -26,6 +26,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from .agency_router import agency_router
 from .attribution_router import attribution_router
 from .custom_domain_middleware import CustomDomainMiddleware
 from .db import connect, migrate, using_postgres
@@ -153,6 +154,7 @@ def create_app(
     app = FastAPI(title="WebStaffr", lifespan=lifespan)
     app.state.db_path = db_path  # read by intake_router's/site_router's _get_connection()
     app.include_router(landing_router)
+    app.include_router(agency_router)
     app.include_router(intake_router)
     app.include_router(site_router)
     app.include_router(site_render_router)

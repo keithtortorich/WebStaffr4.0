@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WebStaffr: 24/7 recurring office staff for home service contractors. Angel answers every call. One flat rate.">
+    <title>{% block page_title %}WebStaffr | 24/7 Recurring Office Staff for Contractors{% endblock %}</title>
+    <link rel="stylesheet" href="/agency/static/agency.css">
+</head>
+<body>
+    <!-- Utility Bar -->
+    <div class="ws-utility-bar">
+        <div class="ws-utility-bar-inner">
+            <div class="ws-utility-phone">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ws-icon">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                (888) 302-8368
+            </div>
+            <div class="ws-utility-item">
+                <span class="ws-utility-item-accent">24/7</span> Live Support
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="ws-header">
+        <div class="ws-header-inner">
+            <div class="ws-brand">
+                <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="WebStaffr" class="ws-logo">
+                    <rect x="10" y="10" width="30" height="30" fill="#1a4d5e" rx="4"/>
+                    <rect x="50" y="10" width="30" height="30" fill="#d4a574" rx="4"/>
+                    <rect x="10" y="50" width="30" height="30" fill="#d4a574" rx="4"/>
+                    <rect x="50" y="50" width="30" height="30" fill="#1a4d5e" rx="4"/>
+                </svg>
+                <span class="ws-brand-text">WebStaffr</span>
+            </div>
+            <nav class="ws-nav">
+                <a href="/agency" class="ws-nav-link">Home</a>
+                <a href="/agency/how-it-works" class="ws-nav-link">How It Works</a>
+                <a href="/agency/pricing" class="ws-nav-link">Pricing</a>
+                <a href="/agency/faq" class="ws-nav-link">FAQ</a>
+                <a href="/agency/about" class="ws-nav-link">About</a>
+            </nav>
+            <a href="/agency/contact" class="ws-nav-cta">Get Started</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="ws-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="ws-footer">
+        <div class="ws-footer-inner">
+            <div class="ws-footer-section">
+                <h3 class="ws-footer-heading">WebStaffr</h3>
+                <p class="ws-footer-text">24/7 recurring office staff for home service contractors.</p>
+            </div>
+            <div class="ws-footer-section">
+                <h4 class="ws-footer-subheading">Product</h4>
+                <ul class="ws-footer-links">
+                    <li><a href="/agency/how-it-works">How It Works</a></li>
+                    <li><a href="/agency/pricing">Pricing</a></li>
+                    <li><a href="/agency/faq">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="ws-footer-section">
+                <h4 class="ws-footer-subheading">Company</h4>
+                <ul class="ws-footer-links">
+                    <li><a href="/agency/about">About</a></li>
+                    <li><a href="/agency/contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="ws-footer-section">
+                <h4 class="ws-footer-subheading">Contact</h4>
+                <p class="ws-footer-text">
+                    <a href="mailto:keithtortorich@gmail.com">keithtortorich@gmail.com</a><br>
+                    <a href="tel:+18883028368">(888) 302-8368</a>
+                </p>
+            </div>
+        </div>
+        <div class="ws-footer-bottom">
+            <p class="ws-footer-copyright">&copy; 2026 WebStaffr. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/agency/static/agency.js"></script>
+</body>
+</html>
