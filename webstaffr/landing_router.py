@@ -144,182 +144,655 @@ async def demo_redirect(trade: str):
 # Placeholder HTML — in production, read from a static file
 _LANDING_PAGE_HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>WebStaffr | 24/7 Receptionist for Home Services</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebStaffr | 24/7 Receptionist for Home Services</title>
+  <meta name="description" content="Stop losing jobs to missed calls. WebStaffr answers your phone 24/7. No AI. No setup fees. Get a real job or it's free.">
+  <style>
+    :root {
+      --primary: #4169E1;        /* Royal blue */
+      --secondary: #000080;      /* Navy */
+      --accent: #FF6600;         /* Electric orange */
+      --bg: #e0e0e0;             /* Light gray */
+      --text: #16202e;           /* Dark text */
+      --text-light: #5a6672;     /* Muted text */
+      --border: #e2e6ec;
+      --shadow: 0 2px 8px rgba(16, 24, 38, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+      background: var(--bg);
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--secondary);
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      color: var(--primary);
+    }
+
+    .cta-button {
+      background: var(--accent);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .cta-button:hover {
+      background: #e55a00;
+    }
+
+    section {
+      padding: 60px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, white 0%, var(--bg) 100%);
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .hero h2 {
+      font-size: 24px;
+      font-weight: 400;
+      margin: 0 0 40px 0;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    .trust-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      margin: 40px 0;
+      padding: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .trust-item {
+      text-align: center;
+    }
+
+    .trust-stat {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 8px 0;
+    }
+
+    .trust-label {
+      font-size: 14px;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      margin: 40px 0;
+    }
+
+    .primary-cta {
+      background: var(--accent);
+      color: white;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+
+    .primary-cta:hover {
+      background: #e55a00;
+    }
+
+    .secondary-cta {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .secondary-cta:hover {
+      text-decoration: underline;
+    }
+
+    /* Math Section */
+    .math-section {
+      background: white;
+      padding: 60px 20px;
+    }
+
+    .math-section h2 {
+      font-size: 36px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 40px;
+      color: var(--text);
+    }
+
+    .math-content {
+      max-width: 700px;
+      margin: 0 auto;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .math-content p {
+      margin: 16px 0;
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 60px 20px;
+    }
+
+    .how-it-works h2 {
+      font-size: 36px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 50px;
+      color: var(--text);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+    }
+
+    .step {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .step h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 16px 0;
+      color: var(--text);
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--text-light);
+      margin: 12px 0;
+    }
+
+    /* Pricing */
+    .pricing {
+      background: white;
+      padding: 60px 20px;
+    }
+
+    .pricing h2 {
+      font-size: 36px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 50px;
+      color: var(--text);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .pricing-card {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .pricing-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 16px rgba(255, 102, 0, 0.15);
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--bg) 0%, white 100%);
+      transform: scale(1.05);
+    }
+
+    .pricing-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .pricing-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 12px 0;
+    }
+
+    .pricing-price {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 16px 0;
+    }
+
+    .pricing-price-sub {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 24px 0;
+      margin: 0;
+      text-align: left;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pricing-features li {
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .pricing-cta {
+      margin-top: 24px;
+    }
+
+    /* FAQ */
+    .faq {
+      padding: 60px 20px;
+      background: white;
+    }
+
+    .faq h2 {
+      font-size: 36px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 50px;
+      color: var(--text);
+    }
+
+    .faq-item {
+      max-width: 700px;
+      margin: 0 auto 30px auto;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+
+    .faq-question {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 12px 0;
+      cursor: pointer;
+    }
+
+    .faq-answer {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--secondary);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    footer h2 {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      color: white;
+    }
+
+    footer p {
+      font-size: 16px;
+      margin: 0 0 30px 0;
+      opacity: 0.9;
+    }
+
+    footer .primary-cta {
+      background: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    footer .guarantee {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero h2 {
+        font-size: 18px;
+      }
+
+      nav {
+        gap: 16px;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+
+      .trust-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #0a0c0f; color: #f0f2f5;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; background: rgba(10,12,15,0.92); backdrop-filter: blur(6px); z-index: 10;">
-        <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.02em; color: #f0f2f5;">WebStaffr</span>
-        <a href="tel:__CONTACT_PHONE_TEL__" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 9px 18px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.9rem;">__ICON_PHONE__ __CONTACT_PHONE__</a>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <a class="logo" href="/">WebStaffr</a>
+      <nav>
+        <a href="#how-it-works">HOW IT WORKS</a>
+        <a href="#pricing">PRICING</a>
+        <a href="#faq">FAQ</a>
+        <button class="cta-button">START NOW</button>
+      </nav>
     </div>
-    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-        <h1 style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
+  </header>
 
-        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
-            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Problem</h2>
-            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
-                <strong>Contractors lose revenue because they can't answer the phone while they're working.</strong>
-            </p>
-            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
-                That's it. Everything else is a symptom.
-                <br><br>
-                Missed calls become lost jobs. Lost jobs become revenue leaks. Revenue leaks become cash flow problems. Cash flow problems become stress, sleepless nights, and wondering if you can make payroll.
-                <br><br>
-                But it all starts with one thing: <strong>You're on a job. The phone rings. You can't get to it.</strong>
-            </p>
-        </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>You left money on the table this week.</h1>
+      <h2>WebStaffr answers your phone so you don't lose jobs you already paid to generate.</h2>
 
-        <div style="margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-bottom: 20px;">The Math That Makes It Real</h3>
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 24px; border-radius: 8px; margin-bottom: 24px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                    <div>
-                        <div style="font-size: 2rem; font-weight: 600; color: #c8a25a;">27%</div>
-                        <div style="color: #8a94a6; font-size: 0.9rem;">of home service calls go unanswered</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #c8a25a; line-height: 1.25;">Speed wins the job</div>
-                        <div style="color: #8a94a6; font-size: 0.9rem;">Speed-to-lead research (MIT/Oldroyd) ties faster first response to higher close rates</div>
-                    </div>
-                </div>
-                <p style="color: #8a94a6; margin: 0; line-height: 1.8;">
-                    <strong style="color: #f0f2f5;">If you miss 10 calls in a week:</strong> most leave voicemail, and most of those never call back. Every one of them is a lead your competitor can pick up instead.
-                    <br><br>
-                    <strong style="color: #c8a25a;">A single missed job = $500–$5,000.</strong> A single missed call costs more than a month of WebStaffr.
-                </p>
-            </div>
+      <div class="trust-bar">
+        <div class="trust-item">
+          <div class="trust-stat">27%</div>
+          <div class="trust-label">of calls go unanswered<br><span style="font-size: 12px; color: var(--accent);">That's revenue walking out the door</span></div>
         </div>
+        <div class="trust-item">
+          <div class="trust-stat">85%</div>
+          <div class="trust-label">never call back<br><span style="font-size: 12px; color: var(--accent);">They call your competitor instead</span></div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-stat">78%</div>
+          <div class="trust-label">hire whoever responds first<br><span style="font-size: 12px; color: var(--accent);">Speed = money</span></div>
+        </div>
+      </div>
 
-        <div style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px;">
-            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Solution</h2>
-            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
-                <strong>WebStaffr answers your phone so you don't have to.</strong>
-            </p>
-            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
-                It's not software. It's not AI. It's not a chatbot.
-                <br><br>
-                It's a <strong>24/7 Receptionist</strong> that picks up every call, pre-qualifies the lead, and books appointments directly into your calendar. While you're on a ladder, under a house, or driving to the next job, your phone is still ringing, and still getting answered.
-            </p>
-        </div>
-
-        <div style="margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-bottom: 20px;">Why WebStaffr</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Hire a human receptionist</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">$3,500+/month. Can't work 24/7. Calls in sick. Takes vacations. Can't handle 3 calls at once.</div>
-                </div>
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Let calls go to voicemail</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">Most never call back. They call your competitor instead.</div>
-                </div>
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Call back later</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">The lead's already talking to whoever picked up first.</div>
-                </div>
-                <div style="background: rgba(200,162,90,0.1); border: 1px solid rgba(200,162,90,0.3); padding: 16px; border-radius: 6px;">
-                    <div style="color: #c8a25a; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">__ICON_CHECK__ WebStaffr</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">$497/month. 24/7/365. Answers every call. Qualifies every lead. Books every job. Built for contractors.</div>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live: 10 Home Service Industries</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                <a href="/demos/hvac" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/plumbing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Electrical</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/roofing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Roofing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/water-damage" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Water Damage</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 emergency</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/garage-door" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Garage Door</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">After-hours demand</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/pest-control" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Pest Control</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">27% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/landscaping" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Landscaping</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">High volume</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/tree-service" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Tree Service</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/cleaning" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Cleaning</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Recurring</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-            </div>
-        </div>
-
-        <div style="text-align: center; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.06);">
-            <h2 style="color: #f0f2f5; margin: 0 0 16px 0; font-size: 1.3rem;">
-                <strong style="color: #c8a25a;">You don't need more leads.</strong><br>You need to stop losing the ones you already have.
-            </h2>
-            <p style="color: #8a94a6; margin: 0; max-width: 600px; margin-left: auto; margin-right: auto;">
-                WebStaffr recovers revenue by making sure you never miss another call. Everything else is just how we do it: the website, the reviews, the follow-ups.
-            </p>
-        </div>
-        <div id="lead-capture" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px;">
-            <h2 style="margin-top: 0; color: #c8a25a;">Get Your Free Website</h2>
-            <p style="color: #8a94a6; margin-bottom: 24px;">Answer 3 quick questions. We build it in 48 hours. Try it free for 30 days.</p>
-            <form id="lead-form" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
-                <input id="lead-biz" type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input id="lead-loc" type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <input id="lead-email" type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5;" required>
-                <button type="submit" style="padding: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                    Apply for Free Website
-                </button>
-            </form>
-            <p id="lead-form-status" role="status" aria-live="polite" style="font-size: 0.9rem; color: #c8a25a; margin-top: 12px; min-height: 1.2em;"></p>
-            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" style="color: #c8a25a; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">__ICON_PHONE__ __CONTACT_PHONE__</a></p>
-        </div>
+      <div class="hero-ctas">
+        <button class="primary-cta">No Card. No Contract. Get a Job Or It's Free.</button>
+        <a href="#pricing" class="secondary-cta">Just Tell Me Yes</a>
+      </div>
     </div>
-    <script>
-        function openInvestorModal() {
-            alert('Investor materials coming soon. Email __CONTACT_EMAIL__ for early access.');
-        }
+  </section>
 
-        // Interim lead capture. This hands the submission to the visitor's mail
-        // client rather than posting to the backend: /intake requires twelve
-        // fields (two of them internal-only and never public), so this three
-        // field form has no endpoint it can legitimately post to yet. Before
-        // this, the button did nothing at all and every submission was silently
-        // discarded. Replace with a real POST once the public intake contract
-        // is decided -- see TASKS.md.
-        (function () {
-            var form = document.getElementById('lead-form');
-            if (!form) { return; }
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                var biz = document.getElementById('lead-biz').value.trim();
-                var loc = document.getElementById('lead-loc').value.trim();
-                var email = document.getElementById('lead-email').value.trim();
-                if (!biz || !loc || !email) { return; }
-                var subject = 'Free website application: ' + biz;
-                var body = 'Business name: ' + biz + '\\n'
-                         + 'Location: ' + loc + '\\n'
-                         + 'Email: ' + email + '\\n';
-                var status = document.getElementById('lead-form-status');
-                status.textContent = 'Opening your email app to send this to our team. '
-                                   + 'If nothing happens, call __CONTACT_PHONE__.';
-                window.location.href = 'mailto:__CONTACT_EMAIL__'
-                    + '?subject=' + encodeURIComponent(subject)
-                    + '&body=' + encodeURIComponent(body);
-            });
-        })();
-    </script>
+  <!-- Math Section -->
+  <section class="math-section">
+    <div class="container">
+      <h2>Let's Do The Math.</h2>
+      <div class="math-content">
+        <p>How many calls do you think you're missing in a typical week?</p>
+        <p>Most contractors we talk to say 10. Sometimes more.</p>
+        <p>That's 40 a month. At $400 a job average, that's <span class="highlight">$16,000 a month.</span> <span class="highlight">$192,000 a year.</span></p>
+        <p>Does that number hurt?</p>
+        <p>It should.</p>
+        <p>And that's just the jobs you <em>know</em> you're losing. There are more, the ones you never find out about because the customer already called someone else.</p>
+        <p>That's why we built WebStaffr. Not to automate. To recover.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2>Three Steps. Zero Risk.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Tell Us About Your Business</h3>
+          <p>No card now. No long application. Just a few questions: your business name, industry, what you want customers to know.</p>
+          <p style="font-size: 12px; color: var(--accent); font-weight: 600;">Start Now</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>We Handle Your Calls</h3>
+          <p>Within hours, your phone is answered 24/7. Nights, weekends, lunch breaks, while you're on a job. Every customer call gets answered. Every lead gets booked or forwarded to you.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>You Verify. You Decide.</h3>
+          <p>In 14 days, we show you every job we captured. Real customers. Real appointments. You verify they're legitimate. If we didn't capture a job, we cancel. No bill. No hard feelings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <h2>Simple Pricing. One Job Pays For The Month.</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-label">Test Drive</div>
+          <h3 class="pricing-name">Everything Starts Here</h3>
+          <div class="pricing-price">Free<div class="pricing-price-sub">14 days</div></div>
+          <ul class="pricing-features">
+            <li>Professional website</li>
+            <li>Live appointment booking</li>
+            <li>Lead capture and follow-up</li>
+            <li>24/7 answering</li>
+          </ul>
+          <div class="pricing-cta">
+            <button class="primary-cta">No Card. No Contract. Get a Job Or It's Free.</button>
+          </div>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="pricing-label">Most Popular</div>
+          <h3 class="pricing-name">Office Staff</h3>
+          <div class="pricing-price">$497<div class="pricing-price-sub">/month</div></div>
+          <ul class="pricing-features">
+            <li>Everything in Test Drive</li>
+            <li>24/7 Receptionist</li>
+            <li>Service Advisor</li>
+            <li>Lead Coordinator</li>
+            <li>Reputation Manager</li>
+            <li>Website Operations Manager</li>
+          </ul>
+          <div class="pricing-cta">
+            <button class="primary-cta">Get Your Office Staff Today</button>
+          </div>
+          <p style="font-size: 12px; color: var(--text-light); margin-top: 16px;">Month-to-month. Cancel anytime.</p>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-label">Scale</div>
+          <h3 class="pricing-name">Business Manager</h3>
+          <div class="pricing-price">$2,497<div class="pricing-price-sub">/month</div></div>
+          <ul class="pricing-features">
+            <li>Everything in Office Staff</li>
+            <li>Sales Consultant</li>
+            <li>Marketing Coordinator</li>
+            <li>Growth Manager</li>
+          </ul>
+          <div class="pricing-cta">
+            <button class="cta-button">Talk To Us About Business Manager</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <h2>FAQ</h2>
+
+      <div class="faq-item">
+        <h3 class="faq-question">Why is the website free?</h3>
+        <p class="faq-answer">Because we'd rather show you what WebStaffr can do than tell you. Once you see it working, the rest is an easy decision.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">What happens after 14 days?</h3>
+        <p class="faq-answer">You choose. We send you the details of every job we captured. Real customers, real appointments. You verify they're real. If we didn't get any, no bill. If we did, you decide whether to keep going, month-to-month, cancel anytime.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">Can I switch plans later?</h3>
+        <p class="faq-answer">Yes. Most contractors start with Office Staff and move to Business Manager once they've seen the results. Some scale back if they get slower. It's your business. You're in control.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">Is there a setup fee?</h3>
+        <p class="faq-answer">No. What you see is what you pay. No surprises.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">I already have someone answering the phone.</h3>
+        <p class="faq-answer">Good. WebStaffr covers the hours they can't: nights, weekends, lunch breaks, when you're on a job site. It backs up your team instead of replacing them. And it never calls in sick.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">I've been burned before.</h3>
+        <p class="faq-answer">We're putting our money where our mouth is. No risk to you. 14 days, free. We get you a job or we cancel.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">I don't trust software like this.</h3>
+        <p class="faq-answer">You shouldn't. That's why we don't ask you to trust us. We prove it works or we don't get paid. Fair?</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">I can't afford $497.</h3>
+        <p class="faq-answer">Can you afford to lose $16,000 a month? Because that's what's happening right now. What's the real concern here?</p>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-question">Send me an email.</h3>
+        <p class="faq-answer">Happy to. But real quick, what's the hesitation? Because if it works, you pay nothing. If it doesn't, you pay nothing. So what's the real objection?</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <h2>Get Your Office Staff Working. Starting Today.</h2>
+      <p>14 days, free. No card. No contract. No risk.<br>Just tell me yes.</p>
+      <button class="primary-cta">Get Started. No Card Required.</button>
+      <p class="guarantee">Backed by a 14-day performance guarantee. If we don't capture a paying job in 14 days, we cancel. No bill. No hard feelings.</p>
+    </div>
+  </footer>
 </body>
 </html>
 """
