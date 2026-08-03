@@ -36,7 +36,7 @@ from typing import Optional, Protocol
 
 
 class SharedSecretVerifier(Protocol):
-    def verify(self, provided: Optional[str]) -> bool: ...
+    def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool: ...
 
 
 class NullSharedSecretVerifier:
@@ -44,7 +44,7 @@ class NullSharedSecretVerifier:
     secret env var is set. Same pattern as NullVoiceBackend/NullGHLClient/
     NullRetellWebhookVerifier: an explicit, named no-op, not a silent skip."""
 
-    def verify(self, provided: Optional[str]) -> bool:
+    def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
         return True
 
 
@@ -53,14 +53,18 @@ class StaticSecretVerifier:
     a missing or mismatched header returns False rather than raising, so a
     caller can always treat "not verify()" as "reject the request" without
     a second exception-handling path -- same contract as
-    RetellSignatureVerifier.verify()."""
+    RetellSignatureVerifier.verify().
+
+    raw_body accepted (and ignored) for interface parity with verifiers
+    that need it (e.g. StripeSignatureVerifier) -- callers that inject a
+    static secret in place of a body-aware verifier still work unchanged."""
 
     def __init__(self, secret: str) -> None:
         if not secret:
             raise ValueError("StaticSecretVerifier requires a non-empty secret.")
         self._secret = secret
 
-    def verify(self, provided: Optional[str]) -> bool:
+    def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
         if not provided:
             return False
         return hmac.compare_digest(self._secret, provided)

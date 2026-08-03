@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ...db import DB_ERRORS, get_connection as _db_get_connection
@@ -25,6 +25,7 @@ from .angel import Angel
 from .api_auth import SharedSecretVerifier, book_api_verifier_from_env, ghl_webhook_verifier_from_env
 from .ghl import GHLClient
 from .voice import VoiceBackend
+from .stripe_webhook import stripe_webhook_verifier_from_env
 
 logger = logging.getLogger("webstaffr.angel.router")
 
@@ -52,6 +53,16 @@ class GHLWebhookEvent(BaseModel):
     contact_id: Optional[str] = None
     contact_name: Optional[str] = None
     message: Optional[str] = Field(default=None, max_length=_MAX_MESSAGE_LENGTH)
+
+
+class StripeWebhookEvent(BaseModel):
+    """Minimal shape of Stripe payment events. Stripe's real payloads carry
+    more fields -- extra fields are ignored by pydantic by default. Validate
+    Stripe's signature server-side before trusting the event."""
+
+    type: str  # e.g. "charge.succeeded", "charge.failed"
+    data: dict  # Contains 'object' with charge/payment details
+    tenant_id: str  # Added by our webhook handler (not in Stripe's payload)
 
 
 class ChatRequest(BaseModel):
@@ -98,6 +109,7 @@ def create_angel_router(
     ghl_client: Optional[GHLClient] = None,
     book_api_verifier: Optional[SharedSecretVerifier] = None,
     ghl_webhook_verifier: Optional[SharedSecretVerifier] = None,
+    stripe_webhook_verifier: Optional[SharedSecretVerifier] = None,
 ) -> APIRouter:
     """Factory (not a module-level router) so the caller controls exactly
     which db_path/backends/verifiers Angel's endpoints use, same pattern
@@ -111,6 +123,7 @@ def create_angel_router(
     # not a new pattern invented for this router.
     active_ghl_webhook_verifier = ghl_webhook_verifier or ghl_webhook_verifier_from_env()
     active_book_api_verifier = book_api_verifier or book_api_verifier_from_env()
+    active_stripe_webhook_verifier = stripe_webhook_verifier or stripe_webhook_verifier_from_env()
 
     def get_connection():
         """Backend (SQLite vs Postgres) is chosen by db.get_connection()
@@ -268,5 +281,94 @@ def create_angel_router(
             event.event_type,
         )
         return {"status": "handled", "reply": reply}
+
+    @router.post("/webhooks/stripe")
+    async def stripe_webhook(
+        request: Request,
+        payload: dict,
+        x_stripe_signature: Optional[str] = Header(default=None, alias="X-Stripe-Signature"),
+    ) -> dict:
+        """Stripe payment status webhook. Requires X-Stripe-Signature matching
+        STRIPE_WEBHOOK_SECRET when that env var is set (see stripe_webhook.py).
+        Unconfigured, this remains open (Null-verifier pattern).
+
+        Stripe payload must include:
+        - type: event type (e.g. "charge.succeeded", "charge.failed")
+        - data.object.metadata.tenant_id: tenant identifier for the appointment
+        - data.object.metadata.appointment_id: local appointment ID to update
+
+        On charge.succeeded, updates appointment status to 'paid' in the database.
+        On charge.failed, updates status to 'payment_failed'.
+
+        Raw body is read explicitly (Starlette caches it, so `payload`'s own
+        parse and this read see the same bytes) because Stripe's HMAC is
+        computed over the exact raw bytes it sent, not the re-serialized
+        parsed dict -- re-serializing can change byte-for-byte formatting
+        and silently break every real signature check.
+        """
+        raw_body = await request.body()
+        if not active_stripe_webhook_verifier.verify(x_stripe_signature, raw_body):
+            raise HTTPException(status_code=401, detail="Invalid or missing webhook signature")
+
+        event_type = payload.get("type", "")
+        data = payload.get("data", {})
+        charge = data.get("object", {})
+        metadata = charge.get("metadata", {})
+
+        tenant_id = metadata.get("tenant_id")
+        appointment_id = metadata.get("appointment_id")
+
+        if not tenant_id or not appointment_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Missing tenant_id or appointment_id in Stripe metadata"
+            )
+
+        try:
+            tenant = Tenant(tenant_id=tenant_id)
+        except InvalidTenantError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        # Map Stripe event type to appointment status
+        status_map = {
+            "charge.succeeded": "paid",
+            "charge.failed": "payment_failed",
+            "charge.refunded": "refunded",
+        }
+        new_status = status_map.get(event_type)
+
+        if not new_status:
+            logger.info("stripe_webhook_ignored tenant=%s event_type=%s", tenant_id, event_type)
+            return {"status": "ignored", "reason": f"Unhandled event type: {event_type}"}
+
+        conn = get_connection()
+        try:
+            # Update appointment status in DB (tenant-scoped by appointment_id + tenant_id WHERE clause)
+            conn.execute(
+                "UPDATE appointments SET status = ? WHERE appointment_id = ? AND tenant_id = ?",
+                (new_status, int(appointment_id), tenant_id),
+            )
+            rows_updated = conn.total_changes
+            conn.commit()
+
+            if rows_updated == 0:
+                logger.warning(
+                    "stripe_webhook_no_rows_updated tenant=%s appointment_id=%s event_type=%s",
+                    tenant_id,
+                    appointment_id,
+                    event_type,
+                )
+
+            logger.info(
+                "stripe_webhook_handled tenant=%s appointment_id=%s event_type=%s new_status=%s",
+                tenant_id,
+                appointment_id,
+                event_type,
+                new_status,
+            )
+        finally:
+            conn.close()
+
+        return {"status": "handled", "appointment_id": appointment_id, "new_status": new_status}
 
     return router

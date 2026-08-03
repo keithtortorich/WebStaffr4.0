@@ -123,6 +123,7 @@ def create_app(
     ghl_webhook_verifier: Optional[SharedSecretVerifier] = None,
     book_api_verifier: Optional[SharedSecretVerifier] = None,
     workflow_graph_verifier: Optional[SharedSecretVerifier] = None,
+    stripe_webhook_verifier: Optional[SharedSecretVerifier] = None,
 ) -> FastAPI:
     """Factory rather than a module-level app instance, so tests (and any
     future multi-tenant deployment shape) can construct an app pointed at
@@ -183,6 +184,7 @@ def create_app(
             ghl_client=ghl_client,
             book_api_verifier=book_api_verifier,
             ghl_webhook_verifier=ghl_webhook_verifier,
+            stripe_webhook_verifier=stripe_webhook_verifier,
         )
     )
     # Rita's endpoints (/webhooks/ghl/job_completed, /workers/rita/draft-response)
@@ -320,4 +322,5 @@ app = create_app(
     retell_verifier=None,  # resolved from RETELL_WEBHOOK_SECRET inside create_retell_router()
     ghl_webhook_verifier=None,  # resolved from GHL_WEBHOOK_SECRET inside create_angel_router()
     book_api_verifier=None,  # resolved from BOOK_API_KEY inside create_angel_router()
+    stripe_webhook_verifier=None,  # resolved from STRIPE_WEBHOOK_SECRET inside create_angel_router()
 )
