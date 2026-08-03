@@ -23,6 +23,7 @@ from .intake import (
     generate_tenant_id,
     validate_intake_payload,
 )
+from .site_magic_engine import generate_site_for_submission, resolve_site_workdir
 from .trade_presets import SUPPORTED_INDUSTRIES, get_preset
 
 logger = logging.getLogger("webstaffr.intake_router")
@@ -145,6 +146,8 @@ def submit_intake(req: IntakeRequest, request: Request) -> IntakeResponse:
     finally:
         conn.close()
 
+    _generate_site_if_enabled(submission, request.app.state.db_path)
+
     return IntakeResponse(
         submission_id=submission.submission_id,
         tenant_id=tenant_id,
@@ -152,6 +155,24 @@ def submit_intake(req: IntakeRequest, request: Request) -> IntakeResponse:
         industry=submission.industry,
         plan=submission.plan,
     )
+
+
+def _generate_site_if_enabled(submission: IntakeSubmission, db_path: str) -> None:
+    """Best-effort site generation after a successful intake.
+
+    Site generation must never fail the intake response: a prospect should
+    not receive a 500 because template rendering hiccuped. Failures are
+    logged with the real exception type and swallowed here; success is
+    silent.
+    """
+    try:
+        generate_site_for_submission(submission, resolve_site_workdir(db_path))
+    except Exception as exc:
+        logger.error(
+            "site_generation_failed tenant_id=%s error_type=%s",
+            submission.tenant_id,
+            type(exc).__name__,
+        )
 
 
 @intake_router.get("/intake/presets")

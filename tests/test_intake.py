@@ -2,6 +2,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -91,6 +92,18 @@ class TestIntakeSubmission(IntakeTestCase):
         r1 = self.client.post("/intake", json=_valid_payload())
         r2 = self.client.post("/intake", json=_valid_payload())
         self.assertNotEqual(r1.json()["tenant_id"], r2.json()["tenant_id"])
+
+    def test_submission_generates_site_artifacts(self):
+        resp = self.client.post("/intake", json=_valid_payload())
+        self.assertEqual(resp.status_code, 200)
+        tenant_id = resp.json()["tenant_id"]
+
+        workdir = Path(self.db_path).resolve().parent / "generated_sites"
+        web_dir = workdir / tenant_id / "web"
+        self.assertTrue(web_dir.exists(), msg=f"expected web dir at {web_dir}")
+        self.assertTrue((web_dir / "tokens.css").exists(), msg="expected tokens.css")
+        for page in ("home.html", "about.html", "contact.html", "services.html"):
+            self.assertTrue((web_dir / page).exists(), msg=f"expected {page}")
 
 
 class TestIntakeValidation(IntakeTestCase):
