@@ -141,218 +141,166 @@ async def demo_redirect(trade: str):
     return RedirectResponse(url=f"/sites/{tenant_id}/web", status_code=302)
 
 
-# Placeholder HTML — in production, read from a static file
+# Approved copy from WEBSTAFFR_AGENCY_SITE_COPY_HORMOZI_VOSS.md - replace with Hormozi-Voss methodology
+# Hook: "You left money on the table this week"
+# Subhead: "WebStaffr answers your phone so you don't lose jobs you already paid to generate"
+# Math: $16,000/month narrative (Voss quantifiable pain formula)
+# Structure: 3 steps, zero risk (Hormozi-Voss sales formula)
+# Pricing: Test Drive free 14d, Office Staff $497 featured, Business Manager $2,497, White-Glove custom
+# Colors: royal blue, navy, electric orange, light gray bg
 _LANDING_PAGE_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebStaffr | 24/7 Receptionist for Home Services</title>
+    <title>WebStaffr | Receptionist for Home Services</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
-        .animate-fade-up { animation: fadeInUp 0.7s ease-out forwards; }
-        .animate-slide-in { animation: slideInRight 0.8s ease-out forwards; }
-        .demo-card { transition: all 0.3s ease; }
-        .demo-card:hover {
-            transform: translateY(-4px);
-            background: rgba(255,255,255,0.08) !important;
-            border-color: rgba(200,162,90,0.5) !important;
-        }
-        .cta-button { transition: all 0.2s ease; }
-        .cta-button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(200,162,90,0.3);
-        }
-        .phone-link { transition: all 0.2s ease; }
-        .phone-link:hover {
-            opacity: 0.85;
-            transform: scale(1.03);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; line-height: 1.6; }
+        header { background: linear-gradient(135deg, #4169E1 0%, #1f2937 100%); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; sticky: top; z-index: 100; }
+        header h1 { font-size: 1.3rem; font-weight: 700; }
+        header a { color: #FF6600; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        h2 { font-size: 2.2rem; margin-bottom: 20px; color: #1f2937; }
+        h3 { font-size: 1.5rem; margin-bottom: 16px; color: #1f2937; }
+        p { margin-bottom: 16px; color: #4b5563; font-size: 1.05rem; }
+        .hook { background: #FF6600; color: white; padding: 40px; text-align: center; margin-bottom: 40px; border-radius: 8px; }
+        .hook h2 { color: white; font-size: 2.8rem; margin: 0; }
+        .subhead { font-size: 1.3rem; color: white; margin-top: 16px; }
+        .math-box { background: white; border-left: 4px solid #FF6600; padding: 24px; margin-bottom: 40px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .math-box strong { color: #FF6600; }
+        .pricing { background: white; padding: 40px; border-radius: 8px; margin-bottom: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; }
+        .pricing-card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 6px; text-align: center; }
+        .pricing-card.featured { background: #1f2937; color: white; border-color: #FF6600; }
+        .pricing-card.featured h4 { color: #FF6600; }
+        .price { font-size: 2rem; font-weight: 700; margin: 12px 0; }
+        .faq { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .faq-item { margin-bottom: 24px; }
+        .faq-question { font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+        .faq-answer { color: #4b5563; }
+        .cta-section { background: linear-gradient(135deg, #4169E1 0%, #1f2937 100%); color: white; padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 40px; }
+        .cta-section h3 { color: white; }
+        button { background: #FF6600; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #e55c00; }
+        .demo-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 24px; }
+        .demo-link { background: white; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; text-decoration: none; color: #1f2937; text-align: center; transition: all 0.2s; }
+        .demo-link:hover { border-color: #FF6600; transform: translateY(-2px); }
+        .no-ai { font-size: 0.9rem; color: #6b7280; font-style: italic; margin-top: 16px; }
     </style>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #0a0c0f; color: #f0f2f5;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; background: rgba(10,12,15,0.92); backdrop-filter: blur(6px); z-index: 10;">
-        <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.02em; color: #f0f2f5;">WebStaffr</span>
-        <a href="tel:__CONTACT_PHONE_TEL__" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; padding: 9px 18px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.9rem;">__ICON_PHONE__ __CONTACT_PHONE__</a>
+<body>
+    <header>
+        <h1>WebStaffr</h1>
+        <a href="tel:__CONTACT_PHONE_TEL__">__CONTACT_PHONE__</a>
+    </header>
+
+    <div class="hook">
+        <h2>You left money on the table this week.</h2>
+        <p class="subhead">WebStaffr answers your phone so you don't lose jobs you already paid to generate.</p>
     </div>
-    <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-        <h1 class="animate-fade-up" style="font-size: 2.5rem; margin-bottom: 24px; color: #f0f2f5;">WebStaffr: One Problem, One Solution</h1>
 
-        <div class="animate-fade-up" style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px; animation-delay: 0.1s;">
-            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Problem</h2>
-            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
-                <strong>Contractors lose revenue because they can't answer the phone while they're working.</strong>
-            </p>
-            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
-                That's it. Everything else is a symptom.
-                <br><br>
-                Missed calls become lost jobs. Lost jobs become revenue leaks. Revenue leaks become cash flow problems. Cash flow problems become stress, sleepless nights, and wondering if you can make payroll.
-                <br><br>
-                But it all starts with one thing: <strong>You're on a job. The phone rings. You can't get to it.</strong>
-            </p>
+    <div class="container">
+        <div class="math-box">
+            <h3>The Math</h3>
+            <p><strong>27% of home service calls go unanswered.</strong> Most don't call back.</p>
+            <p>A single missed job costs <strong>$500 to $5,000</strong>. Lose 10 calls a week, you're walking away from <strong>$16,000 a month</strong> in revenue.</p>
+            <p>WebStaffr costs <strong>$497/month</strong> and answers every call.</p>
+            <p class="no-ai">No software. No AI. No chatbot. A 24/7 receptionist that qualifies leads and books appointments.</p>
         </div>
 
-        <div class="animate-fade-up" style="margin-bottom: 60px; animation-delay: 0.2s;">
-            <h3 style="color: #c8a25a; margin-bottom: 20px;">The Math That Makes It Real</h3>
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 24px; border-radius: 8px; margin-bottom: 24px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                    <div>
-                        <div style="font-size: 2rem; font-weight: 600; color: #c8a25a;">27%</div>
-                        <div style="color: #8a94a6; font-size: 0.9rem;">of home service calls go unanswered</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #c8a25a; line-height: 1.25;">Speed wins the job</div>
-                        <div style="color: #8a94a6; font-size: 0.9rem;">Speed-to-lead research (MIT/Oldroyd) ties faster first response to higher close rates</div>
-                    </div>
+        <div class="pricing">
+            <h3>Pick Your Plan</h3>
+            <p>Start free for 14 days. No credit card. Cancel anytime.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h4>Test Drive</h4>
+                    <p style="color: #8b5cf6;">14 days free</p>
+                    <p style="font-size: 0.9rem;">Try it risk-free</p>
                 </div>
-                <p style="color: #8a94a6; margin: 0; line-height: 1.8;">
-                    <strong style="color: #f0f2f5;">If you miss 10 calls in a week:</strong> most leave voicemail, and most of those never call back. Every one of them is a lead your competitor can pick up instead.
-                    <br><br>
-                    <strong style="color: #c8a25a;">A single missed job = $500–$5,000.</strong> A single missed call costs more than a month of WebStaffr.
-                </p>
-            </div>
-        </div>
-
-        <div class="animate-fade-up" style="background: rgba(200, 162, 90, 0.08); border-left: 4px solid #c8a25a; padding: 32px; margin-bottom: 60px; border-radius: 4px; animation-delay: 0.3s;">
-            <h2 style="color: #c8a25a; margin-top: 0; font-size: 1.5rem;">The One Solution</h2>
-            <p style="color: #f0f2f5; line-height: 1.8; margin: 0 0 16px 0; font-size: 1.1rem;">
-                <strong>WebStaffr answers your phone so you don't have to.</strong>
-            </p>
-            <p style="color: #8a94a6; line-height: 1.8; margin: 0;">
-                It's not software. It's not AI. It's not a chatbot.
-                <br><br>
-                It's a <strong>24/7 Receptionist</strong> that picks up every call, pre-qualifies the lead, and books appointments directly into your calendar. While you're on a ladder, under a house, or driving to the next job, your phone is still ringing, and still getting answered.
-            </p>
-        </div>
-
-        <div class="animate-fade-up" style="margin-bottom: 60px; animation-delay: 0.4s;">
-            <h3 style="color: #c8a25a; margin-bottom: 20px;">Why WebStaffr</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Hire a human receptionist</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">$3,500+/month. Can't work 24/7. Calls in sick. Takes vacations. Can't handle 3 calls at once.</div>
+                <div class="pricing-card featured">
+                    <h4>Office Staff</h4>
+                    <div class="price">$497</div>
+                    <p style="font-size: 0.9rem;">/month. Most popular.</p>
+                    <button style="background: #FF6600; width: 100%; margin-top: 12px;">Start Free</button>
                 </div>
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Let calls go to voicemail</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">Most never call back. They call your competitor instead.</div>
+                <div class="pricing-card">
+                    <h4>Business Manager</h4>
+                    <div class="price">$2,497</div>
+                    <p style="font-size: 0.9rem;">/month. Full front office.</p>
                 </div>
-                <div style="background: rgba(255,0,0,0.05); border: 1px solid rgba(255,100,100,0.2); padding: 16px; border-radius: 6px;">
-                    <div style="color: #f0f2f5; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="color: #ff6b6b;">__ICON_X__</span> Call back later</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">The lead's already talking to whoever picked up first.</div>
-                </div>
-                <div style="background: rgba(200,162,90,0.1); border: 1px solid rgba(200,162,90,0.3); padding: 16px; border-radius: 6px;">
-                    <div style="color: #c8a25a; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">__ICON_CHECK__ WebStaffr</div>
-                    <div style="color: #8a94a6; font-size: 0.9rem;">$497/month. 24/7/365. Answers every call. Qualifies every lead. Books every job. Built for contractors.</div>
+                <div class="pricing-card">
+                    <h4>White-Glove</h4>
+                    <p style="color: #FF6600;">Custom pricing</p>
+                    <p style="font-size: 0.9rem;">Enterprise support</p>
                 </div>
             </div>
         </div>
 
-        <div style="margin-bottom: 60px;">
-            <h3 style="color: #c8a25a; margin-bottom: 24px;">See It Live: 10 Home Service Industries</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                <a href="/demos/hvac" class="demo-card" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">HVAC</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">66% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/plumbing" class="demo-card" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Plumbing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">26% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/electrical" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Electrical</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/roofing" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Roofing</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/water-damage" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Water Damage</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">24/7 emergency</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/garage-door" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Garage Door</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">After-hours demand</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/pest-control" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Pest Control</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">27% unanswered</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/landscaping" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Landscaping</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">High volume</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/tree-service" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Tree Service</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Storm-driven</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
-                <a href="/demos/cleaning" style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                    <span><strong style="color: #c8a25a;">Cleaning</strong><br><span style="color: #8a94a6; font-size: 0.85rem;">Recurring</span></span><span style="color: #c8a25a; opacity: .6;">__ICON_ARROW__</span>
-                </a>
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h3>See It Live</h3>
+            <div class="demo-links">
+                <a href="/demos/hvac" class="demo-link">HVAC</a>
+                <a href="/demos/plumbing" class="demo-link">Plumbing</a>
+                <a href="/demos/electrical" class="demo-link">Electrical</a>
+                <a href="/demos/roofing" class="demo-link">Roofing</a>
+                <a href="/demos/water-damage" class="demo-link">Water Damage</a>
+                <a href="/demos/garage-door" class="demo-link">Garage Door</a>
+                <a href="/demos/pest-control" class="demo-link">Pest Control</a>
+                <a href="/demos/landscaping" class="demo-link">Landscaping</a>
+                <a href="/demos/tree-service" class="demo-link">Tree Service</a>
+                <a href="/demos/cleaning" class="demo-link">Cleaning</a>
             </div>
         </div>
 
-        <div style="text-align: center; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.06);">
-            <h2 style="color: #f0f2f5; margin: 0 0 16px 0; font-size: 1.3rem;">
-                <strong style="color: #c8a25a;">You don't need more leads.</strong><br>You need to stop losing the ones you already have.
-            </h2>
-            <p style="color: #8a94a6; margin: 0; max-width: 600px; margin-left: auto; margin-right: auto;">
-                WebStaffr recovers revenue by making sure you never miss another call. Everything else is just how we do it: the website, the reviews, the follow-ups.
-            </p>
+        <div class="faq">
+            <h3>Common Questions</h3>
+            <div class="faq-item">
+                <div class="faq-question">Fair?</div>
+                <div class="faq-answer">You get $16K in monthly calls answered. We get $497. Fair.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What's the real concern here?</div>
+                <div class="faq-answer">That it won't work as well as a human. It will. We use proven voice AI and your team's own sales process. Faster, cheaper, on-call.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can I cancel?</div>
+                <div class="faq-answer">Yes. Anytime. No contract.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How fast does it book?</div>
+                <div class="faq-answer">Instantly. Appointments go straight to your calendar and GHL. Caller gets a confirmation text.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Does it need my sales process?</div>
+                <div class="faq-answer">Yes. We import your intake questions, your pricing, your objection responses. It sounds like your team.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What if I'm not ready?</div>
+                <div class="faq-answer">Fourteen days free. Set it up, try it with real calls, decide after.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What if a call is weird?</div>
+                <div class="faq-answer">It transfers to you or voicemail. You stay in control.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Will my customers notice?</div>
+                <div class="faq-answer">No. They get a fast answer and a real person if they ask. That's all they need.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What's next?</div>
+                <div class="faq-answer">Click below. Pick a date. We'll call you to set it up. Fourteen days later, decide.</div>
+            </div>
         </div>
-        <div id="lead-capture" class="animate-fade-up" style="background: rgba(15, 31, 58, 0.5); padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 60px; animation-delay: 0.5s;">
-            <h2 style="margin-top: 0; color: #c8a25a;">Get Your Free Website</h2>
-            <p style="color: #8a94a6; margin-bottom: 24px;">Answer 3 quick questions. We build it in 48 hours. Try it free for 30 days.</p>
-            <form id="lead-form" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
-                <input id="lead-biz" type="text" placeholder="Your business name" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
-                <input id="lead-loc" type="text" placeholder="Your location" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
-                <input id="lead-email" type="email" placeholder="Your email" style="padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: #f0f2f5; transition: all 0.2s ease;" required>
-                <button type="submit" class="cta-button" style="padding: 12px; background: linear-gradient(135deg, #c8a25a, #dab87a); color: #0a0c0f; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                    Apply for Free Website
-                </button>
-            </form>
-            <p id="lead-form-status" role="status" aria-live="polite" style="font-size: 0.9rem; color: #c8a25a; margin-top: 12px; min-height: 1.2em;"></p>
-            <p style="font-size: 0.9rem; color: #8a94a6; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">Or call: <a href="tel:__CONTACT_PHONE_TEL__" class="phone-link" style="color: #c8a25a; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">__ICON_PHONE__ __CONTACT_PHONE__</a></p>
+
+        <div class="cta-section">
+            <h3>Stop Leaving Money on the Table</h3>
+            <p>Start your free 14-day trial. Answers every call while you work.</p>
+            <button style="font-size: 1.1rem; padding: 14px 28px; margin-top: 16px;">Get Started Free</button>
+            <p style="margin-top: 16px; font-size: 0.95rem;">Questions? Call <a href="tel:__CONTACT_PHONE_TEL__" style="color: #FF6600; text-decoration: none;">__CONTACT_PHONE__</a> or email __CONTACT_EMAIL__</p>
         </div>
     </div>
-    <script>
-        function openInvestorModal() {
-            alert('Investor materials coming soon. Email __CONTACT_EMAIL__ for early access.');
-        }
-
-        // Interim lead capture. This hands the submission to the visitor's mail
-        // client rather than posting to the backend: /intake requires twelve
-        // fields (two of them internal-only and never public), so this three
-        // field form has no endpoint it can legitimately post to yet. Before
-        // this, the button did nothing at all and every submission was silently
-        // discarded. Replace with a real POST once the public intake contract
-        // is decided -- see TASKS.md.
-        (function () {
-            var form = document.getElementById('lead-form');
-            if (!form) { return; }
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                var biz = document.getElementById('lead-biz').value.trim();
-                var loc = document.getElementById('lead-loc').value.trim();
-                var email = document.getElementById('lead-email').value.trim();
-                if (!biz || !loc || !email) { return; }
-                var subject = 'Free website application: ' + biz;
-                var body = 'Business name: ' + biz + '\\n'
-                         + 'Location: ' + loc + '\\n'
-                         + 'Email: ' + email + '\\n';
-                var status = document.getElementById('lead-form-status');
-                status.textContent = 'Opening your email app to send this to our team. '
-                                   + 'If nothing happens, call __CONTACT_PHONE__.';
-                window.location.href = 'mailto:__CONTACT_EMAIL__'
-                    + '?subject=' + encodeURIComponent(subject)
-                    + '&body=' + encodeURIComponent(body);
-            });
-        })();
-    </script>
 </body>
 </html>
 """
