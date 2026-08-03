@@ -158,4 +158,58 @@ Design variations (modern, minimal, bold) from Silex/Mobirise mockups.
 
 ---
 
-**Last updated:** 2026-08-01
+## [ADR-021] WebStaffr Brand Color Doctrine (Locked)
+
+**Date:** 2026-08-03
+**Status:** Approved (founder-locked)
+**Affects:** `WEBSTAFFR_GOVERNANCE.md` (Visual Identity), Site Magic's default direction, all future WebStaffr-owned marketing surfaces
+**Effort:** D1 (doc update, no code change)
+
+### Problem
+
+`WEBSTAFFR_GOVERNANCE.md`'s Visual Identity section (last updated 2026-07-18) specified an approximate two-color logo treatment (gray/gold split, deep blue `#1f4d78` unified) with no defined marketing-site palette. The founder has since built and approved a full landing page (`webstaffr-standalone.html`) with a complete four-color system, dark mode, and a refined logo treatment. That page is now the reference implementation for WebStaffr's own brand identity, and is the basis Site Magic's generator should draw its default direction from.
+
+### Decision
+
+**Lock the following as WebStaffr's canonical color doctrine, superseding the prior approximate values:**
+
+| Token | Hex | Role |
+|---|---|---|
+| Navy | `#000080` | Primary brand color. Headlines, primary text, unified-logo mark, primary CTA on light backgrounds, hero gradient base. |
+| Royal Blue | `#4169E1` | Secondary accent. Links, secondary CTAs, icon accents, focus/interactive states. |
+| Orange | `#FF6600` | Highlight/energy accent. Primary CTA fill, "Staffr" wordmark color (both logo variants), focus-visible outline color. |
+| Gray | `#E0E0E0` | Neutral surface. Page background, card fills, muted section backgrounds. |
+
+**Supporting tones (extracted from the locked implementation, not independently chosen):**
+- Navy scale (light-to-dark UI depth, all four used across surfaces/dark mode): `#000080` -> `#000066` -> `#00005A` -> `#000055` -> `#000040`. Footer: `#00004D`.
+- Orange tint (icon backgrounds, light mode): `#FFE0CC`.
+- Royal blue pressed state: `#2E4FC9`.
+- Muted body text: `#5d6880` (light), standard slate grays in dark mode.
+- Success/error states use standard semantic colors (emerald/red), not brand colors -- these were never part of brand identity and stay unchanged.
+
+**Logo (Garamond Bold Italic, one size larger than surrounding text):**
+- Split (default, light backgrounds): "Web" `#999999`, "Staffr" `#FF6600`.
+- Dark (on navy backgrounds): "Web" `#cccccc`, "Staffr" `#FF6600`.
+- Unified (monochrome contexts): both words `#000080`.
+
+This corrects two values in the prior doctrine: "Staffr" moves from gold `#bf9000` to orange `#FF6600`, and the unified variant moves from deep blue `#1f4d78` to navy `#000080`. The gray split color (`#999999`) is unchanged.
+
+**Typography:** Garamond (logo only, italic bold) + Manrope (all UI text, weights 400-800).
+
+### Rationale
+
+The founder built and explicitly locked this palette by reviewing the finished landing page, not by picking hex values in the abstract -- the doctrine here is a transcription of an approved artifact, not a new design decision made by Claude. Recording it as an ADR (rather than only updating the governance doc) preserves the "why" for whoever builds Site Magic's default direction: the palette isn't arbitrary, it's traceable to one approved reference implementation.
+
+### Consequences
+
+- `WEBSTAFFR_GOVERNANCE.md`'s Visual Identity section is updated to match (this ADR is the record of why).
+- Site Magic's direction engine, when generating a default/fallback direction (no per-tenant brand override), should treat this four-color system as WebStaffr's own house style -- distinct from the dynamic per-tenant `brand_colors` palette system in `DESIGN.md`, which remains customer-brand-driven and unaffected by this decision.
+- Any future WebStaffr-owned marketing surface (investor site, agency site, this landing page) should be checked against this table rather than eyeballed.
+
+### Known gap (logged, not fixed here)
+
+`ADR-020` (em-dash governance rule, 2026-07-30) is referenced in `TASKS.md` and `CLAUDE.md` but was never written into this file. Backfilling it is a separate, trivial doc task -- flagged in `TASKS.md`, not done inline here to keep this ADR scoped to the color decision.
+
+---
+
+**Last updated:** 2026-08-03

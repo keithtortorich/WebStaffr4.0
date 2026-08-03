@@ -2,6 +2,10 @@
 
 ## ACTIVE NOW
 
+### 2026-08-03: Brand Color Doctrine Locked (ADR-021)
+Founder approved and locked the new landing page (`webstaffr-standalone.html`) as WebStaffr's canonical brand identity. Wrote the color doctrine: navy #000080 (primary), royal blue #4169E1 (secondary), orange #FF6600 (highlight/CTA), gray #E0E0E0 (neutral), plus logo variants and supporting tones -- see `docs/DECISIONS.md` ADR-021 for the full table. Updated `WEBSTAFFR_GOVERNANCE.md`'s stale Visual Identity section (was: gold #bf9000, deep blue #1f4d78 -- neither matched the approved design). Founder's framing: this is the palette Site Magic's direction engine should treat as WebStaffr's house style, distinct from the dynamic per-tenant `brand_colors` system already documented in `DESIGN.md`.
+**Known gap, logged not fixed:** ADR-020 (em-dash rule, 2026-07-30) is referenced in this file and CLAUDE.md but was never actually written into `docs/DECISIONS.md`. Trivial backfill, not done inline to keep ADR-021 scoped.
+
 ### 2026-08-03: Stripe Webhook Fixed (was broken, uncommitted, tests failing)
 Found `webstaffr/workers/angel/stripe_webhook.py` + `/webhooks/stripe` route already written but never wired into `create_app()`'s composition root (`stripe_webhook_verifier` param missing) — 10/10 tests failing on `TypeError`. Also found a real security bug: `StripeSignatureVerifier.verify()` compared the provided signature against itself (`hmac.compare_digest(provided_sig, provided_sig)`), always passing — forgeable once `STRIPE_WEBHOOK_SECRET` is set. Fixed: wired verifier through `app.py`, rewrote verifier to compute real HMAC-SHA256 over raw request body (route now captures raw bytes via `await request.body()` before Stripe's signature can be checked), fixed test fixture's placeholder signature value that never matched its own configured secret. Added `appointments.status` column (migration 0012 SQLite + 0014 postgres_manual, founder-approved) so payment webhooks have somewhere to write paid/payment_failed/refunded. Tests: 403/403 passing. Health: HEALTHY (10/10). Not committed yet — pending founder direction on unrelated uncommitted diffs in the same tree.
 

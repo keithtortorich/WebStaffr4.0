@@ -1,7 +1,7 @@
 # WebStaffr Governance Manual
 Unified Source of Truth for Product, Strategy, Operations, and Brand
 
-Version 1.0 | Last Updated: 2026-07-18
+Version 1.1 | Last Updated: 2026-08-03
 
 
 ## Core Doctrine
@@ -225,11 +225,24 @@ Earn the right to expand. Solve one expensive problem first.
 
 ### Visual Identity
 
-- Typeface: Garamond Bold Italic
-- Sizing: 1 font size larger than surrounding text
-- Color Options:
-  - Option 1 (Split): "Web" in #999999 (gray), "Staffr" in #bf9000 (gold)
-  - Option 2 (Unified): #1f4d78 (deep blue)
+**Locked 2026-08-03 (ADR-021).** Source of truth: `webstaffr-standalone.html`, the founder-approved landing page. Site Magic's default direction and every WebStaffr-owned marketing surface derive from this table, not from independent color choices.
+
+**Core palette:**
+
+| Color | Hex | Role |
+|-------|-----|------|
+| Navy | #000080 | Primary: headlines, primary text, unified logo, primary CTA on light backgrounds |
+| Royal Blue | #4169E1 | Secondary: links, secondary CTAs, icon accents, focus states |
+| Orange | #FF6600 | Highlight: primary CTA fill, "Staffr" wordmark, focus-visible outline |
+| Gray | #E0E0E0 | Neutral: page background, card fills, muted surfaces |
+
+**Logo (Garamond Bold Italic, one size larger than surrounding text):**
+- Split (light backgrounds): "Web" #999999 (gray), "Staffr" #FF6600 (orange)
+- Dark (on navy backgrounds): "Web" #cccccc, "Staffr" #FF6600
+- Unified (monochrome contexts): both words #000080 (navy)
+
+Supersedes the prior approximate values (gold #bf9000, deep blue #1f4d78 unified) -- see ADR-021 in `docs/DECISIONS.md` for the full doctrine including supporting tones (navy depth scale, dark mode values) and rationale.
+
 - Treatment: Always intentional. Never casual.
 
 ### Punctuation Rule
