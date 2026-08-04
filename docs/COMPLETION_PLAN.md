@@ -1,4 +1,4 @@
-# COMPLETION_PLAN.md : WebStaffr 4.0 to Full Product
+# COMPLETION_PLAN.md : NetBuild.Pro 4.0 to Full Product
 
 **Status:** Plan only. No code changes. Drafted 2026-08-04 against verified repo state. Revised 2026-08-04 with founder decisions (see Section 0a).
 **Supersedes:** nothing. Sequences `docs/AGENT_TEAM_PLAN.md`, `docs/MARKETING_COORDINATOR_PLAN.md`, and the unwritten dashboard work into one ordered path.
@@ -182,7 +182,7 @@ Built on Phase 1's `activity_events` and Phase 2's session. Jinja2 server-render
 
 **The Reviews and Quotes screens change shape under the automatic decision.** They are no longer approval queues. They are audit trails plus controls: what went out, when, and the switches to stop or amend it. The escalation queue for negative reviews is the one place a human still acts before anything sends.
 
-**Exit:** a Business Manager customer can answer "what did WebStaffr do for me this week" without contacting you, and an Office Staff customer can see exactly what they are missing.
+**Exit:** a Business Manager customer can answer "what did NetBuild.Pro do for me this week" without contacting you, and an Office Staff customer can see exactly what they are missing.
 
 ---
 

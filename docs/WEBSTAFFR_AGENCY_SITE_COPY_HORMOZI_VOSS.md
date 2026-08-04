@@ -1,9 +1,9 @@
-# WebStaffr Agency Site — Copy Rewrite (Hormozi Front + Voss Back)
+# NetBuild.Pro Agency Site — Copy Rewrite (Hormozi Front + Voss Back)
 
 **Status:** Copy strategy aligned to Brand & Copy Standards  
 **Last updated:** 2026-08-01  
 **Source:** Brand & Copy Standards (Hormozi Front + Voss Back) + Governance Manual  
-**Applies to:** Lovable project `6c33e383-76ed-4398-ae38-8428d80d06da` (WebStaffr Agency Site)
+**Applies to:** Lovable project `6c33e383-76ed-4398-ae38-8428d80d06da` (NetBuild.Pro Agency Site)
 
 ---
 
@@ -31,11 +31,11 @@ Remove: "NO CONTRACTS · CANCEL ANYTIME" (assumed, communicated in offer, doesn'
 - Not a question, not soft. A statement.
 
 ### Subhead (H2)
-**"WebStaffr answers your phone so you don't lose jobs you already paid to generate."**
+**"NetBuild.Pro answers your phone so you don't lose jobs you already paid to generate."**
 
 *Why this works:*
 - No "AI." No "software." No "technology."
-- Frames WebStaffr as office staff, not a tool.
+- Frames NetBuild.Pro as office staff, not a tool.
 - Outcome-focused: "don't lose jobs" (revenue recovery).
 - Connects to the problem (missed calls = lost revenue).
 
@@ -89,7 +89,7 @@ It should.
 
 And that's just the jobs you *know* you're losing. There are more—the ones you never find out about because the customer already called someone else.
 
-That's why we built WebStaffr. Not to automate. To recover."
+That's why we built NetBuild.Pro. Not to automate. To recover."
 
 *Why this works:*
 - Uses the Voss math formula: "Walk me through it → Mirroring → Labeling → The Math"
@@ -246,7 +246,7 @@ Dedicated, hands-on support. Not a helpdesk. A business partner."
 ### Q: "Why is the website free?"
 
 **A (Hormozi):**
-"Because we'd rather *show* you what WebStaffr can do than *tell* you. Once you see it working, the rest is an easy decision."
+"Because we'd rather *show* you what NetBuild.Pro can do than *tell* you. Once you see it working, the rest is an easy decision."
 
 ### Q: "What happens after 14 days?"
 
@@ -266,7 +266,7 @@ Dedicated, hands-on support. Not a helpdesk. A business partner."
 ### Q: "I already have someone answering the phone."
 
 **A (Hormozi + Voss):**
-"Good. WebStaffr covers the hours they can't: nights, weekends, lunch breaks, when you're on a job site. It backs up your team instead of replacing them. And it never calls in sick."
+"Good. NetBuild.Pro covers the hours they can't: nights, weekends, lunch breaks, when you're on a job site. It backs up your team instead of replacing them. And it never calls in sick."
 
 ### Q: "I've been burned before."
 

@@ -1,4 +1,4 @@
-# AGENT_TEAM_PLAN.md : Building the WebStaffr Virtual Team
+# AGENT_TEAM_PLAN.md : Building the NetBuild.Pro Virtual Team
 
 Status: Draft for founder review (2026-07-28). Doc-only; no code changes.
 Supersedes nothing; complements `docs/MARKETING_COORDINATOR_PLAN.md` and `docs/LEAD_ENGINE.md`.
@@ -8,23 +8,23 @@ Supersedes nothing; complements `docs/MARKETING_COORDINATOR_PLAN.md` and `docs/L
 The founder supplied a 9-agent no-code blueprint (Voiceflow + Make.com + Airtable + Twilio + OpenAI). Verdict, from first principles:
 
 **What the package gets right (keep):**
-- The role taxonomy. Nine front-office roles (Receptionist, Lead Coordinator, Reputation Manager, Sales Consultant, Service Advisor, Marketing Coordinator, Growth Manager, Website Ops, Front Office Manager) is a sound decomposition of what a home-service business actually needs. It maps almost one-to-one onto WebStaffr's own AI-employee product vision.
+- The role taxonomy. Nine front-office roles (Receptionist, Lead Coordinator, Reputation Manager, Sales Consultant, Service Advisor, Marketing Coordinator, Growth Manager, Website Ops, Front Office Manager) is a sound decomposition of what a home-service business actually needs. It maps almost one-to-one onto NetBuild.Pro's own AI-employee product vision.
 - The sequencing logic. Receptionist first (answer every call), then speed-to-lead, then revenue roles (reviews, quotes), then marketing, then orchestration last. Revenue-nearest first is correct.
 - The operating discipline. Launch checklists, one-agent-at-a-time, green-light metrics before moving on, daily/weekly/monthly maintenance cadence. Worth adopting as process.
-- The metrics. Missed-call rate, sub-2-minute lead response, 100% review response, escalation rate under 10%. These become WebStaffr's per-tenant success metrics.
+- The metrics. Missed-call rate, sub-2-minute lead response, 100% review response, escalation rate under 10%. These become NetBuild.Pro's per-tenant success metrics.
 
-**What the package gets wrong for WebStaffr (discard):**
-1. **Wrong premise.** The package assumes a founder with nothing built, wiring up rented tools for one business. WebStaffr already has a production backend that IS the receptionist: Angel (chat live with real Grok replies, Retell voice path, GHL sync, booking, intake, tenant-scoped Postgres, deployed on Vercel, 189/189 tests, 9/9 health checks). Following the package means rebuilding a worse copy of what already runs.
-2. **Wrong architecture: single-tenant vs. product.** The package builds one team for one business. WebStaffr is a multi-tenant product that sells this team to many businesses. Every agent must be tenant-scoped, repeatable, and provisioned from intake -- a Voiceflow flow hand-built per customer cannot be.
+**What the package gets wrong for NetBuild.Pro (discard):**
+1. **Wrong premise.** The package assumes a founder with nothing built, wiring up rented tools for one business. NetBuild.Pro already has a production backend that IS the receptionist: Angel (chat live with real Grok replies, Retell voice path, GHL sync, booking, intake, tenant-scoped Postgres, deployed on Vercel, 189/189 tests, 9/9 health checks). Following the package means rebuilding a worse copy of what already runs.
+2. **Wrong architecture: single-tenant vs. product.** The package builds one team for one business. NetBuild.Pro is a multi-tenant product that sells this team to many businesses. Every agent must be tenant-scoped, repeatable, and provisioned from intake -- a Voiceflow flow hand-built per customer cannot be.
 3. **Duplicate, competing stack.** Voiceflow duplicates Angel. Twilio duplicates Retell (the chosen voice vendor). Airtable duplicates GHL (sole CRM per `docs/LEAD_ENGINE.md`). Make.com duplicates backend routes and GHL workflows. Adopting any of these violates the new-dependency approval rule, splits the data model, breaks tenant isolation, and adds ~$335/mo of redundant spend.
-4. **Governance violations throughout.** The package's scripts and copy contain emojis, em-dashes, and "AI receptionist" framing -- all banned in WebStaffr customer-facing surfaces. Its budget numbers and its "9 agents in 90 days" timeline are marketing fiction, not engineering estimates.
+4. **Governance violations throughout.** The package's scripts and copy contain emojis, em-dashes, and "AI receptionist" framing -- all banned in NetBuild.Pro customer-facing surfaces. Its budget numbers and its "9 agents in 90 days" timeline are marketing fiction, not engineering estimates.
 5. **Some roles are already moot.** "Website Ops Manager" (uptime, backups, security) is mostly absorbed by Vercel + Supabase managed infrastructure plus `health_check.py`. "Growth Manager" (SEO, schema, listings) is substantially built into the in-repo site renderer already.
 
 **Core conclusion:** adopt the org chart, reject the tool stack. Each agent becomes a sibling worker router in `create_app()` next to Angel's -- exactly what the composition-root rebuild was designed for -- and each maps to a pricing tier (Office Staff $497/mo, Business Manager $2,497/mo, White-Glove $5,000+/mo custom).
 
 ## 2. Role mapping: package agent → WebStaffr reality
 
-| # | Package agent | WebStaffr equivalent | State | Tier |
+| # | Package agent | NetBuild.Pro equivalent | State | Tier |
 |---|---|---|---|---|
 | 1 | 24/7 Receptionist | **Angel** (chat + Retell voice + booking + intake) | Built; blocked only on GHL/Retell credentials | Office Staff |
 | 2 | Lead Coordinator | GHL workflows + Angel follow-up + AOKAI scoring (`docs/LEAD_ENGINE.md`) | Sync code built, no-op until `GHL_API_KEY` set | Office Staff |

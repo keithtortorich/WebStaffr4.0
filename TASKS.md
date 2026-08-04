@@ -1,9 +1,9 @@
-# TASKS.md — WebStaffr 4.0
+# TASKS.md — NetBuild.Pro 4.0
 
 ## ACTIVE NOW
 
 ### 2026-08-03: Brand Color Doctrine Locked (ADR-021)
-Founder approved and locked the new landing page (`webstaffr-standalone.html`) as WebStaffr's canonical brand identity. Wrote the color doctrine: navy #000080 (primary), royal blue #4169E1 (secondary), orange #FF6600 (highlight/CTA), gray #E0E0E0 (neutral), plus logo variants and supporting tones -- see `docs/DECISIONS.md` ADR-021 for the full table. Updated `WEBSTAFFR_GOVERNANCE.md`'s stale Visual Identity section (was: gold #bf9000, deep blue #1f4d78 -- neither matched the approved design). Founder's framing: this is the palette Site Magic's direction engine should treat as WebStaffr's house style, distinct from the dynamic per-tenant `brand_colors` system already documented in `DESIGN.md`.
+Founder approved and locked the new landing page (`webstaffr-standalone.html`) as NetBuild.Pro's canonical brand identity. Wrote the color doctrine: navy #000080 (primary), royal blue #4169E1 (secondary), orange #FF6600 (highlight/CTA), gray #E0E0E0 (neutral), plus logo variants and supporting tones -- see `docs/DECISIONS.md` ADR-021 for the full table. Updated `NETBUILD_GOVERNANCE.md`'s stale Visual Identity section (was: gold #bf9000, deep blue #1f4d78 -- neither matched the approved design). Founder's framing: this is the palette Site Magic's direction engine should treat as NetBuild.Pro's house style, distinct from the dynamic per-tenant `brand_colors` system already documented in `DESIGN.md`.
 **Known gap, logged not fixed:** ADR-020 (em-dash rule, 2026-07-30) is referenced in this file and CLAUDE.md but was never actually written into `docs/DECISIONS.md`. Trivial backfill, not done inline to keep ADR-021 scoped.
 
 ### 2026-08-03: Stripe Webhook Fixed (was broken, uncommitted, tests failing)
@@ -81,7 +81,10 @@ Found `webstaffr/workers/angel/stripe_webhook.py` + `/webhooks/stripe` route alr
 ## RECENT SESSIONS (Summaries)
 
 ### 2026-08-03: Site Schema System — Impeccable Redesign + Context Setup + Intake Wiring (Complete)
-Fixed site template regression (optional fields causing KeyError) by rebuilding site rendering using Impeccable principles. Created `SiteSchema` dataclass: complete, guaranteed-present definition of every site field. Moved business logic (`trust_signal_count`, `has_reviews`, `service_pages`, `palette`) into Python computed properties, out of templates. All fields always present; missing optionals become None (falsy in Jinja2). Integrated into `site_render_router.py`; refactored `build_page_context()`. Created PRODUCT.md and DESIGN.md context files per Impeccable workflow. Ran `npx impeccable install` (successful); attempted `npx impeccable init` (command not found in CLI). Added `webstaffr/site_magic_engine.py` with `generate_site_for_submission()` and wired it into `submit_intake()` as best-effort post-DB-write: site generation errors are logged with the real exception type and swallowed so intake still returns 200 with tracking number. Resolved generated site workdir to `generated_sites/` next to the app DB by default, override via `WEBSTAFFR_SITE_WORKDIR`. Tests: 408/408 passing, health 10/10 HEALTHY. Zero-impact on intake/output or template rendering. Documentation: `docs/SITE_SCHEMA_SYSTEM.md`.
+Fixed site template regression (optional fields causing KeyError) by rebuilding site rendering using Impeccable principles. Created `SiteSchema` dataclass: complete, guaranteed-present definition of every site field. Moved business logic (`trust_signal_count`, `has_reviews`, `service_pages`, `palette`) into Python computed properties, out of templates. All fields always present; missing optionals become None (falsy in Jinja2). Integrated into `site_render_router.py`; refactored `build_page_context()`. Created PRODUCT.md and DESIGN.md context files per Impeccable workflow. Ran `npx impeccable install` (successful); attempted `npx impeccable init` (command not found in CLI). Added `webstaffr/site_magic_engine.py` with `generate_site_for_submission()` and wired it into `submit_intake()` as best-effort post-DB-write: site generation errors are logged with the real exception type and swallowed so intake still returns 200 with tracking number. Resolved generated site workdir to `generated_sites/` next to the app DB by default, override via `NETBUILD_SITE_WORKDIR`. Tests: 408/408 passing, health 10/10 HEALTHY. Zero-impact on intake/output or template rendering. Documentation: `docs/SITE_SCHEMA_SYSTEM.md`.
+
+### 2026-08-04: Brand Rename — WebStaffr → NetBuild.Pro
+Brand rename executed across repo: docs, templates, landing pages, tests, project rules, and saved logo asset. Kept Python package name `webstaffr` intact to avoid import breakage. Verified 421/421 tests passing. Logo saved to `docs/assets/netbuildpro-logo.png`.
 
 ### 2026-08-01: Site Renderer Polish Pass (Complete)
 Ran 5-skill audit (design-critique, accessibility-review, design-system, governance-linter, research-synthesis) against live-rendered tenant pages. Fixed: WCAG label/focus-visible gaps, 5 em-dash governance violations (entity-encoded), verified no field leaks. Tests 26/26 passing, health 9/9 HEALTHY. Founder approved scope: site renderer only (Agency/investor site Lovable-hosted, out of scope). Gate cleared for push.
@@ -93,7 +96,7 @@ Founder floated 9-agent bundle (Stella, Reese, Conner, Asha, Diana, Eva, Leona, 
 Restyled `/` landing page: added sticky top bar (logo + phone CTA), added inline-SVG icon set, updated comparison grid. Found and fixed: "78% of homeowners hire whoever responds first" stat (already debunked on 2026-07-27, BIA/Kelsey, failed 2x verification) had never been removed from `landing_router.py`. Replaced both instances with "speed-to-lead" framing backed by MIT/Oldroyd study. Flagged: industry-specific unanswered-call percentages (HVAC 66%, plumbing 26%, electrical 24%, pest control 27%) lack verification trail — deferred for separate copy audit.
 
 ### 2026-07-28: Governance Em-Dash Fix Approved
-Founder confirmed WEBSTAFFR_GOVERNANCE.md is canonical source (Google Drive "Webstaffr4" folder). Em-dash rule is explicit/unconditional: no em-dashes anywhere in WebStaffr copy, internal or external, no exceptions. Supersedes Brand Principles Handbook PDF's looser treatment. Linter updated to catch literal-character em-dashes; entity-encoded variant discovered as blind spot 2026-08-01.
+Founder confirmed NETBUILD_GOVERNANCE.md is canonical source (Google Drive "Webstaffr4" folder). Em-dash rule is explicit/unconditional: no em-dashes anywhere in NetBuild.Pro copy, internal or external, no exceptions. Supersedes Brand Principles Handbook PDF's looser treatment. Linter updated to catch literal-character em-dashes; entity-encoded variant discovered as blind spot 2026-08-01.
 
 ### 2026-07-27: Debunked Stat Investigation
 Investigated "78% of homeowners hire whoever responds first" — appears in multiple surfaces (landing copy, sales-crm.html, site-renderer templates). BIA/Kelsey source does not support this claim. Independent verification failed twice. Verdict: fabricated stat, must be removed from all surfaces. Tracking: landing_router.py still contained both instances until 2026-07-29 fix.
@@ -106,7 +109,7 @@ Found: `DB_ERRORS` catch raises `HTTPException(503)` without logging exception t
 ## DECISIONS (Recent, Reference ADR in docs/DECISIONS.md)
 
 - **ADR-020 (2026-07-30):** Em-dash governance rule is unconditional, supersedes Brand Handbook. No entity-encoded variants.
-- **Site Renderer Scope (2026-08-01):** This audit covers repo-resident site renderer only. Agency/investor site (Lovable) and demo sites out of scope.
+- **Site Renderer Scope (2026-08-01):** This audit covers repo-resident site renderer only. Agency/investor site (Lovable-hosted) and demo sites out of scope.
 - **Marketing Coordinator Phase 4 (2026-07-30):** Execute `MARKETING_COORDINATOR_PLAN.md` as written; SMS/email vendor decision gates entry.
 
 ---

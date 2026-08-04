@@ -32,7 +32,7 @@ class LandingPageTestCase(unittest.TestCase):
     def test_landing_page_renders(self):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("WebStaffr", resp.text)
+        self.assertIn("NetBuild.Pro", resp.text)
 
     def test_contact_phone_present(self):
         resp = self.client.get("/")

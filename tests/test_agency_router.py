@@ -1,4 +1,4 @@
-"""Tests for WebStaffr Agency Site router and governance compliance."""
+"""Tests for NetBuild.Pro Agency Site router and governance compliance."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ class AgencySiteGovernanceTestCase(unittest.TestCase):
         """Home page doesn't describe the product as AI (governance: no 'AI' in copy)."""
         response = self.client.get("/agency")
         # OK to say "doesn't trust AI" or "AI receptionist" as rebuttal, but
-        # not to position WebStaffr as AI.
+        # not to position NetBuild.Pro as AI.
         # Check that the hook and subhead are present instead.
         self.assertIn(b"You left money on the table", response.content)
         self.assertIn(b"answers your phone", response.content)

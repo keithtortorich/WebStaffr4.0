@@ -13,4 +13,4 @@
 ## Terms
 
 - A referral counts when the referred business becomes a paying customer.
-- Credits apply to the referrer’s WebStaffr billing.
+- Credits apply to the referrer’s NetBuild.Pro billing.

@@ -3,7 +3,7 @@
 **Status: approved direction (founder, 2026-07-27), not yet built.** Supersedes Lovable's
 Site Weaver project as the generation mechanism for customer/tenant sites. Site Weaver's
 Lovable project stays untouched as a fallback until this renderer is verified live; retiring
-it is a separate, later decision. The WebStaffr Agency Site (company marketing site) is
+it is a separate, later decision. The NetBuild.Pro Agency Site (company marketing site) is
 unaffected — it stays on Lovable.
 
 **Why (decision summary — full ADR to be added to `docs/DECISIONS.md` at build completion):**
@@ -62,7 +62,7 @@ Angel widget embed). Per `docs/SITE_WEAVER_SEO_BLUEPRINT.md`:
   certifications/social links when present. Every optional section follows `site_data.py`'s
   existing contract: key absent → section absent, never filler.
 - **Brand governance:** no "AI" in copy, no emojis, no em-dashes (Governance Manual rule,
-  default per CLAUDE.md until the founder reconciles the two source docs), "WebStaffr"
+  default per CLAUDE.md until the founder reconciles the two source docs), "NetBuild.Pro"
   spelling in any footer attribution.
 - **Angel widget:** embedded on every page exactly as on the current Site Weaver build,
   pointed at the same backend.

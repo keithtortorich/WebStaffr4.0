@@ -43,7 +43,7 @@
 
 ## Assumptions
 - Sandbox shell still cannot write git objects for this repo mount — commits went through Desktop Commander on the founder's Mac, confirmed working both times.
-- `webstaffr-standalone.html` is the founder's locked reference design; Site Magic's default direction should treat it as WebStaffr's house style, distinct from the dynamic per-tenant `brand_colors` system in `DESIGN.md`.
+- `webstaffr-standalone.html` is the founder's locked reference design; Site Magic's default direction should treat it as NetBuild.Pro's house style, distinct from the dynamic per-tenant `brand_colors` system in `DESIGN.md`.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-WebStaffr's tenant site rendering pipeline integrates five specialized design and quality skills as an interactive polish loop. This architecture replaces fragmented third-party design tools with a unified, auditable framework aligned with Superpowers skill specifications.
+NetBuild.Pro tenant site rendering pipeline integrates five specialized design and quality skills as an interactive polish loop. This architecture replaces fragmented third-party design tools with a unified, auditable framework aligned with Superpowers skill specifications.
 
 Each skill operates independently on `site_renderer.py` output and passes results to the next stage in the loop, enabling human-in-the-loop review at every checkpoint.
 
@@ -76,7 +76,7 @@ Analyzes industry, customer segment, and competitive positioning for messaging a
 
 ## Integration with Cowork
 
-Each skill runs within **Cowork**, WebStaffr's multi-agent coordination framework. Cowork handles:
+Each skill runs within **Cowork**, NetBuild.Pro's multi-agent coordination framework. Cowork handles:
 
 - Sequential skill invocation with context preservation
 - Human approval gates between stages
@@ -209,8 +209,8 @@ Each new skill plugs into the same loop and checkpoint system with no refactorin
 - All skills operate on **rendered HTML only**; no direct database access
 - Tenant data is scoped to the specific `tenant_id` being reviewed
 - Skill output is immutable once logged (audit trail protection)
-- No external vendor calls; all processing is WebStaffr-internal
-- GDPR/CCPA: Tenant data stays within WebStaffr infrastructure
+- No external vendor calls; all processing is NetBuild.Pro-internal
+- GDPR/CCPA: Tenant data stays within NetBuild.Pro infrastructure
 
 ---
 

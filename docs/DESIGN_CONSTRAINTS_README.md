@@ -1,6 +1,6 @@
 # Design Constraints: Emil + tasteskill Integration
 
-WebStaffr 4.0 operationalizes two design philosophies into executable rules passed to every Jinja2 template:
+# NetBuild.Pro 4.0 operationalizes two design philosophies into executable rules passed to every Jinja2 template:
 
 1. **Emil Kowalski's animation engineering** (animations.dev) — taste is trained, unseen details compound
 2. **tasteskill's operationalized design directives** — registry of design presets and banned patterns

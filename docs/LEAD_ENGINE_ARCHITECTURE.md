@@ -1,8 +1,8 @@
-# WebStaffr Lead Engine — Architecture Reference (Superseded)
+# NetBuild.Pro Lead Engine — Architecture Reference (Superseded)
 
 **Superseded 2026-07-27 by [`LEAD_ENGINE.md`](LEAD_ENGINE.md)**, which merges this doc and `LEAD_ENGINE_PHOENIX_INTEGRATION.md` into one consolidated design (single scoring system, single sequence, GHL-native stack). Kept here verbatim for history only — read `LEAD_ENGINE.md` for current reference.
 
-Status: reference design for WebStaffr's own outbound lead-gen/follow-up system (a sales tool for finding and converting WebStaffr customers). Not built, not wired into any code, and not part of the WebStaffr4.0 backend's MVP scope. Saved here as a design record for when this gets built.
+Status: reference design for NetBuild.Pro's own outbound lead-gen/follow-up system (a sales tool for finding and converting NetBuild.Pro customers). Not built, not wired into any code, and not part of the NetBuild.Pro4.0 backend's MVP scope. Saved here as a design record for when this gets built.
 
 ## Open Items Before Building Anything
 

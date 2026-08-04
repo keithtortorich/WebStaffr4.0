@@ -178,7 +178,7 @@ class TestNoFabrication(SiteRenderTestCase):
 
     def test_no_forbidden_brand_copy_in_rendered_output(self):
         """Governance Manual rule (default per CLAUDE.md until reconciled):
-        no em-dashes, no 'AI' language, anywhere in WebStaffr-authored
+        no em-dashes, no 'AI' language, anywhere in NetBuild.Pro-authored
         copy. This checks the template-authored strings only by using a
         payload with no em-dash/'AI' substrings of its own, so a failure
         here means the *template*, not the input, introduced one."""

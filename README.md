@@ -1,5 +1,5 @@
-# WebStaffr 4.0
-Production repository for the WebStaffr AI workforce platform. A clean rebuild of WS3.3, carrying forward only proven, running code -- see `docs/DECISIONS.md` for what changed and why.
+# NetBuild.Pro 4.0
+Production repository for the NetBuild.Pro AI workforce platform. A clean rebuild of WS3.3, carrying forward only proven, running code -- see `docs/DECISIONS.md` for what changed and why.
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ See `CREDENTIALS.md` for a complete list of required env vars:
 - `GHL_API_KEY` + `GHL_LOCATION_ID` (GoHighLevel sync)
 - `RETELL_WEBHOOK_SECRET` (Retell voice webhooks)
 - `BOOK_API_KEY` / `GHL_WEBHOOK_SECRET` (endpoint auth)
-- `WEBSTAFFR_DB_PATH` or `DATABASE_URL` (database)
+- `NETBUILD_DB_PATH` or `DATABASE_URL` (database)
 
 ## Folder Structure
 

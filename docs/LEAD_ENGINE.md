@@ -1,6 +1,6 @@
-# WebStaffr Lead Engine (Merged Reference Design)
+# NetBuild.Pro Lead Engine (Merged Reference Design)
 
-Status: single consolidated reference design for WebStaffr's own outbound lead-gen, scoring, and follow-up system (a sales tool for finding and converting WebStaffr customers). Supersedes and merges `LEAD_ENGINE_ARCHITECTURE.md` and `LEAD_ENGINE_PHOENIX_INTEGRATION.md` (2026-07-27). Not built, not wired into any code, not part of WebStaffr4.0's MVP scope. Saved as a design record for when this gets built.
+Status: single consolidated reference design for NetBuild.Pro's own outbound lead-gen, scoring, and follow-up system (a sales tool for finding and converting NetBuild.Pro customers). Supersedes and merges `LEAD_ENGINE_ARCHITECTURE.md` and `LEAD_ENGINE_PHOENIX_INTEGRATION.md` (2026-07-27). Not built, not wired into any code, and not part of NetBuild.Pro4.0's MVP scope. Saved as a design record for when this gets built.
 
 ## What Changed in the Merge
 

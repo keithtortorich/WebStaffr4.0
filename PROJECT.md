@@ -1,5 +1,5 @@
 ## Product Vision
-WebStaffr is an AI employee platform: an extension of a business's team through configurable AI workers, not a bundle of point automations. The product should read as workforce, not tooling.
+NetBuild.Pro is an AI employee platform: an extension of a business's team through configurable AI workers, not a bundle of point automations. The product should read as workforce, not tooling.
 
 ## Target Users
 - Small and mid-sized service businesses (SMBs) : the core end-customer.

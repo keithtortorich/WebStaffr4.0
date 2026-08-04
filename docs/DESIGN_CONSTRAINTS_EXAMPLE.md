@@ -1,6 +1,6 @@
 # Design Constraints: Template Usage Examples
 
-WebStaffr's `design_constraints.py` module operationalizes Emil Kowalski's animation philosophy and tasteskill's design directives into executable rules. These constraints are automatically passed to every Jinja2 template via `build_page_context()`.
+NetBuild.Pro's `design_constraints.py` module operationalizes Emil Kowalski's animation philosophy and tasteskill's design directives into executable rules. These constraints are automatically passed to every Jinja2 template via `build_page_context()`.
 
 ## What Gets Passed to Templates
 
@@ -64,7 +64,7 @@ Every template receives:
 
 ## Example 2: Spacing Scale (From tasteskill)
 
-tasteskill uses design variance dials. WebStaffr collapses these to 3 levels: minimal/balanced/bold. Each has different spacing.
+tasteskill uses design variance dials. NetBuild.Pro collapses these to 3 levels: minimal/balanced/bold. Each has different spacing.
 
 ```html
 <!-- Access the spacing scale for the current design preset -->

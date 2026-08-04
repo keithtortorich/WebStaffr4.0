@@ -1,8 +1,8 @@
-# WebStaffr Agency Site — Design Direction & Visual Identity
+# NetBuild.Pro Agency Site — Design Direction & Visual Identity
 
 **Status:** Phase 1 Complete (Hero + Section Pattern Extended)  
 **Last updated:** 2026-08-03  
-**Applies to:** WebStaffr Agency Site  
+**Applies to:** NetBuild.Pro Agency Site  
 **Problem:** Current site is visually generic (dark-mode SaaS template), lacks brand personality, doesn't communicate the *recurring* nature of the service or the "we stay, not disappear" ethos.
 
 ---
@@ -22,7 +22,7 @@ The existing site uses a safe, forgettable aesthetic:
 
 ## Design Direction: "Recurring Motion"
 
-**Thesis:** WebStaffr is not a one-time transaction. Angel is recurring. The site should *feel* like motion, persistence, and daily presence — not a static brochure.
+**Thesis:** NetBuild.Pro is not a one-time transaction. Angel is recurring. The site should *feel* like motion, persistence, and daily presence — not a static brochure.
 
 ### Color Palette
 

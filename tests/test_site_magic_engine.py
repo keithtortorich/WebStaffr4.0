@@ -77,5 +77,5 @@ def test_generated_home_contains_tenant_fields(tmp_path: Path):
     assert "Test Biz" in html
     assert "555-0000" in html
     assert "test@example.com" in html
-    assert "Site by WebStaffr" in html
+    assert "Site by NetBuild.Pro" in html
     assert 'data-tenant-id="test_tenant"' in html

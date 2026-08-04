@@ -215,7 +215,7 @@ def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
         "  <div class=\"ws-footer-inner\">\n"
         f"    <p>&copy; {context.get('current_year') or ''} {site.get('biz_name', '')}. Serving {site.get('service_area', '')}.</p>\n"
         f"    <p><a href=\"tel:{site.get('phone', '')}\">{site.get('phone', '')}</a> &middot; <a href=\"mailto:{site.get('email', '')}\">{site.get('email', '')}</a></p>\n"
-        "    <p class=\"ws-footer-attribution\">Site by WebStaffr</p>\n"
+        "    <p class=\"ws-footer-attribution\">Site by NetBuild.Pro</p>\n"
         "  </div>\n"
         "</footer>\n"
         f"<script src=\"/static/angel-widget.js\" data-tenant-id=\"{site.get('tenant_id', '')}\" data-api-base=\"{api_base}\"></script>\n"

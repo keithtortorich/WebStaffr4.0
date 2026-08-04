@@ -1,11 +1,11 @@
-# WebStaffr — Product Context for Impeccable
+# NetBuild.Pro — Product Context for Impeccable
 
 ## Product Vision
-WebStaffr is an AI-employee platform that answers every customer service call for home service businesses (plumbing, HVAC, electrical, etc). The AI (Angel) responds to inbound calls in real time, qualifies leads, books appointments, and integrates with existing workflows (GHL, ServiceTitan, Retell voice).
+NetBuild.Pro is an AI-employee platform that answers every customer service call for home service businesses (plumbing, HVAC, electrical, etc). The AI (Angel) responds to inbound calls in real time, qualifies leads, books appointments, and integrates with existing workflows (GHL, ServiceTitan, Retell voice).
 
 ## Core Flow (MVP)
 1. **Intake** — Business submits a 9-section form (business basics, positioning, services, credibility, social, workforce plan, content/SEO)
-2. **Site Generation** — WebStaffr renders a professional customer-facing website from the intake data
+2. **Site Generation** — NetBuild.Pro renders a professional customer-facing website from the intake data
 3. **Angel Widget** — Embedded on the site, answers calls using the business's own voice and knowledge
 4. **Live Voice** — Retell AI handles real-time call synthesis
 

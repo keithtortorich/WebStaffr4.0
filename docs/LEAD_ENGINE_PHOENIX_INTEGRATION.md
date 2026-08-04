@@ -2,7 +2,7 @@
 
 **Superseded 2026-07-27 by [`LEAD_ENGINE.md`](LEAD_ENGINE.md)**, which merges this doc and `LEAD_ENGINE_ARCHITECTURE.md` into one consolidated design. Kept here verbatim for history only — read `LEAD_ENGINE.md` for current reference.
 
-Status: reference plan for WebStaffr's own outbound GTM motion. Builds on [`LEAD_ENGINE_ARCHITECTURE.md`](LEAD_ENGINE_ARCHITECTURE.md)'s fail-proof infrastructure, adding a concrete lead-scoring rubric and a Phoenix HVAC beachhead rollout. Not built, not wired into any code, not part of WebStaffr4.0's MVP scope.
+Status: reference plan for NetBuild.Pro's own outbound GTM motion. Builds on [`LEAD_ENGINE_ARCHITECTURE.md`](LEAD_ENGINE_ARCHITECTURE.md)'s fail-proof infrastructure, adding a concrete lead-scoring rubric and a Phoenix HVAC beachhead rollout. Not built, not wired into any code, and not part of NetBuild.Pro4.0's MVP scope.
 
 ## Open Items Before Executing
 
@@ -100,7 +100,7 @@ These are targets to validate, not historical results (see Open Item 1).
 
 ## 6. Call Scripts
 
-**Cold call (60-90 sec):** opens by asking how many calls they missed this week, positions WebStaffr as recovering those missed calls with a 24/7 AI receptionist, closes with a low-pressure 10-minute demo ask.
+**Cold call (60-90 sec):** opens by asking how many calls they missed this week, positions NetBuild.Pro as recovering those missed calls with a 24/7 AI receptionist, closes with a low-pressure 10-minute demo ask.
 
 **Voicemail (20 sec):** same positioning, shorter, asks for a callback or says you'll try again tomorrow.
 

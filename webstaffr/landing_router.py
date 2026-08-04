@@ -1,4 +1,4 @@
-"""WebStaffr public landing page and investor resources.
+"""NetBuild.Pro public landing page and investor resources.
 
 Serves the landing page at GET /, demo site previews, and the full
 business plan PDF for investors.
@@ -111,10 +111,10 @@ async def investor_pitch():
 
     # Fallback: return investor summary from INVESTOR_EMAIL_FINAL.md
     return JSONResponse({
-        "message": "WebStaffr Investment Overview",
+        "message": "NetBuild.Pro Investment Overview",
         "narrative": "You don't need more leads. You need to stop losing the ones you already have.",
         "problem": "27% of home-service calls go unanswered. A single missed job costs $500-$5,000.",
-        "solution": "WebStaffr answers every call 24/7. $497/month. Built for contractors.",
+        "solution": "NetBuild.Pro answers every call 24/7. $497/month. Built for contractors.",
         "unit_economics": {
             "arpu_monthly": 487,
             "gross_margin_pct": 88,
@@ -163,7 +163,7 @@ _LANDING_PAGE_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebStaffr | Receptionist for Home Services</title>
+    <title>NetBuild.Pro | Receptionist for Home Services</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -203,13 +203,13 @@ _LANDING_PAGE_HTML = """
 </head>
 <body>
     <header>
-        <h1>WebStaffr</h1>
+        <h1>NetBuild.Pro</h1>
         <a href="tel:__CONTACT_PHONE_TEL__">__CONTACT_PHONE__</a>
     </header>
 
     <div class="hook">
         <h2>You left money on the table this week.</h2>
-        <p class="subhead">WebStaffr answers your phone so you don't lose jobs you already paid to generate.</p>
+        <p class="subhead">NetBuild.Pro answers your phone so you don't lose jobs you already paid to generate.</p>
     </div>
 
     <div class="container">
@@ -217,7 +217,7 @@ _LANDING_PAGE_HTML = """
             <h3>The Math</h3>
             <p><strong>27% of home service calls go unanswered.</strong> Most don't call back.</p>
             <p>A single missed job costs <strong>$500 to $5,000</strong>. Lose 10 calls a week, you're walking away from <strong>$16,000 a month</strong> in revenue.</p>
-            <p>WebStaffr costs <strong>$497/month</strong> and answers every call.</p>
+            <p>NetBuild.Pro costs <strong>$497/month</strong> and answers every call.</p>
             <p class="no-ai">No software. No AI. No chatbot. A 24/7 receptionist that qualifies leads and books appointments.</p>
         </div>
 
