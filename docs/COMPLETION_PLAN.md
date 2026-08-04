@@ -217,6 +217,58 @@ Deliberately last. Every one of these is worth more once there is a portal to di
 
 ---
 
+## 4a. Execution capacity: what the tooling actually changes
+
+The week estimates above were written as if the only build capacity is one engineer typing. That is no longer the shape of this project. Revised 2026-08-04 to account for the tooling now installed.
+
+**What is in hand:**
+
+| Capability | What it is | Where it lands |
+|---|---|---|
+| Impeccable | 23-command design system with a generate → critique → audit → self-heal loop that terminates on quality thresholds, not on human review | Phases 3, 4 (UI-heavy) |
+| Design and engineering skill suites | `design:design-critique`, `accessibility-review`, `design-system`, `ux-copy`, `engineering:code-review`, `testing-strategy`, `architecture` | Phases 2–5 |
+| Auth0 skill suite | Framework-specific integration guides including FastAPI | Phase 2 |
+| Parallel subagents | Independent work streams without consuming main context | Phases 3, 4, 5 |
+| Desktop Commander | Real shell, filesystem, git on the founder's Mac | All phases |
+| Platform MCPs | Supabase, Vercel, Netlify, GitHub, Drive | All phases |
+| Verification skills | `webstaffr-analyze`, `onboarding-smoketest`, `governance-compliance-linter`, `pricing-numbers-consistency-check` | All phases |
+| Headroom proxy + caveman | Input and output token compression | Session economics, not schedule |
+
+**Where this genuinely compresses the schedule:**
+
+- **Phase 3 portal is the biggest win.** Seven screens is exactly the shape of work Impeccable's loop and the design skills automate, and the screens are independent enough to parallelize across subagents. This is the single phase where the tooling changes the estimate most.
+- **Phase 2 auth** compresses if the vendor call goes managed, because the Auth0 skills cover the integration path directly. It does not compress if you roll your own — skills do not make custom session invalidation safer.
+- **Verification collapses from a phase-end activity to a continuous one.** Health, a11y, governance, and tenant-scoping checks run per change instead of per milestone.
+- **Ops latency drops.** Desktop Commander plus the Supabase and Vercel MCPs remove the founder from the loop between "code written" and "verified running." That is wall-clock time, not effort.
+
+**Where it changes nothing, and pretending otherwise would be dishonest:**
+
+- **Founder gates.** No tool clears a TCPA review, buys GHL credentials, or picks a payment vendor. Phases 0 and 1 are gate-bound and their estimates stand.
+- **Phase 1's auto-send guardrails.** That work is compliance judgment and failure-mode reasoning, not volume. Generating it faster does not make it righter.
+- **Schema and irreversible changes.** `activity_events`, the `users` table, tier renames. Speed is not the constraint; getting them right the first time is.
+- **Phase 5c Marketing Coordinator.** Gated on a vendor decision and a research layer that does not exist yet.
+
+**Two honest caveats on counting Impeccable:**
+
+1. It is **not yet proven end to end here.** TASKS.md has Phase 1 as "architecture complete, ready for coding," and `npx impeccable init` was not found in the CLI on 2026-08-03. The compression below is a forecast against a tool that has not yet run a full loop in this repo. If the first real run underdelivers, Phase 3 reverts to the original estimate.
+2. Its install is **vendored and uncommitted** — hundreds of `.mjs` files under `.github/skills/` and `.claude/skills/`. Committing a third-party toolchain into the repo is a dependency decision requiring approval; gitignoring it means the capability is machine-local and not reproducible. **Open item, needs a call.**
+
+**Revised estimates:**
+
+| Phase | Original | Revised | Why |
+|---|---|---|---|
+| 0 — Live MVP | 2 wk | **2 wk** | Gate-bound, unchanged |
+| 1 — Agents proven | 2 wk | **2 wk** | Gate-bound plus judgment work, unchanged |
+| 2 — Identity | 2 wk | **1–2 wk** | Compresses only if managed provider |
+| 3 — Portal | 3 wk | **1.5–2 wk** | Impeccable loop plus parallel screens |
+| 4 — Ops + billing | 3 wk | **2 wk** | Reuses Phase 3 components; billing still deliberate |
+| 5 — Remaining agents | 8 wk | **5–6 wk** | 5a/5b compress; 5c stays vendor-gated |
+| **Total** | **20 wk** | **13.5–16 wk** | |
+
+Roughly four to six weeks recovered, concentrated in the build-heavy middle.
+
+---
+
 ## 5. Critical path, compressed
 
 ```
@@ -230,7 +282,9 @@ Legal: TCPA/DNC (D4) ──▶ Leo outbound                                     
 SMS/email vendor (D4) ────────────────────────────────────────────────────┴──▶ Phase 5c Marketing
 ```
 
-Roughly 20 weeks end to end, assuming founder gates clear without stalling. The gates, not the code, are the schedule risk — three of the five have been open for over a week already.
+**13.5 to 16 weeks**, assuming founder gates clear without stalling.
+
+**The tooling sharpens rather than softens the real finding.** Cutting build time from 16 weeks to 10 does not shorten the project if the gates in front of it stay shut. Six of the seven open decisions are yours, three have been open for over a week, and credentials alone block everything downstream. **The schedule is now almost entirely a function of decision latency, not engineering throughput.** That is the single most useful thing to take from this revision.
 
 ---
 
@@ -246,6 +300,7 @@ Ordered by how much they block:
 4. **Auth: managed provider or roll our own** — blocks Phase 2, therefore every dashboard. Engineering recommendation is managed.
 5. **Tier naming** — `essentials / pro / growth` in code vs Office Staff / Business Manager / White-Glove in pricing. Blocks Phase 3 tier gating. Product call, then a rename or mapping.
 6. **SMS/email vendor** — blocks Phase 5c only. Recommendation on file since 2026-07-27.
+7. **Impeccable install: commit or gitignore** — vendored third-party toolchain, currently uncommitted. Committing makes it reproducible and reviewable; gitignoring keeps the repo clean but leaves the capability machine-local. Affects whether Phase 3's compressed estimate survives a machine change.
 
 **Resolved:**
 
@@ -262,4 +317,5 @@ Everything else in this document is self-approvable engineering inside existing 
 - **No new frontend framework.** Dashboards are Jinja2 on the existing stack. A React SPA would be a new dependency, a new build step, and a second way to render pages in a repo that already renders pages well.
 - **No ORM.** Unchanged invariant.
 - **No rebuild of what works.** Angel, Leo, Rita, and Sam are not touched except to turn on and instrument.
-- **No parallel phases.** One phase at a time, reviewed and approved before the next — per CLAUDE.md's working rule. The week ranges assume sequential execution.
+- **No parallel phases.** One phase at a time, reviewed and approved before the next — per CLAUDE.md's working rule. Parallelism happens *within* a phase via subagents, never across phase boundaries. The revised week ranges assume sequential phases with parallel work inside them.
+- **No counting tooling gains twice.** The Section 4a compression is applied once, to build-heavy phases only. Gate-bound phases keep their original estimates even where a tool could theoretically help.
