@@ -218,7 +218,7 @@ _LANDING_PAGE_HTML = """
             <p><strong>27% of home service calls go unanswered.</strong> Most don't call back.</p>
             <p>A single missed job costs <strong>$500 to $5,000</strong>. Lose 10 calls a week, you're walking away from <strong>$16,000 a month</strong> in revenue.</p>
             <p>NetBuild.Pro costs <strong>$497/month</strong> and answers every call.</p>
-            <p class="no-ai">No software. No AI. No chatbot. A 24/7 receptionist that qualifies leads and books appointments.</p>
+            <p class="no-ai">No software. No AI. No chatbot. A receptionist that qualifies leads and books appointments (24/7 once your Retell voice account is configured).</p>
         </div>
 
         <div class="pricing">
@@ -254,14 +254,6 @@ _LANDING_PAGE_HTML = """
             <div class="demo-links">
                 <a href="/demos/hvac" class="demo-link">HVAC</a>
                 <a href="/demos/plumbing" class="demo-link">Plumbing</a>
-                <a href="/demos/electrical" class="demo-link">Electrical</a>
-                <a href="/demos/roofing" class="demo-link">Roofing</a>
-                <a href="/demos/water-damage" class="demo-link">Water Damage</a>
-                <a href="/demos/garage-door" class="demo-link">Garage Door</a>
-                <a href="/demos/pest-control" class="demo-link">Pest Control</a>
-                <a href="/demos/landscaping" class="demo-link">Landscaping</a>
-                <a href="/demos/tree-service" class="demo-link">Tree Service</a>
-                <a href="/demos/cleaning" class="demo-link">Cleaning</a>
             </div>
         </div>
 
@@ -281,7 +273,7 @@ _LANDING_PAGE_HTML = """
             </div>
             <div class="faq-item">
                 <div class="faq-question">How fast does it book?</div>
-                <div class="faq-answer">Instantly. Appointments go straight to your calendar and GHL. Caller gets a confirmation text.</div>
+                <div class="faq-answer">Instantly (once your GHL account is configured). Appointments go to your calendar and GHL. Caller gets a confirmation text.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">Does it need my sales process?</div>
