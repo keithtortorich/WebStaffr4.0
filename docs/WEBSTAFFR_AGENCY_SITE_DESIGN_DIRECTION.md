@@ -1,7 +1,7 @@
 # WebStaffr Agency Site — Design Direction & Visual Identity
 
-**Status:** Design Strategy (not yet implemented)  
-**Last updated:** 2026-08-01  
+**Status:** Phase 1 Complete (Hero + Section Pattern Extended)  
+**Last updated:** 2026-08-03  
 **Applies to:** WebStaffr Agency Site  
 **Problem:** Current site is visually generic (dark-mode SaaS template), lacks brand personality, doesn't communicate the *recurring* nature of the service or the "we stay, not disappear" ethos.
 
@@ -65,12 +65,11 @@ Abandon the safe dark-mode template. Adopt a palette that **communicates alivene
 
 ### Layout & Spacing
 
-**Hero Section:**
-- **Remove the chatbot on the right** (Angel widget on landing is good, but not as a "pretty mockup")
-- **Hero text on left, blank space on right** — or a subtle animated element (see Motion below)
-- **Large headline: "Your business runs every day. So does your website."** (see Hero Copy section below)
-- **Subhead in teal:** "Angel works while you sleep. Your website works while you're booked. One flat rate, no surprises."
-- **CTA buttons:** Two variants — "Get Started" (copper/rust, filled) and "See It Live" (teal, outlined)
+**Hero Section (NEW PATTERN — IMPLEMENTED 2026-08-03):**
+- **Icon badge on right** (wrench, briefcase, mail, or service icon — 56px)
+- **Text on left:** eyebrow + headline + body + badges (if applicable) + CTAs
+- **Grid layout** ensures alignment and visual balance across all pages
+- **Applied to:** `home.html` (2026-07-29), `service.html`, `about.html`, `contact.html` (2026-08-03)
 
 **Demo Gallery:**
 - **Grid → scrollable carousel or stacked cards** (show 1–2 at a time on desktop, swipeable)
@@ -189,12 +188,12 @@ Abandon the safe dark-mode template. Adopt a palette that **communicates alivene
 
 ## Implementation Roadmap
 
-**Phase 1 (Design Update):**
-1. Update color palette (teal + gold + copper)
-2. Rewrite hero copy (above)
-3. Rewrite "Why WebStaffr" section (above)
-4. Reorder pricing to emphasize "Add Angel" middle card
-5. Add copper accents to CTAs, pricing, highlights
+**Phase 1 (Design Update) — COMPLETE (2026-08-03):**
+1. ✅ Applied new hero pattern (icon badge + grid layout) to all pages
+2. ✅ Rewrite templates with new hero structure: `service.html`, `about.html`, `contact.html`
+3. ✅ Updated hero copy to emphasize service/trust signals
+4. ✅ Added eyebrow taglines and trust bars where applicable
+5. ✅ Updated design direction doc to reflect completion
 
 **Phase 2 (Motion & Interaction):**
 1. Add scroll animations (teal progress line, slide-in cards)
@@ -270,4 +269,4 @@ The visual identity shifts from "we build websites" to "we're your recurring tea
 
 **Document owner:** Claude  
 **Target audience:** Design team (to implement) + founder (to approve direction)  
-**Next step:** Implement Phase 1 (copy + palette), get founder sign-off, then move to Phase 2 (motion)
+**Next step:** Phase 2 (motion & interaction work) when ready; Phase 3/4 deferred to later restyle passes.

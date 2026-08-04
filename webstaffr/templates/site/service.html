@@ -1,34 +1,92 @@
 {% extends "site/base.html" %}
 {% import "site/_icons.html" as icons %}
 {% block content %}
-<section class="ws-hero ws-hero-sub">
-  <div class="ws-hero-inner">
-    <h1>{{ current_service }} in {{ site.service_area }}: Fast &amp; Reliable Service</h1>
-    <div class="ws-hero-ctas">
-      <a class="ws-btn ws-btn-primary" href="tel:{{ site.phone }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
+<!-- Hero Section (New Pattern) -->
+<section class="ws-hero">
+  <div class="ws-container">
+    <div class="ws-hero-grid">
+      <div>
+        <div class="ws-hero-tag">{{ current_service }} • {{ site.service_area }}</div>
+        <h1 class="ws-h1">Fast {{ current_service }} in {{ site.service_area }}</h1>
+        <p class="ws-body-text">When you need {{ current_service.lower() }} done right, {{ site.biz_name }} responds fast and delivers reliable results.{% if site.differentiator %} {{ site.differentiator }}{% endif %}</p>
+
+        {% if site.certifications or site.emergency_service %}
+        <div class="ws-badge-row">
+          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} Licensed &amp; Insured</span>{% endif %}
+          {% if site.emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="ws-hero-ctas">
+          <a href="tel:{{ site.phone }}" class="ws-btn {{ 'ws-btn-emergency' if site.emergency_service else 'ws-btn-primary' }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
+          <a href="#lead-capture" class="ws-btn ws-btn-secondary">Schedule Now</a>
+        </div>
+      </div>
+
+      <div class="ws-hero-badge">
+        {{ icons.icon('wrench', 56) }}
+        <div class="ws-hero-badge-label">{{ current_service }}<br>Experts</div>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- Service Details Section -->
 <section class="ws-section">
-  <p>When you need {{ current_service.lower() }} in {{ site.service_area }}, {{ site.biz_name }} responds fast{% if site.differentiator %}. {{ site.differentiator }}{% else %}.{% endif %}</p>
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">Our Service Area</div>
+      <h2>We Serve {{ site.service_area }}</h2>
+    </div>
+
+    <p class="ws-body-text">Call <a href="tel:{{ site.phone }}">{{ site.phone }}</a> to schedule {{ current_service.lower() }}. We'll respond fast, assess your needs, and get the job done right.</p>
+  </div>
 </section>
 
-<section class="ws-section">
-  <h2>We Serve {{ site.service_area }}</h2>
-  <p>Call <a href="tel:{{ site.phone }}">{{ site.phone }}</a> to schedule {{ current_service.lower() }}.</p>
+<!-- Lead Capture Section -->
+<section class="ws-section ws-cta-band" id="lead-capture">
+  <div class="ws-container">
+    <div class="ws-section-header" style="margin:0 auto; text-align:center;">
+      <div class="ws-eyebrow">Ready to schedule?</div>
+      <h2>Get Your {{ current_service }} Estimate</h2>
+      <p class="ws-body-text" style="margin:12px auto 0;">Tell us what you need. We'll call within 1 hour to confirm.</p>
+    </div>
+
+    <form class="ws-lead-form" action="{{ api_base }}/intake" method="post">
+      <input type="hidden" name="industry" value="{{ site.industry }}" />
+      <input type="hidden" name="service_area" value="{{ site.service_area }}" />
+      <input type="hidden" name="service" value="{{ current_service }}" />
+      <label class="ws-visually-hidden" for="lead-name">Your Name</label>
+      <input type="text" id="lead-name" placeholder="Your Name" name="name" required />
+      <label class="ws-visually-hidden" for="lead-phone">Phone Number</label>
+      <input type="tel" id="lead-phone" placeholder="Phone Number" name="phone" required />
+      <label class="ws-visually-hidden" for="lead-email">Email</label>
+      <input type="email" id="lead-email" placeholder="Email" name="email" required />
+      <button type="submit" class="ws-btn ws-btn-primary">Get Estimate &rarr;</button>
+    </form>
+
+    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} Free estimate, no obligation</div>
+  </div>
 </section>
 
+<!-- Other Services Section -->
 {% if services|length > 1 %}
 <section class="ws-section ws-section-muted">
-  <h2>Other Services</h2>
-  <ul class="ws-service-grid">
-    {% for svc in services %}
-    {% if svc.name != current_service %}
-    <li><a href="{{ site_root }}/services/{{ svc.slug }}">{{ svc.name }}</a></li>
-    {% endif %}
-    {% endfor %}
-  </ul>
+  <div class="ws-container">
+    <div class="ws-section-header">
+      <div class="ws-eyebrow">More Services</div>
+      <h2>Other {{ site.industry }} Services</h2>
+    </div>
+
+    <ul class="ws-service-grid">
+      {% for svc in services %}
+      {% if svc.name != current_service %}
+      <li><a href="{{ site_root }}/services/{{ svc.slug }}">{{ svc.name }}</a></li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
 </section>
 {% endif %}
+
 {% endblock %}

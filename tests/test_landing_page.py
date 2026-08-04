@@ -57,6 +57,25 @@ class LandingPageTestCase(unittest.TestCase):
         self.assertNotIn("78%", resp.text)
         self.assertNotIn("85%", resp.text)
 
+    def test_landing_calls_to_action_open_working_intake(self):
+        landing = self.client.get("/")
+        self.assertIn('href="/start"', landing.text)
+
+        intake = self.client.get("/start")
+        self.assertEqual(intake.status_code, 200)
+        self.assertIn('id="intake-form"', intake.text)
+        self.assertIn("Create My 24/7 Receptionist", intake.text)
+        self.assertIn("fetch('/intake'", intake.text)
+
+    def test_intake_exposes_tradesman_mvp_choices(self):
+        resp = self.client.get("/start")
+        for expected in (
+            "Plumber", "Electrician", "HVAC", "Pest Control",
+            "Professional", "Enterprise", "Text my cell", "Route to GHL",
+            "Founder only", "Team",
+        ):
+            self.assertIn(expected, resp.text)
+
     def test_demo_redirect_known_trade(self):
         resp = self.client.get("/demos/plumbing", follow_redirects=False)
         self.assertEqual(resp.status_code, 302)

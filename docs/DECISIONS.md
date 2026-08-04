@@ -213,3 +213,88 @@ The founder built and explicitly locked this palette by reviewing the finished l
 ---
 
 **Last updated:** 2026-08-03
+
+---
+
+## [ADR-022] Engineering Director Operating Rule (Locked)
+
+**Date:** 2026-08-04
+**Status:** Approved (founder-locked)
+**Affects:** All WebStaffr project work, `AGENTS.md`, `CLAUDE.md`
+
+### Decision
+
+All WebStaffr engineering work follows the Engineering Director operating rule in `AGENTS.md`:
+
+- Exhaust available capabilities before asking the founder for mechanical work or information a tool can retrieve.
+- Classify work D0-D4 by reversibility, precedent, and blast radius.
+- Make routine engineering decisions directly; do not hand equivalent implementation choices back to the founder.
+- Reserve founder approval for product direction, customer experience, cost, legal, vendors, credentials, production data, schema changes, pushes, and deploys.
+- Use assessment -> decision -> action -> report, with depth-calibrated compression and specific verification evidence.
+- Verify the production checkout and GitHub repository before building.
+- Record a concise delta-only handoff when the founder closes a session.
+
+### Rationale
+
+The founder is the product owner, not the engineering referee. Mechanical questions and implementation menus waste founder context and increase the chance of work landing in the wrong repository or at the wrong process depth. The rule preserves founder authority over consequential decisions while making the engineering function accountable for execution.
+
+### Consequences
+
+- `AGENTS.md` is the operational source for this process.
+- `CLAUDE.md` points to it and removes conflicting single-agent wording.
+- Existing security, tenant isolation, testing, credential, git, and deployment approval rules remain in force.
+- Higher-priority platform and safety requirements continue to override repository instructions where applicable.
+
+---
+
+**Last updated:** 2026-08-04
+
+---
+
+## ADR-023: Workers Send Automatically; Customer Intervenes, Does Not Pre-Approve
+
+**Date:** 2026-08-04
+**Status:** Accepted (founder decision)
+**Depth:** D4 (product direction, customer experience)
+
+### Decision
+
+Rita's review responses and Sam's quotes send automatically on their trigger. The customer can override, amend, configure, and stop them, but does not approve each send in advance.
+
+### Rationale
+
+The product promise is staff that works, not a queue that waits for the owner. An approval gate on every send reintroduces the owner's attention as the bottleneck, which is the exact cost WebStaffr exists to remove. A home-service owner on a roof is not clearing an approval queue.
+
+### Consequences
+
+- TCPA/DNC compliance review becomes a hard gate on any automated outbound rather than a review step. Nothing sends until it clears.
+- The never-fabricate invariant becomes load-bearing rather than advisory: auto-sent copy may not invent remedies, discounts, timelines, or facts absent from the tenant record.
+- Negative reviews (1 to 2 star) escalate to a human with a suggested draft instead of auto-responding.
+- Every tenant gets a per-worker kill switch that takes effect immediately without support contact.
+- Every auto-send is logged as a reversible event: content, timestamp, trigger.
+- Rate ceilings are required to contain webhook-loop failure modes.
+- The portal's Reviews and Quotes screens become audit trails plus controls, not approval queues.
+
+---
+
+## ADR-024: Customer Portal Is Business Manager Tier
+
+**Date:** 2026-08-04
+**Status:** Accepted (founder decision)
+**Depth:** D4 (pricing, product packaging)
+
+### Decision
+
+The customer portal ships in the Business Manager tier ($2,497/mo). Office Staff ($497/mo) does not include it.
+
+### Rationale
+
+The portal is the clearest visible difference between the tiers and the strongest upgrade lever available. Bundling it at $497 spends that leverage for nothing.
+
+### Consequences
+
+- Tier gating requires resolving the plan-name drift first: `webstaffr/intake.py`'s `VALID_PLANS` is `{essentials, pro, growth}` while pricing surfaces use Office Staff / Business Manager / White-Glove. No mapping exists between them. A tier check cannot be written against a tier name the code does not have. This becomes a Phase 3 prerequisite.
+- Office Staff tenants need a non-portal proof-of-value surface. A weekly summary email built on the same `activity_events` data covers it and doubles as the upgrade pitch.
+- Office Staff tenants see the Overview screen with their real numbers and deeper screens visibly gated, rather than a 403. The portal is a conversion surface for them, not a locked door.
+
+---

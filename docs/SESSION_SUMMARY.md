@@ -44,3 +44,28 @@
 ## Assumptions
 - Sandbox shell still cannot write git objects for this repo mount — commits went through Desktop Commander on the founder's Mac, confirmed working both times.
 - `webstaffr-standalone.html` is the founder's locked reference design; Site Magic's default direction should treat it as WebStaffr's house style, distinct from the dynamic per-tenant `brand_colors` system in `DESIGN.md`.
+
+---
+
+# Session Summary — 2026-08-03 (afternoon, session 2)
+
+## Completed
+- Committed site-generation-on-intake work: `a71ce32` on `main` (local) — "feat: wire site generation into intake pipeline"
+  - `webstaffr/site_magic_engine.py`: new, `resolve_site_workdir(db_path)`
+  - `webstaffr/intake_router.py`: calls `_generate_site_if_enabled()` post-commit, best-effort, logs real exception type on failure without failing the intake response
+  - `tests/test_intake.py`: new `test_submission_generates_site_artifacts`
+  - `TASKS.md`: Impeccable Phase 1 marked wired into intake
+- Verified: 408 passed, 4 subtests passed, 0 failures (full suite)
+- Killed two duplicate Claude Code sessions found running against this same repo (PIDs 67897 @ 11:36am, 72238 @ 12:20pm) — one had left a stale `.git/index.lock` blocking `git add`. Confirmed no live git process via `ps aux` before clearing the lock.
+
+## Blocked
+- **Push to GitHub did not complete.** `git push origin main` failed: `fatal: could not read Username for 'https://github.com': Device not configured`. This sandbox has no stored GitHub credential. Commit `a71ce32` is local-only, not yet on `origin/main` — joins `ac71f95` and `db345af` from the earlier session in the same boat.
+
+## Next (in order)
+1. **Founder:** run `git push origin main` from a real terminal on the Mac (credential helper is live there) — pushes all three pending local commits at once.
+2. Confirm `/health` still HEALTHY after push.
+3. Return to next TASKS.md priority.
+
+## Assumptions / things to know
+- Repo has a wider set of uncommitted changes beyond this session's scope (deleted `sales-crm.html`, modified templates, several new untracked files: `DESIGN.md`, `PRODUCT.md`, `SALES TOOL.html`, `claude_hermes*.md`, `.github/hooks/`, `.github/skills/`, `.claude/skills/impeccable/`, `site_maker_engine.ts`, `site_schema.py`). None touched, staged, or pushed this session — likely the other Hermes/Site-Magic session's in-flight work; left for separate reconciliation.
+- Multiple Claude Code sessions running against `/Users/doc/Desktop/WebStaffr4` at once caused the lock contention this session. Two were closed. Worth checking for concurrent sessions before starting new ones here.

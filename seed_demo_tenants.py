@@ -202,11 +202,18 @@ def seed_demo_tenants():
             # Insert intake submission (latest)
             cursor.execute(
                 """INSERT INTO intake_submissions
-                   (tenant_id, tagline, differentiator, services, years_in_biz,
-                    certifications, rating_value, review_count, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (tenant_id, biz_name, phone, email, industry, service_area,
+                    tagline, differentiator, services_json, years_in_biz,
+                    certifications, rating_value, review_count, license_number,
+                    lead_routing, approver, plan, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     demo["tenant_id"],
+                    demo["biz_name"],
+                    demo["phone"],
+                    demo["email"],
+                    demo["industry"],
+                    demo["service_area"],
                     demo["tagline"],
                     demo["differentiator"],
                     json.dumps(demo["services"]),
@@ -214,6 +221,10 @@ def seed_demo_tenants():
                     demo["certifications"],
                     demo["rating_value"],
                     demo["review_count"],
+                    "demo-license",
+                    "demo@example.com",
+                    "demo-admin",
+                    "growth",
                     datetime.utcnow().isoformat(),
                 )
             )

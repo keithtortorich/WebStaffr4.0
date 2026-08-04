@@ -6,9 +6,12 @@ business plan PDF for investors.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter
 
 landing_router = APIRouter(tags=["public"])
+_INTAKE_PAGE = Path(__file__).parent / "templates" / "intake_start.html"
 
 # Single source of truth for the public contact details. These appear in the
 # investor JSON, the investor modal, and the lead-capture form, and previously
@@ -65,6 +68,14 @@ async def landing_page():
     # For now, return a placeholder that redirects to the static version
     # In production, this will read from a file or serve inline
     return HTMLResponse(content=_render_landing_page())
+
+
+@landing_router.get("/start", response_class=None)
+async def intake_page():
+    """Serve the one-page, tradesman-facing setup form."""
+    from fastapi.responses import HTMLResponse
+
+    return HTMLResponse(content=_INTAKE_PAGE.read_text())
 
 
 def _render_landing_page() -> str:
@@ -223,7 +234,7 @@ _LANDING_PAGE_HTML = """
                     <h4>Office Staff</h4>
                     <div class="price">$497</div>
                     <p style="font-size: 0.9rem;">/month. Most popular.</p>
-                    <button style="background: #FF6600; width: 100%; margin-top: 12px;">Start Free</button>
+                    <a href="/start" class="start-link" style="display:block; background:#FF6600; color:white; width:100%; margin-top:12px; padding:12px 24px; border-radius:6px; font-weight:600; text-decoration:none;">Start Free</a>
                 </div>
                 <div class="pricing-card">
                     <h4>Business Manager</h4>
@@ -297,7 +308,7 @@ _LANDING_PAGE_HTML = """
         <div class="cta-section">
             <h3>Stop Leaving Money on the Table</h3>
             <p>Start your free 14-day trial. Answers every call while you work.</p>
-            <button style="font-size: 1.1rem; padding: 14px 28px; margin-top: 16px;">Get Started Free</button>
+            <a href="/start" class="start-link" style="display:inline-block; background:#FF6600; color:white; font-size:1.1rem; padding:14px 28px; margin-top:16px; border-radius:6px; font-weight:600; text-decoration:none;">Get Started Free</a>
             <p style="margin-top: 16px; font-size: 0.95rem;">Questions? Call <a href="tel:__CONTACT_PHONE_TEL__" style="color: #FF6600; text-decoration: none;">__CONTACT_PHONE__</a> or email __CONTACT_EMAIL__</p>
         </div>
     </div>

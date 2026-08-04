@@ -23,8 +23,8 @@ from markupsafe import Markup
 from .custom_domain import resolve_tenant_from_host
 from .db import DB_ERRORS, get_connection
 from .intake import IntakeRepository
-from .site_data import build_public_site_data
-from .site_renderer import build_page_context, find_service, has_real_reviews
+from .site_schema import SiteSchema, build_page_context
+from .site_renderer import find_service, has_real_reviews, page_title, service_pages
 from .tenant import InvalidTenantError, Tenant
 
 logger = logging.getLogger("webstaffr.site_render_router")
@@ -67,11 +67,10 @@ def _get_connection(request: Request):
         raise HTTPException(status_code=503, detail="Site data temporarily unavailable") from exc
 
 
-def _load_site_data(tenant_id: str, request: Request) -> dict:
-    """Tenant validation + latest-submission load + the same public
-    projection GET /sites/{tenant_id} returns as JSON. 404 either way
-    (invalid tenant_id vs. no submission yet) -- no information leakage
-    about which tenant_ids are valid, same as site_router.py."""
+def _load_site_schema(tenant_id: str, request: Request) -> SiteSchema:
+    """Tenant validation + latest-submission load + build complete SiteSchema.
+    404 either way (invalid tenant_id vs. no submission yet) -- no information
+    leakage about which tenant_ids are valid, same as site_router.py."""
     try:
         Tenant(tenant_id=tenant_id)
     except InvalidTenantError as exc:
@@ -86,7 +85,7 @@ def _load_site_data(tenant_id: str, request: Request) -> dict:
     if submission is None:
         raise HTTPException(status_code=404, detail="No site found for this tenant")
 
-    return build_public_site_data(submission)
+    return SiteSchema.from_intake(submission)
 
 
 def _site_root(request: Request, tenant_id: str, is_custom_domain: bool = False) -> str:
@@ -103,12 +102,12 @@ def _site_root(request: Request, tenant_id: str, is_custom_domain: bool = False)
 
 
 def _render(
-    request: Request, template_name: str, site_data: dict, tenant_id: str,
+    request: Request, template_name: str, schema: SiteSchema, tenant_id: str,
     *, path: str = "", service_name=None, is_custom_domain: bool = False
 ) -> Response:
     site_root = _site_root(request, tenant_id, is_custom_domain=is_custom_domain)
     context = build_page_context(
-        site_data,
+        schema,
         site_root=site_root,
         page_url=f"{site_root}{path}",
         service_name=service_name,
@@ -120,42 +119,42 @@ def _render(
 
 @site_render_router.get("/sites/{tenant_id}/web")
 def render_home(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
-    return _render(request, "home.html", site_data, tenant_id)
+    schema = _load_site_schema(tenant_id, request)
+    return _render(request, "home.html", schema, tenant_id)
 
 
 @site_render_router.get("/sites/{tenant_id}/web/about")
 def render_about(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
-    return _render(request, "about.html", site_data, tenant_id, path="/about")
+    schema = _load_site_schema(tenant_id, request)
+    return _render(request, "about.html", schema, tenant_id, path="/about")
 
 
 @site_render_router.get("/sites/{tenant_id}/web/contact")
 def render_contact(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
-    return _render(request, "contact.html", site_data, tenant_id, path="/contact")
+    schema = _load_site_schema(tenant_id, request)
+    return _render(request, "contact.html", schema, tenant_id, path="/contact")
 
 
 @site_render_router.get("/sites/{tenant_id}/web/reviews")
 def render_reviews(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
-    if not has_real_reviews(site_data):
+    schema = _load_site_schema(tenant_id, request)
+    if not schema.has_reviews:
         # No real rating/review data on file -- the page simply doesn't
         # exist rather than rendering an empty or fabricated reviews page.
         raise HTTPException(status_code=404, detail="No reviews on file for this tenant")
-    return _render(request, "reviews.html", site_data, tenant_id, path="/reviews")
+    return _render(request, "reviews.html", schema, tenant_id, path="/reviews")
 
 
 @site_render_router.get("/sites/{tenant_id}/web/services/{service_slug}")
 def render_service(tenant_id: str, service_slug: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
-    service = find_service(site_data, service_slug)
+    schema = _load_site_schema(tenant_id, request)
+    service = find_service(schema.to_dict(), service_slug)
     if service is None:
         raise HTTPException(status_code=404, detail="No such service for this tenant")
     return _render(
         request,
         "service.html",
-        site_data,
+        schema,
         tenant_id,
         path=f"/services/{service_slug}",
         service_name=service["name"],
@@ -164,18 +163,18 @@ def render_service(tenant_id: str, service_slug: str, request: Request) -> Respo
 
 @site_render_router.get("/sites/{tenant_id}/web/sitemap.xml")
 def render_sitemap(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
+    schema = _load_site_schema(tenant_id, request)
     site_root = _site_root(request, tenant_id)
-    context = build_page_context(site_data, site_root=site_root, page_url=site_root)
+    context = build_page_context(schema, site_root=site_root, page_url=site_root)
     body = templates.get_template("site/sitemap.xml").render(context)
     return Response(content=body, media_type="application/xml")
 
 
 @site_render_router.get("/sites/{tenant_id}/web/robots.txt")
 def render_robots(tenant_id: str, request: Request) -> Response:
-    site_data = _load_site_data(tenant_id, request)
+    schema = _load_site_schema(tenant_id, request)
     site_root = _site_root(request, tenant_id)
-    context = build_page_context(site_data, site_root=site_root, page_url=site_root)
+    context = build_page_context(schema, site_root=site_root, page_url=site_root)
     body = templates.get_template("site/robots.txt").render(context)
     return Response(content=body, media_type="text/plain")
 

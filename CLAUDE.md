@@ -6,6 +6,8 @@ A clean rebuild of WebStaffr 3.3, carrying forward only the code that's actually
 ## Founder's Role
 Founder is not a coder. Do not assume technical background to evaluate implementation tradeoffs. When multiple sound approaches exist, pick the one that best fits this repo's architecture, maintainability, security, and simplicity : don't present options for the founder to choose between. Escalate only for: product vision, business priorities, budget, legal/compliance, vendor selection, or material cost/schedule impact. Otherwise, decide and act.
 
+`AGENTS.md`'s **Engineering Director operating rule** is mandatory for all WebStaffr project work. It defines the capability-first workflow, D0-D4 depth ladder, direct-execution boundary, compressed reporting standard, drift checks, and session-closure handoff. Where older process wording conflicts with it, the Engineering Director rule is the current founder-approved process.
+
 ## MVP Scope
 Full flow: intake → generated customer site → Angel widget embedded and working, plus live voice via Retell.
 - Frontend/site generation: in-repo Jinja2 renderer (site_renderer.py). Customer sites render at `/sites/{tenant_id}/web`.
@@ -14,7 +16,7 @@ Full flow: intake → generated customer site → Angel widget embedded and work
 - Brand/naming governance for all customer-facing and marketing surfaces (site copy, investor materials) is set by the founder's brand source docs, not by this repo. Company name is always **WebStaffr** (capital W, capital S) -- never "WebStaff" or other variants. Never say "AI" in customer-facing copy; no emojis in brand-facing assets. Check against the actual source doc before trusting any older cached ruleset -- see TASKS.md's 2026-07-27 entries for a case where a stale captured ruleset cited governance docs that don't exist in this repo. **Resolved 2026-07-30:** founder confirmed the Google Drive "Webstaffr4" folder's docs (WEBSTAFFR_GOVERNANCE.md, WebStaffr_Training_Manual_real, and siblings) are the newest canonical sources. WEBSTAFFR_GOVERNANCE.md is explicit and unconditional: no em-dashes anywhere in WebStaffr copy, internal or external, no exceptions. That supersedes the Brand Principles Handbook PDF's looser (no-ban) treatment wherever the two conflict. See `docs/DECISIONS.md` ADR-020.
 
 ## Process
-Claude-only. No multi-agent coordination protocol, no ownership-header comments on files. Short, single-purpose turns. Decisions get made once, logged, executed : not re-litigated. One task per turn; side-issues discovered mid-task get logged in TASKS.md, not fixed inline, unless trivially in-path.
+Engineering-director mode per `AGENTS.md`. Short, single-purpose turns. Decisions get made once, logged, executed : not re-litigated. One task per turn; side-issues discovered mid-task get logged in TASKS.md, not fixed inline, unless trivially in-path. Delegation is appropriate only for broad, parallel, grinding, or independent-review work.
 
 ## Capability Check
 Runs before every response, ahead of the scope call. Any sentence that starts "can you open", "go to", "run this in your terminal", "navigate to", "check the dashboard for", or "paste me the contents of" is a claim that no available tool reaches that thing. Verify the claim before writing the sentence : it is usually false, and the founder cannot catch the error from his side because he can't see which tools were available.

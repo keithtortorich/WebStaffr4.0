@@ -41,6 +41,24 @@ Found `webstaffr/workers/angel/stripe_webhook.py` + `/webhooks/stripe` route alr
 **Issue:** `service.html`, `about.html`, `contact.html` still on old `ws-hero-sub` visual language (homepage restyled 2026-07-29).  
 **Next:** Extend icon/utility-bar/hero-grid pattern from home to these templates (next restyle pass).
 
+### Plan-Name Drift: Code vs. Pricing Docs
+**Status:** Logged 2026-08-04, not fixed.
+**Issue:** `intake.py`'s `VALID_PLANS` is `{essentials, pro, growth}`. `docs/AGENT_TEAM_PLAN.md` and pricing copy use Office Staff ($497) / Business Manager ($2,497) / White-Glove ($5,000+). Two different tier vocabularies; nothing maps them.
+**Why it matters:** billing, dashboards, and tier-gated features all key off plan. Resolve before Phase 4 billing work.
+**Scope:** product/pricing call (founder), then a rename or mapping table.
+
+### Palette Contrast Warning (Brand Doctrine)
+**Status:** Logged 2026-08-04, health check still PASSES.
+**Issue:** `primary-on-neutral-light` measures 4.2:1, WCAG AA needs 4.5:1. Emitted 4x during health check as a warning, not a failure.
+**Likely cause:** ADR-021 brand colors (navy #000080 on gray #E0E0E0).
+**Fix:** darken the neutral or restrict that pairing to large text only.
+
+### Onboarding Smoketest Skill Is Stale (WS3.3 Layout)
+**Status:** Logged 2026-08-04. Skill lives outside this repo (plugin dir), so not fixable in-repo.
+**Issue:** `webstaffr-onboarding-smoketest`'s `scripts/smoketest.py` refuses to run against WS4.0 — it validates the repo by looking for `backend/main.py`, which is the WS3.3 layout. WS4.0 uses `webstaffr/app.py`.
+**Workaround used 2026-08-04:** ran the equivalent inline (TestClient → POST /intake → GET /sites/{tenant}/web). Passed.
+**Fix:** update the skill's repo detection to `webstaffr/app.py`.
+
 ### Governance Linter Blind Spot
 **Status:** Logged, not critical.  
 **Issue:** Entity-encoded dashes (`&mdash;`) pass linter regex but render as real em-dashes to visitors (violates no-exceptions ban).  

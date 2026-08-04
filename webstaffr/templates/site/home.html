@@ -54,8 +54,8 @@
   </div>
 </section>
 
-<!-- Trust Bar -->
-{% if site.rating_value or site.certifications or site.emergency_service or site.pricing_shown %}
+<!-- Trust Bar (show only if ≥2 trust signals to avoid empty grid cells) -->
+{% if show_trust_bar %}
 <section class="ws-trust-grid">
   <div class="ws-container">
     {% if site.rating_value and site.review_count %}
