@@ -41,6 +41,17 @@ Found `webstaffr/workers/angel/stripe_webhook.py` + `/webhooks/stripe` route alr
 **Issue:** `service.html`, `about.html`, `contact.html` still on old `ws-hero-sub` visual language (homepage restyled 2026-07-29).  
 **Next:** Extend icon/utility-bar/hero-grid pattern from home to these templates (next restyle pass).
 
+### Concurrent Agents On One Working Tree (Claude + Codex)
+**Status:** Active 2026-08-04. Operational hazard, no damage yet.
+**Situation:** Claude and Codex are both editing and committing to `/Users/doc/Desktop/WebStaffr4` at the same time.
+**Already observed today:**
+- Stale `.git/index.lock` blocked a commit (cleared, cost one retry).
+- Commit `9cee561` landed 295 files / 139k insertions (vendored Impeccable, `.codex/`, `outputs/`, `claude_hermes*.md`) under a message describing completion-plan estimates. Message does not match contents.
+- `COMPLETION_PLAN copy 2.md` created at repo root, byte-identical duplicate of `docs/COMPLETION_PLAN.md`. Two files claim to be the plan.
+**Unmitigated risk:** a destructive git op (`checkout`, `restore`, `stash`, `reset`) by one agent silently discards the other's uncommitted edits. Tests run against a tree the other agent is mutating give false results.
+**Working rule adopted:** each agent commits only files it authored, never `git add -A`; re-check `git log -1` and `git status` immediately before staging; no destructive git ops without confirming the tree is idle.
+**Escalation if that proves insufficient:** separate `git worktree` per agent, merge via branches. Not adopted yet -- a second WS4.0 checkout risks repeating the WS3.3-vs-WS4.0 wrong-repo confusion (ADR-019).
+
 ### Plan-Name Drift: Code vs. Pricing Docs
 **Status:** Logged 2026-08-04, not fixed.
 **Issue:** `intake.py`'s `VALID_PLANS` is `{essentials, pro, growth}`. `docs/AGENT_TEAM_PLAN.md` and pricing copy use Office Staff ($497) / Business Manager ($2,497) / White-Glove ($5,000+). Two different tier vocabularies; nothing maps them.
