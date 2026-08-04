@@ -66,7 +66,12 @@ ServiceTitanSync = _ServiceTitanSync
 
 logger = logging.getLogger("webstaffr.app")
 
-_SERVICETITAN_POLL_PATH = "/integrations/servicetitan/poll"
+# CORS configuration: allowlist of origins that may access browser-facing
+# endpoints with credentials (cookies). Default to localhost for development.
+_ALLOWED_ORIGINS = _os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000"
+).split(",")
 
 # Paths called directly from browser JS running on an arbitrary origin --
 # the customer-site widget (angel-widget.js) for /chat, the intake form
@@ -97,22 +102,34 @@ class ScopedCORSMiddleware(BaseHTTPMiddleware):
     replacing FastAPI's CORSMiddleware which is app-wide only. Origin
     stays wildcarded per-path rather than app-wide, so /book and
     /webhooks/ghl never accidentally pick up CORS headers meant for the
-    browser-facing routes."""
+    browser-facing routes.
+
+    For allowed origins, we set Access-Control-Allow-Origin to the
+    requesting origin (if it's in the allowlist) and
+    Access-Control-Allow-Credentials: true so that cookies can be sent
+    with cross-origin requests.
+    """
 
     async def dispatch(self, request: Request, call_next):
         origin = request.headers.get("origin")
         path = request.url.path
         scoped = path in _CORS_SCOPED_PATHS or path.startswith(_CORS_SCOPED_PREFIXES)
 
-        if scoped and request.method == "OPTIONS":
-            response = Response(status_code=200)
+        if scoped:
+            if request.method == "OPTIONS":
+                # Preflight request
+                response = Response(status_code=200)
+            else:
+                response = await call_next(request)
+
+            if origin in _ALLOWED_ORIGINS:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                if request.method == "OPTIONS":
+                    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+                    response.headers["Access-Control-Allow-Headers"] = "*"
         else:
             response = await call_next(request)
-
-        if scoped and origin:
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "*"
 
         return response
 
@@ -142,8 +159,9 @@ def create_app(
     importing this module (as every test and the health check does) touch
     disk and create/migrate a real db file as a side effect, independent
     of whether that app instance is ever actually served. Migration stays
-    scoped to the ASGI lifespan event below, which only fires when the app
-    is actually started."""
+    scoped to the ASGI lifespan event below, which only fires when the
+    app is actually started.
+    """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -311,7 +329,6 @@ def _backend_from_env() -> Optional[VoiceBackend]:
 
     if os.environ.get("GROK_API_KEY"):
         from .workers.angel.voice import GrokVoiceBackend
-
         return GrokVoiceBackend()
     return None
 
@@ -321,7 +338,6 @@ def _ghl_client_from_env() -> Optional[GHLClient]:
 
     if os.environ.get("GHL_API_KEY") and os.environ.get("GHL_LOCATION_ID"):
         from .workers.angel.ghl import GoHighLevelClient
-
         return GoHighLevelClient()
     return None
 

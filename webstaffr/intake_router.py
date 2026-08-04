@@ -1,4 +1,4 @@
-"""FastAPI router for client intake -- the first stage of the intake ->
+"""FastAPI router for client intake -- the first stage of the intake -> 
 generated customer site -> Angel widget MVP flow (CLAUDE.md / PROJECT.md).
 
 Mounted into the main app via create_app().include_router(intake_router)
@@ -9,6 +9,7 @@ Angel-specific per its existing docstring.
 from __future__ import annotations
 
 import logging
+import uuid
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -109,7 +110,8 @@ def _get_connection(request: Request):
     Backend (SQLite vs Postgres) is chosen by db.get_connection() based on
     DATABASE_URL -- this router doesn't need to know which one it got.
     Raises HTTPException(503) on a DB-layer failure instead of letting a
-    raw psycopg2/sqlite3 exception propagate to the client."""
+    raw psycopg2/sqlite3 exception propagate to the client.
+    """
     try:
         return get_connection(request.app.state.db_path)
     except DB_ERRORS as exc:
@@ -135,6 +137,21 @@ def submit_intake(req: IntakeRequest, request: Request) -> IntakeResponse:
     try:
         repo = IntakeRepository(conn)
         repo.save(submission)
+
+        # Create customer user and tenant membership for the new tenant
+        user_id = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO customer_users (user_id, status) VALUES (?, ?)",
+            (user_id, 'active')
+        )
+        conn.execute(
+            """
+            INSERT INTO tenant_memberships (tenant_id, user_id, role, status)
+            VALUES (?, ?, ?, ?)
+            """,
+            (tenant_id, user_id, 'owner', 'active')
+        )
+
         # Every tenant gets a tracking number the moment they have a real
         # site to point it at -- get_or_create() is idempotent, so a
         # resubmission for the same tenant_id (there isn't one today, but
@@ -178,12 +195,14 @@ def _generate_site_if_enabled(submission: IntakeSubmission, db_path: str) -> Non
 @intake_router.get("/intake/presets")
 def list_presets() -> dict:
     """All supported industries, for populating the intake form's industry
-    selector without hardcoding the list on the Lovable/frontend side."""
+    selector without hardcoding the list on the Lovable/frontend side.
+    """
     return {"industries": SUPPORTED_INDUSTRIES}
 
 
 @intake_router.get("/intake/presets/{industry}")
 def industry_preset(industry: str) -> dict:
     """Per-trade hint text and FSM software options for one industry.
-    Always resolves (falls back to 'Other') -- see trade_presets.get_preset."""
+    Always resolves (falls back to 'Other') -- see trade_presets.get_preset.
+    """
     return get_preset(industry)
