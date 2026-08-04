@@ -1,1 +1,0 @@
-ALTER TABLE customer_users ADD COLUMN IF NOT EXISTS updated_at TEXT NOT NULL DEFAULT (datetime('now'));
