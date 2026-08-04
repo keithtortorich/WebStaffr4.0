@@ -24,6 +24,9 @@ class GHLSyncError(RuntimeError):
 
 
 class GHLClient(Protocol):
+    def upsert_contact(
+        self, name: str, phone: Optional[str], email: Optional[str], source: str
+    ) -> dict: ...
     def log_note(self, contact_id: str, note: str) -> None: ...
     def create_appointment(self, contact_id: str, starts_at: str, notes: str) -> dict: ...
     def update_appointment(self, appointment_id: str, starts_at: str, notes: str) -> dict: ...
@@ -43,6 +46,21 @@ class NullGHLClient:
         self.cancelled_appointments: list = []
         self.sent_sms: list = []
         self.sent_emails: list = []
+        self.upserted_contacts: list = []
+
+    def upsert_contact(
+        self, name: str, phone: Optional[str], email: Optional[str], source: str
+    ) -> dict:
+        contact_id = f"null-contact-{len(self.upserted_contacts) + 1}"
+        record = {
+            "name": name,
+            "phone": phone,
+            "email": email,
+            "source": source,
+            "contact": {"id": contact_id},
+        }
+        self.upserted_contacts.append(record)
+        return {"new": True, "contact": {"id": contact_id}}
 
     def log_note(self, contact_id: str, note: str) -> None:
         self.logged_notes.append({"contact_id": contact_id, "note": note})
@@ -118,6 +136,22 @@ class GoHighLevelClient:
 
     def log_note(self, contact_id: str, note: str) -> None:
         self._request("POST", f"/contacts/{contact_id}/notes", {"body": note})
+
+    def upsert_contact(
+        self, name: str, phone: Optional[str], email: Optional[str], source: str
+    ) -> dict:
+        """Create or update a contact using HighLevel's documented upsert API."""
+        payload = {
+            "name": name,
+            "locationId": self.location_id,
+            "source": source,
+            "createNewIfDuplicateAllowed": False,
+        }
+        if phone:
+            payload["phone"] = phone
+        if email:
+            payload["email"] = email
+        return self._request("POST", "/contacts/upsert", payload)
 
     def create_appointment(self, contact_id: str, starts_at: str, notes: str) -> dict:
         return self._request(

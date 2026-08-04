@@ -36,6 +36,15 @@ from .site_renderer import (
 )
 
 
+def _enabled_flag(value: object) -> bool:
+    """Interpret intake yes/no fields explicitly instead of by string truthiness."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on", "24/7"}
+
+
 @dataclass
 class SiteSchema:
     """Complete schema for a rendered site. Every field that appears in a
@@ -79,16 +88,38 @@ class SiteSchema:
     @property
     def trust_signal_count(self) -> int:
         """Number of trust signals available (rating, reviews, certifications,
-        emergency service, free estimates). Used to gate the trust bar section
+        emergency service, pricing information). Used to gate the trust bar section
         (show only if ≥2 to avoid empty grid cells)."""
         count = 0
         if self.rating_value and self.review_count:
             count += 1
         if self.certifications:
             count += 1
-        if self.emergency_service:
+        if self.has_emergency_service:
             count += 1
-        if self.pricing_shown:
+        if self.shows_pricing:
+            count += 1
+        return count
+
+    @property
+    def has_emergency_service(self) -> bool:
+        return _enabled_flag(self.emergency_service)
+
+    @property
+    def shows_pricing(self) -> bool:
+        return _enabled_flag(self.pricing_shown)
+
+    @property
+    def about_trust_signal_count(self) -> int:
+        """Number of trust items rendered by the about-page trust bar."""
+        count = 0
+        if self.years_in_biz:
+            count += 1
+        if self.certifications:
+            count += 1
+        if self.has_emergency_service:
+            count += 1
+        if self.rating_value and self.review_count:
             count += 1
         return count
 
@@ -186,6 +217,9 @@ def build_page_context(
         "has_reviews": schema.has_reviews,
         "trust_signal_count": schema.trust_signal_count,
         "show_trust_bar": schema.trust_signal_count >= 2,
+        "show_about_trust_bar": schema.about_trust_signal_count >= 2,
+        "has_emergency_service": schema.has_emergency_service,
+        "shows_pricing": schema.shows_pricing,
 
         # --- Schema markup (JSON-LD)
         "schema_type": schema_business_type(schema.industry),

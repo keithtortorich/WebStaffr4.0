@@ -6,14 +6,14 @@
   <div class="ws-container">
     <div class="ws-hero-grid">
       <div>
-        <div class="ws-hero-tag">{{ site.industry | title }} • 24/7 Answering Service</div>
-        <h1 class="ws-h1">Stop losing jobs you already paid to generate</h1>
-        <p class="ws-body-text">NetBuild.Pro answers every call while you're working. No missed opportunities. No voicemail loops. No lost leads to your competitors.</p>
+        <div class="ws-hero-tag">{{ site.industry | title }} in {{ site.service_area }}</div>
+        <h1 class="ws-h1">{{ site.tagline }}</h1>
+        <p class="ws-body-text">Contact {{ site.biz_name }} to discuss your {{ site.industry | lower }} service needs.</p>
 
         <div class="ws-hero-features">
           {% if site.certifications %}<span>{{ site.certifications }}</span>{% endif %}
-          {% if site.emergency_service %}<span>24/7 Emergency Service</span>{% endif %}
-          {% if site.pricing_shown %}<span>Free Estimates</span>{% endif %}
+          {% if has_emergency_service %}<span>24/7 Emergency Service</span>{% endif %}
+          {% if shows_pricing %}<span>Pricing Information Available</span>{% endif %}
         </div>
 
         {% if site.years_in_biz or site.rating_value %}
@@ -33,16 +33,16 @@
         </div>
         {% endif %}
 
-        {% if site.certifications or site.emergency_service %}
+        {% if site.certifications or has_emergency_service %}
         <div class="ws-badge-row">
-          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} Licensed &amp; Insured</span>{% endif %}
-          {% if site.emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
+          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} {{ site.certifications }}</span>{% endif %}
+          {% if has_emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
         </div>
         {% endif %}
 
         <div class="ws-hero-ctas">
-          <a href="tel:{{ site.phone }}" class="ws-btn {{ 'ws-btn-emergency' if site.emergency_service else 'ws-btn-primary' }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
-          <a href="#lead-capture" class="ws-btn ws-btn-secondary">Get a Free Estimate</a>
+          <a href="tel:{{ site.phone }}" class="ws-btn {{ 'ws-btn-emergency' if has_emergency_service else 'ws-btn-primary' }}">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
+          <a href="#lead-capture" class="ws-btn ws-btn-secondary">Request Service</a>
         </div>
       </div>
 
@@ -68,22 +68,22 @@
     {% if site.certifications %}
     <div class="ws-trust-item">
       <div class="ws-trust-icon">{{ icons.icon('shield', 20) }}</div>
-      <div class="ws-trust-num">Licensed</div>
+      <div class="ws-trust-num">Credentials</div>
       <div class="ws-trust-label">{{ site.certifications }}</div>
     </div>
     {% endif %}
-    {% if site.emergency_service %}
+    {% if has_emergency_service %}
     <div class="ws-trust-item">
       <div class="ws-trust-icon">{{ icons.icon('clock', 20) }}</div>
       <div class="ws-trust-num">24/7</div>
       <div class="ws-trust-label">Emergency Service</div>
     </div>
     {% endif %}
-    {% if site.pricing_shown %}
+    {% if shows_pricing %}
     <div class="ws-trust-item">
       <div class="ws-trust-icon">{{ icons.icon('dollar', 20) }}</div>
-      <div class="ws-trust-num">Free</div>
-      <div class="ws-trust-label">Estimates</div>
+      <div class="ws-trust-num">Pricing</div>
+      <div class="ws-trust-label">Information Available</div>
     </div>
     {% endif %}
   </div>
@@ -91,7 +91,7 @@
 {% endif %}
 
 <!-- Why Us Section -->
-{% if site.differentiator or site.emergency_service or site.certifications %}
+{% if site.differentiator or has_emergency_service or site.certifications %}
 <section class="ws-section">
   <div class="ws-container">
     <div class="ws-section-header">
@@ -107,7 +107,7 @@
         <p>{{ site.differentiator }}</p>
       </div>
       {% endif %}
-      {% if site.emergency_service %}
+      {% if has_emergency_service %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">{{ icons.icon('clock', 26) }}</span>
         <h3>24/7 Emergency Service</h3>
@@ -117,7 +117,7 @@
       {% if site.certifications %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">{{ icons.icon('wrench', 26) }}</span>
-        <h3>Licensed & Certified</h3>
+        <h3>Credentials</h3>
         <p>{{ site.certifications }}</p>
       </div>
       {% endif %}
@@ -140,28 +140,23 @@
         <p>{{ site.biz_name }} serves {{ site.service_area }}. Call {{ site.phone }} to confirm we cover your address.</p>
       </div>
 
-      {% if site.emergency_service %}
+      {% if has_emergency_service %}
       <div class="ws-faq-item">
         <h3>Do you offer emergency service?</h3>
         <p>Yes. {{ site.biz_name }} offers 24/7 emergency {{ site.industry | lower }} service in {{ site.service_area }}.</p>
       </div>
-      {% else %}
-      <div class="ws-faq-item">
-        <h3>What if I can't answer when you call back?</h3>
-        <p>Calls to {{ site.biz_name }} are answered directly, day or night, with no voicemail loop to lose your spot in line.</p>
-      </div>
       {% endif %}
 
-      {% if site.pricing_shown %}
+      {% if shows_pricing %}
       <div class="ws-faq-item">
-        <h3>Will I get a price before you start?</h3>
-        <p>Yes. {{ site.biz_name }} provides a free estimate before any work begins.</p>
+        <h3>Where can I ask about pricing?</h3>
+        <p>Call {{ site.phone }} or submit the form below to ask about pricing for your service request.</p>
       </div>
       {% endif %}
 
       {% if site.certifications %}
       <div class="ws-faq-item">
-        <h3>Are you licensed and insured?</h3>
+        <h3>What credentials do you hold?</h3>
         <p>{{ site.certifications }}</p>
       </div>
       {% endif %}
@@ -198,16 +193,16 @@
 </section>
 {% endif %}
 
-<!-- Founder Story Section -->
+<!-- Business History Section -->
 {% if site.years_in_biz %}
 <section class="ws-section">
   <div class="ws-container">
     <div class="ws-story-section">
       <div class="ws-story-image">{{ icons.icon('briefcase', 40) }}</div>
       <div class="ws-story-text">
-        <div class="ws-eyebrow">Our Story</div>
-        <div class="ws-pull-quote">Built on Trust</div>
-        <p class="ws-body-text">{{ site.biz_name }} was founded on a simple principle: do the work right, charge fair prices, and show up when you say you will. We've been serving {{ site.service_area }} with that promise for {{ site.years_in_biz }} years.</p>
+        <div class="ws-eyebrow">Experience</div>
+        <div class="ws-pull-quote">Serving {{ site.service_area }}</div>
+        <p class="ws-body-text">{{ site.biz_name }} has served {{ site.service_area }} for {{ site.years_in_biz }} years.</p>
       </div>
     </div>
   </div>
@@ -231,9 +226,9 @@
         </ul>
       </div>
       <div class="ws-location-cta">
-        <div class="ws-offer">Free estimate - upfront price, no surprises</div>
-        <p style="color: var(--ws-muted); margin-bottom:16px;">We'll call within 1 hour.</p>
-        <a href="{{ site_root }}/contact" class="ws-btn ws-btn-primary">Get Help Now</a>
+        <div class="ws-offer">Need service in {{ site.service_area }}?</div>
+        <p style="color: var(--ws-muted); margin-bottom:16px;">Contact {{ site.biz_name }} to discuss your request.</p>
+        <a href="{{ site_root }}/contact" class="ws-btn ws-btn-primary">Contact Us</a>
       </div>
     </div>
   </div>
@@ -245,22 +240,28 @@
     <div class="ws-section-header" style="margin:0 auto; text-align:center;">
       <div class="ws-eyebrow">Ready for help?</div>
       <h2>Tell Us What You Need</h2>
-      <p class="ws-body-text" style="margin:12px auto 0;">Name, phone, and what you're looking for. We'll call within 1 hour.</p>
+      <p class="ws-body-text" style="margin:12px auto 0;">Share your name, contact details, and what you need.</p>
     </div>
 
-    <form class="ws-lead-form" action="{{ api_base }}/intake" method="post">
-      <input type="hidden" name="industry" value="{{ site.industry }}" />
-      <input type="hidden" name="service_area" value="{{ site.service_area }}" />
+    <form class="ws-lead-form" action="{{ lead_endpoint }}" method="post">
+      <input type="hidden" name="source_path" value="{{ lead_source_path }}" />
       <label class="ws-visually-hidden" for="lead-name">Your Name</label>
       <input type="text" id="lead-name" placeholder="Your Name" name="name" required />
       <label class="ws-visually-hidden" for="lead-phone">Phone Number</label>
       <input type="tel" id="lead-phone" placeholder="Phone Number" name="phone" required />
       <label class="ws-visually-hidden" for="lead-email">Email</label>
       <input type="email" id="lead-email" placeholder="Email" name="email" required />
+      <label class="ws-visually-hidden" for="lead-message">What do you need?</label>
+      <textarea id="lead-message" placeholder="What do you need?" name="message" required></textarea>
+      <div class="ws-honeypot" aria-hidden="true">
+        <label for="lead-website">Website</label>
+        <input type="text" id="lead-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
       <button type="submit" class="ws-btn ws-btn-primary">Get Help &rarr;</button>
+      <div class="ws-lead-status" role="status" aria-live="polite"></div>
     </form>
 
-    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} We reply within 1 business hour</div>
+    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} Your request goes directly to {{ site.biz_name }}</div>
   </div>
 </section>
 

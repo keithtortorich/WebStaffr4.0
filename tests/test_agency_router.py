@@ -24,7 +24,7 @@ class AgencySiteGovernanceTestCase(unittest.TestCase):
         """Agency home page renders with 200 status."""
         response = self.client.get("/agency")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"You left money on the table", response.content)
+        self.assertIn(b"Turn customer interest into service requests", response.content)
 
     def test_agency_home_no_em_dashes(self):
         """Home page has no em-dashes (governance: em-dash ban)."""
@@ -39,15 +39,23 @@ class AgencySiteGovernanceTestCase(unittest.TestCase):
         # OK to say "doesn't trust AI" or "AI receptionist" as rebuttal, but
         # not to position NetBuild.Pro as AI.
         # Check that the hook and subhead are present instead.
-        self.assertIn(b"You left money on the table", response.content)
-        self.assertIn(b"answers your phone", response.content)
+        self.assertIn(b"Turn customer interest into service requests", response.content)
+        self.assertIn(b"Angel call handling", response.content)
 
     def test_agency_home_no_fabrication(self):
-        """Home page uses only stated, verified stats."""
+        """Home page does not publish unsupported statistics or economics."""
         response = self.client.get("/agency")
-        # Verify math section is present with the numbers we use
-        self.assertIn(b"$16,000 a month", response.content)
-        self.assertIn(b"$192,000 a year", response.content)
+        for unsupported in (
+            "27%",
+            "85%",
+            "78%",
+            "$16,000",
+            "$192,000",
+            "answers every call",
+            "books every job",
+            "24/7",
+        ):
+            self.assertNotIn(unsupported, response.text)
 
     def test_agency_pricing_renders(self):
         """Pricing page renders."""
@@ -57,6 +65,32 @@ class AgencySiteGovernanceTestCase(unittest.TestCase):
         self.assertIn(b"$497", response.content)
         self.assertIn(b"$2,497", response.content)
         self.assertIn(b"$5,000", response.content)
+        self.assertIn(b"Essentials", response.content)
+        self.assertIn(b"Pro", response.content)
+        self.assertIn(b"Growth", response.content)
+
+    def test_all_agency_pages_use_canonical_brand_and_tiers(self):
+        pages = (
+            "/agency",
+            "/agency/pricing",
+            "/agency/faq",
+            "/agency/how-it-works",
+            "/agency/about",
+            "/agency/contact",
+        )
+        for page in pages:
+            response = self.client.get(page)
+            with self.subTest(page=page):
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("NetBuild.Pro", response.text)
+                for stale in ("WebStaffr", "Office Staff", "Business Manager", "White-Glove"):
+                    self.assertNotIn(stale, response.text)
+
+    def test_agency_contact_routes_to_working_intake(self):
+        response = self.client.get("/agency/contact")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('href="/start"', response.text)
+        self.assertNotIn("<form", response.text)
 
     def test_agency_pricing_no_em_dashes(self):
         """Pricing page has no em-dashes."""
@@ -80,13 +114,13 @@ class AgencySiteGovernanceTestCase(unittest.TestCase):
         """About page renders."""
         response = self.client.get("/agency/about")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Recurring Office", response.content)
+        self.assertIn(b"Built for home service businesses", response.content)
 
     def test_agency_contact_renders(self):
         """Contact page renders."""
         response = self.client.get("/agency/contact")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Get Started", response.content)
+        self.assertIn(b"Start with your business intake", response.content)
 
     def test_agency_trailing_slash(self):
         """Agency home accepts both /agency and /agency/."""

@@ -71,6 +71,7 @@ def main() -> int:
                 "tenants", "appointments", "intake_submissions",
                 "rate_limit_counters", "tracking_numbers", "call_events",
                 "social_media_mounts", "social_media_intents", "execution_nodes",
+                "website_leads",
             }
             missing = expected - tables
             assert not missing, f"missing expected tables: {missing}"

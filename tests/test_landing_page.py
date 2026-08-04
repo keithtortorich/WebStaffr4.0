@@ -15,6 +15,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from webstaffr.app import create_app
+from webstaffr.db import get_connection
 
 
 class LandingPageTestCase(unittest.TestCase):
@@ -33,6 +34,13 @@ class LandingPageTestCase(unittest.TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("NetBuild.Pro", resp.text)
+
+    def test_landing_uses_canonical_plan_names(self):
+        resp = self.client.get("/")
+        for current in ("Essentials", "Pro", "Growth"):
+            self.assertIn(current, resp.text)
+        for retired in ("Test Drive", "Office Staff", "Business Manager", "White-Glove"):
+            self.assertNotIn(retired, resp.text)
 
     def test_contact_phone_present(self):
         resp = self.client.get("/")
@@ -64,27 +72,62 @@ class LandingPageTestCase(unittest.TestCase):
         intake = self.client.get("/start")
         self.assertEqual(intake.status_code, 200)
         self.assertIn('id="intake-form"', intake.text)
-        self.assertIn("Create My 24/7 Receptionist", intake.text)
+        self.assertIn("Create My Customer Site", intake.text)
         self.assertIn("fetch('/intake'", intake.text)
 
     def test_intake_exposes_tradesman_mvp_choices(self):
         resp = self.client.get("/start")
         for expected in (
             "Plumber", "Electrician", "HVAC", "Pest Control",
-            "Professional", "Enterprise", "Text my cell", "Route to GHL",
+            "Essentials", "Pro", "Growth", "Text my cell", "Route to GHL",
             "Founder only", "Team",
         ):
             self.assertIn(expected, resp.text)
 
-    def test_demo_redirect_known_trade(self):
-        resp = self.client.get("/demos/plumbing", follow_redirects=False)
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn("/sites/demo-plumbing/web", resp.headers["location"])
+    def test_landing_does_not_link_to_unprovisioned_demo_tenants(self):
+        resp = self.client.get("/")
+        self.assertNotIn('href="/demos/', resp.text)
+
+    def test_landing_marks_integrations_as_separate_activation_step(self):
+        resp = self.client.get("/")
+        self.assertIn("after your approved phone, calendar, GHL, and Retell integrations", resp.text)
+        self.assertNotIn("answers every call", resp.text.lower())
+        self.assertNotIn("Appointments go straight", resp.text)
+
+    def test_intake_uses_canonical_brand_and_plan_names(self):
+        resp = self.client.get("/start")
+        self.assertIn("NetBuild.Pro", resp.text)
+        self.assertNotIn("WebStaffr", resp.text)
+        self.assertIn('value="essentials" checked', resp.text)
+
+    def test_investor_summary_avoids_unverified_performance_claims(self):
+        resp = self.client.get("/investors/pitch")
+        self.assertEqual(resp.status_code, 200)
+        payload = resp.json()
+        self.assertNotIn("unit_economics", payload)
+        self.assertNotIn("27%", payload["problem"])
+        self.assertNotIn("answers every call", payload["solution"].lower())
+        self.assertEqual(payload["pricing"]["essentials_monthly"], 497)
 
     def test_demo_redirect_unknown_trade(self):
         resp = self.client.get("/demos/not-a-real-trade")
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("error", resp.json())
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.json()["detail"], "Demo not found")
+
+    def test_demo_redirect_requires_an_existing_demo_tenant(self):
+        missing = self.client.get("/demos/plumbing", follow_redirects=False)
+        self.assertEqual(missing.status_code, 404)
+
+        conn = get_connection(self.db_path)
+        try:
+            conn.execute("INSERT INTO tenants (tenant_id) VALUES (?)", ("demo-plumbing",))
+            conn.commit()
+        finally:
+            conn.close()
+
+        provisioned = self.client.get("/demos/plumbing", follow_redirects=False)
+        self.assertEqual(provisioned.status_code, 302)
+        self.assertEqual(provisioned.headers["location"], "/sites/demo-plumbing/web")
 
 
 if __name__ == "__main__":

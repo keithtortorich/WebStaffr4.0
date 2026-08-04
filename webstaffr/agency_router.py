@@ -1,4 +1,4 @@
-"""WebStaffr Agency Site — company marketing site, not customer sites.
+"""NetBuild.Pro agency site, separate from generated customer sites.
 
 Served at GET /agency/* using Jinja2 templates with the new brand palette
 (teal + gold + copper). Copy from WEBSTAFFR_AGENCY_SITE_COPY_HORMOZI_VOSS.md.
@@ -15,15 +15,15 @@ from jinja2 import Environment, DictLoader
 
 agency_router = APIRouter(tags=["agency"])
 
-# Embedded templates — no filesystem dependency.
+# Embedded templates, with no filesystem dependency.
 _TEMPLATES = {
     "base.html": '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="WebStaffr: 24/7 recurring office staff for home service contractors. Angel answers every call. One flat rate.">
-    <title>{% block page_title %}WebStaffr | 24/7 Recurring Office Staff for Contractors{% endblock %}</title>
+    <meta name="description" content="NetBuild.Pro builds customer websites and activates Angel call handling for home service contractors.">
+    <title>{% block page_title %}NetBuild.Pro | Websites and call handling for contractors{% endblock %}</title>
     <style>
     :root {
         --ws-primary-teal: #1a4d5e;
@@ -82,7 +82,7 @@ _TEMPLATES = {
     <div class="ws-utility-bar">
         <div class="ws-utility-bar-inner">
             <div class="ws-utility-phone">(888) 302-8368</div>
-            <div class="ws-utility-item"><span class="ws-utility-item-accent">24/7</span> Live Support</div>
+            <div class="ws-utility-item"><span class="ws-utility-item-accent">Built for</span> Home Services</div>
         </div>
     </div>
 
@@ -95,7 +95,7 @@ _TEMPLATES = {
                     <rect x="10" y="50" width="30" height="30" fill="#d4a574" rx="4"/>
                     <rect x="50" y="50" width="30" height="30" fill="#1a4d5e" rx="4"/>
                 </svg>
-                <span class="ws-brand-text">WebStaffr</span>
+                <span class="ws-brand-text">NetBuild.Pro</span>
             </div>
             <nav class="ws-nav">
                 <a href="/agency" class="ws-nav-link">Home</a>
@@ -114,51 +114,47 @@ _TEMPLATES = {
 
     <footer class="ws-footer">
         <div class="ws-footer-inner">
-            <div><h3 class="ws-footer-heading">WebStaffr</h3><p class="ws-footer-text">24/7 recurring office staff.</p></div>
+            <div><h3 class="ws-footer-heading">NetBuild.Pro</h3><p class="ws-footer-text">Customer websites and call handling for home service businesses.</p></div>
             <div><h4 class="ws-footer-subheading">Product</h4><ul class="ws-footer-links"><li><a href="/agency/how-it-works">How It Works</a></li><li><a href="/agency/pricing">Pricing</a></li></ul></div>
             <div><h4 class="ws-footer-subheading">Company</h4><ul class="ws-footer-links"><li><a href="/agency/about">About</a></li><li><a href="/agency/contact">Contact</a></li></ul></div>
             <div><h4 class="ws-footer-subheading">Contact</h4><p class="ws-footer-text"><a href="mailto:keithtortorich@gmail.com">keithtortorich@gmail.com</a><br>(888) 302-8368</p></div>
         </div>
-        <p class="ws-footer-copyright">&copy; 2026 WebStaffr. All rights reserved.</p>
+        <p class="ws-footer-copyright">&copy; 2026 NetBuild.Pro. All rights reserved.</p>
     </footer>
 </body>
 </html>''',
 
     "home.html": '''{% extends "base.html" %}
-{% block page_title %}You left money on the table this week | WebStaffr{% endblock %}
+{% block page_title %}Capture more customer requests | NetBuild.Pro{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
-    <h1 class="ws-section-heading">You left money on the table this week.</h1>
-    <p style="font-size: 1.125rem; color: #666; margin-bottom: 40px; max-width: 600px;">27% of calls go unanswered. 85% never get a callback. 78% hire the first person who picks up. WebStaffr answers your phone, books your jobs.</p>
-    <a href="/agency/contact" class="ws-btn ws-btn-primary">Get Started Free (No Card Required)</a>
+    <h1 class="ws-section-heading">Turn customer interest into service requests.</h1>
+    <p style="font-size: 1.125rem; color: #666; margin-bottom: 40px; max-width: 600px;">NetBuild.Pro gives home service businesses a customer-ready website, lead capture, and Angel call handling after each integration is verified.</p>
+    <a href="/start" class="ws-btn ws-btn-primary">Start Your Intake</a>
 
     <div style="margin-top: 60px; padding: 40px; background: var(--ws-cream); border-radius: 8px;">
-        <p style="font-size: 0.95rem; color: #666; margin-bottom: 16px;"><strong>The math:</strong> You lose $16,000 a month to unanswered calls. That is $192,000 a year.</p>
-        <p style="font-size: 0.95rem; color: #666;">WebStaffr costs less than hiring one part-time person. Books jobs while you sleep.</p>
+        <p style="font-size: 0.95rem; color: #666; margin-bottom: 16px;"><strong>The workflow:</strong> complete intake, review your generated site, then activate the approved call-handling and CRM integrations.</p>
+        <p style="font-size: 0.95rem; color: #666;">Every captured request keeps its tenant and source attribution.</p>
     </div>
 </section>
 {% endblock %}''',
 
     "pricing.html": '''{% extends "base.html" %}
-{% block page_title %}Pricing | WebStaffr{% endblock %}
+{% block page_title %}Pricing | NetBuild.Pro{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
     <h1 class="ws-section-heading">Simple pricing. No surprises.</h1>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 40px;">
-        <div style="padding: 24px; border: 2px solid var(--ws-border); border-radius: 8px;">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Test Drive</h3>
-            <p style="font-size: 0.9rem; color: #666; margin-bottom: 16px;">14 days free. No card.</p>
-        </div>
         <div style="padding: 24px; border: 2px solid var(--ws-copper); border-radius: 8px; background: var(--ws-cream);">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Office Staff</h3>
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Essentials</h3>
             <p style="font-size: 2rem; font-weight: 700; color: var(--ws-copper); margin-bottom: 16px;">$497<span style="font-size: 0.875rem;">/month</span></p>
         </div>
         <div style="padding: 24px; border: 2px solid var(--ws-border); border-radius: 8px;">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Business Manager</h3>
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Pro</h3>
             <p style="font-size: 2rem; font-weight: 700; color: var(--ws-primary-teal); margin-bottom: 16px;">$2,497<span style="font-size: 0.875rem;">/month</span></p>
         </div>
         <div style="padding: 24px; border: 2px solid var(--ws-border); border-radius: 8px;">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">White-Glove</h3>
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 8px;">Growth</h3>
             <p style="font-size: 2rem; font-weight: 700; color: var(--ws-primary-teal); margin-bottom: 16px;">Custom</p>
             <p style="font-size: 0.9rem; color: #666;">$5,000+ per month</p>
         </div>
@@ -167,95 +163,70 @@ _TEMPLATES = {
 {% endblock %}''',
 
     "how_it_works.html": '''{% extends "base.html" %}
-{% block page_title %}How It Works | WebStaffr{% endblock %}
+{% block page_title %}How It Works | NetBuild.Pro{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
     <h1 class="ws-section-heading">Three Steps</h1>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 40px;">
         <div>
             <div style="width: 48px; height: 48px; background: var(--ws-copper); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; margin-bottom: 16px;">1</div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Sign up</h3>
-            <p style="color: #666;">Start your free trial. No card required. Takes 5 minutes.</p>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Complete intake</h3>
+            <p style="color: #666;">Tell us about your business, services, and customer-facing details.</p>
         </div>
         <div>
             <div style="width: 48px; height: 48px; background: var(--ws-copper); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; margin-bottom: 16px;">2</div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Deploy Angel</h3>
-            <p style="color: #666;">We embed our AI receptionist on your website. Zero coding.</p>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Review your site</h3>
+            <p style="color: #666;">NetBuild.Pro generates the site and embeds the Angel customer-contact widget.</p>
         </div>
         <div>
             <div style="width: 48px; height: 48px; background: var(--ws-copper); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; margin-bottom: 16px;">3</div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Stop losing calls</h3>
-            <p style="color: #666;">Angel answers every call, books every job. 24/7.</p>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">Activate integrations</h3>
+            <p style="color: #666;">Call handling, CRM routing, and booking go live after each configured integration passes verification.</p>
         </div>
     </div>
 </section>
 {% endblock %}''',
 
     "faq.html": '''{% extends "base.html" %}
-{% block page_title %}Common Questions | WebStaffr{% endblock %}
+{% block page_title %}Common Questions | NetBuild.Pro{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
     <h1 class="ws-section-heading">Common Questions</h1>
     <div style="max-width: 700px; margin: 40px auto;">
         <details style="margin-bottom: 16px; padding: 16px; border: 1px solid var(--ws-border); border-radius: 4px;">
             <summary style="cursor: pointer; font-weight: 600;">How does Angel know my service?</summary>
-            <p style="margin-top: 12px; color: #666;">You train Angel on your business during setup. Takes 15 minutes.</p>
+            <p style="margin-top: 12px; color: #666;">Your approved intake supplies Angel with the business and service details used during customer conversations.</p>
         </details>
         <details style="margin-bottom: 16px; padding: 16px; border: 1px solid var(--ws-border); border-radius: 4px;">
             <summary style="cursor: pointer; font-weight: 600;">Can I cancel anytime?</summary>
-            <p style="margin-top: 12px; color: #666;">Yes. No contracts. Cancel anytime in your dashboard.</p>
+            <p style="margin-top: 12px; color: #666;">Current terms are reviewed with you before activation. Contact support for account changes.</p>
         </details>
         <details style="margin-bottom: 16px; padding: 16px; border: 1px solid var(--ws-border); border-radius: 4px;">
             <summary style="cursor: pointer; font-weight: 600;">Does Angel use real voice?</summary>
-            <p style="margin-top: 12px; color: #666;">Yes. Angel talks like a real person. Callers never know it is not human.</p>
+            <p style="margin-top: 12px; color: #666;">Angel uses the configured voice provider. The live voice path is activated only after provider verification.</p>
         </details>
     </div>
 </section>
 {% endblock %}''',
 
     "about.html": '''{% extends "base.html" %}
-{% block page_title %}About WebStaffr | WebStaffr{% endblock %}
+{% block page_title %}About NetBuild.Pro{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
-    <h1 class="ws-section-heading">Recurring Office Staff</h1>
-    <p style="font-size: 1.125rem; color: #666; max-width: 700px; line-height: 1.8;">WebStaffr builds recurring office staff for home service contractors. Angel is our first employee: an AI receptionist that answers every call, qualifies leads, and books jobs. No hiring. No training. One flat rate. 24/7.</p>
+    <h1 class="ws-section-heading">Built for home service businesses</h1>
+    <p style="font-size: 1.125rem; color: #666; max-width: 700px; line-height: 1.8;">NetBuild.Pro combines a customer-ready website with tenant-scoped lead capture and Angel call handling. Integrations are activated only after they are configured and verified for the customer.</p>
 </section>
 {% endblock %}''',
 
     "contact.html": '''{% extends "base.html" %}
-{% block page_title %}Get Started with WebStaffr | Contact{% endblock %}
+{% block page_title %}Get Started with NetBuild.Pro | Contact{% endblock %}
 {% block content %}
 <section class="ws-section-inner">
-    <h1 class="ws-section-heading">Get Your Office Staff Working. Starting Today.</h1>
-    <div style="max-width: 600px; margin: 40px auto; background: white; border: 2px solid #1a4d5e; border-radius: 8px; padding: 40px; box-shadow: 0 4px 12px rgba(26, 77, 94, 0.1);">
-        <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #666; text-align: center;">14 days, free. No card. No contract. No risk.</p>
-        <form style="display: grid; grid-template-columns: 1fr; gap: 16px;">
-            <div>
-                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2a3a42; font-size: 0.95rem;">Business Name</label>
-                <input type="text" placeholder="Your business" style="width: 100%; padding: 10px; border: 1px solid #e2e6ec; border-radius: 4px; font-family: inherit; font-size: 1rem;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2a3a42; font-size: 0.95rem;">Your Name</label>
-                <input type="text" placeholder="Your name" style="width: 100%; padding: 10px; border: 1px solid #e2e6ec; border-radius: 4px; font-family: inherit; font-size: 1rem;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2a3a42; font-size: 0.95rem;">Email</label>
-                <input type="email" placeholder="your@email.com" style="width: 100%; padding: 10px; border: 1px solid #e2e6ec; border-radius: 4px; font-family: inherit; font-size: 1rem;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2a3a42; font-size: 0.95rem;">Phone</label>
-                <input type="tel" placeholder="(888) 555-1234" style="width: 100%; padding: 10px; border: 1px solid #e2e6ec; border-radius: 4px; font-family: inherit; font-size: 1rem;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2a3a42; font-size: 0.95rem;">Industry</label>
-                <select style="width: 100%; padding: 10px; border: 1px solid #e2e6ec; border-radius: 4px; font-family: inherit; font-size: 1rem;">
-                    <option>Select your trade</option>
-                    <option>HVAC</option><option>Plumbing</option><option>Electrical</option><option>Roofing</option>
-                </select>
-            </div>
-            <button type="submit" class="ws-btn ws-btn-primary" style="width: 100%; margin-top: 8px;">Get Started Free (No Card Required)</button>
-        </form>
-        <p style="margin-top: 24px; text-align: center; font-size: 0.9rem; color: #999;">We will set you up within 24 hours. Email keithtortorich@gmail.com or call (888) 302-8368.</p>
+    <h1 class="ws-section-heading">Start with your business intake.</h1>
+    <div style="max-width: 600px; margin: 40px auto; background: white; border: 2px solid #1a4d5e; border-radius: 8px; padding: 40px; box-shadow: 0 4px 12px rgba(26, 77, 94, 0.1); text-align: center;">
+        <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #666;">Provide the business details needed to generate your reviewable customer site.</p>
+        <a href="/start" class="ws-btn ws-btn-primary">Open Intake</a>
+        <p style="margin-top: 24px; font-size: 0.9rem; color: #666;">Questions? Email keithtortorich@gmail.com or call (888) 302-8368.</p>
     </div>
 </section>
 {% endblock %}''',

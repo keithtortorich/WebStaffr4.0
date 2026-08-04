@@ -25,6 +25,24 @@ from .custom_domain import resolve_tenant_from_host
 
 logger = logging.getLogger("webstaffr.custom_domain_middleware")
 
+_CUSTOM_DOMAIN_SITE_PATHS = frozenset(
+    {"/", "/about", "/contact", "/reviews", "/sitemap.xml", "/robots.txt"}
+)
+_CUSTOM_DOMAIN_SITE_PREFIXES = ("/services/",)
+
+
+def _is_customer_site_page(method: str, path: str) -> bool:
+    """Return true only for browser page reads owned by the custom domain.
+
+    Static assets and API routes must keep their original paths. Rewriting
+    `/static/angel-widget.js`, `/chat`, `/intake`, or `/sites/...` into the
+    tenant's `/web` tree breaks the rendered site's own assets and actions.
+    """
+    return method.upper() in {"GET", "HEAD"} and (
+        path in _CUSTOM_DOMAIN_SITE_PATHS
+        or path.startswith(_CUSTOM_DOMAIN_SITE_PREFIXES)
+    )
+
 
 class CustomDomainMiddleware(BaseHTTPMiddleware):
     """Middleware to handle custom domain routing via Host header lookup.
@@ -43,7 +61,7 @@ class CustomDomainMiddleware(BaseHTTPMiddleware):
         host = request.headers.get("Host", "")
         tenant_id = resolve_tenant_from_host(host, request.app.state.db_path)
 
-        if tenant_id:
+        if tenant_id and _is_customer_site_page(request.method, request.url.path):
             # This is a custom domain request; rewrite path for internal routing
             original_path = request.url.path
             rewritten_path = f"/sites/{tenant_id}/web{original_path}"

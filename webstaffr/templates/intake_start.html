@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Create Your 24/7 Receptionist | WebStaffr</title>
+  <title>Create Your Customer Site | NetBuild.Pro</title>
   <style>
     :root { --navy:#000080; --blue:#4169e1; --orange:#ff6600; --ink:#111827; --muted:#5f6b7a; --line:#d9deea; --wash:#f5f7fb; }
     * { box-sizing:border-box; }
@@ -46,16 +46,16 @@
   </style>
 </head>
 <body>
-  <header><a href="/">WebStaffr</a><span>Set up once. Stay available 24/7.</span></header>
+  <header><a href="/">NetBuild.Pro</a><span>Build the site first. Verify each integration before activation.</span></header>
   <main>
     <section class="intro">
       <div class="eyebrow">Two-minute setup</div>
-      <h1>Your front office goes live today.</h1>
-      <p class="lede">Tell us how your business works. WebStaffr creates your customer-ready website and activates Angel to answer questions, capture leads, and book jobs.</p>
+      <h1>Build your customer site.</h1>
+      <p class="lede">Tell us how your business works. NetBuild.Pro creates your customer-ready website. Angel voice, lead routing, and booking are activated after their integrations are configured and verified.</p>
       <ol class="steps">
         <li><b>1</b><span>Share the basics</span></li>
         <li><b>2</b><span>We build your site</span></li>
-        <li><b>3</b><span>Angel starts booking</span></li>
+        <li><b>3</b><span>Verify integrations</span></li>
       </ol>
     </section>
     <section class="card" aria-labelledby="form-title">
@@ -70,7 +70,7 @@
         <div><label for="service_area">Service area</label><input id="service_area" name="service_area" required placeholder="Greater Denver Metro"></div>
         <div class="grid">
           <div><label for="tagline">Tagline</label><input id="tagline" name="tagline" required placeholder="Fast, honest, no surprises"></div>
-          <div><label for="license_number">License number</label><input id="license_number" name="license_number" required placeholder="PLM-2024-89345"></div>
+          <div><label for="license_number">License or registration number</label><input id="license_number" name="license_number" required placeholder="Enter N/A if not applicable"><span class="fine">Use N/A only when your business does not require one.</span></div>
         </div>
         <div><label for="differentiator">What makes you different?</label><textarea id="differentiator" name="differentiator" required placeholder="We show up on time. Always."></textarea></div>
         <fieldset><legend>Services offered</legend><div class="choices services">
@@ -82,12 +82,12 @@
           <label class="choice"><input type="checkbox" name="services" value="Same-day service">Same-day service</label>
         </div></fieldset>
         <div class="grid">
-          <fieldset><legend>Plan</legend><div class="choices"><label class="choice"><input type="radio" name="plan" value="growth" checked>Professional</label><label class="choice"><input type="radio" name="plan" value="pro">Enterprise</label></div></fieldset>
+          <fieldset><legend>Plan</legend><div class="choices"><label class="choice"><input type="radio" name="plan" value="essentials" checked>Essentials</label><label class="choice"><input type="radio" name="plan" value="pro">Pro</label><label class="choice"><input type="radio" name="plan" value="growth">Growth</label></div></fieldset>
           <fieldset><legend>Lead routing</legend><div class="choices"><label class="choice"><input type="radio" name="lead_routing" value="Text my cell" checked>Text my cell</label><label class="choice"><input type="radio" name="lead_routing" value="Route to GHL">Route to GHL</label></div></fieldset>
         </div>
         <fieldset><legend>Who approves bookings?</legend><div class="choices"><label class="choice"><input type="radio" name="approver" value="Founder only" checked>Founder only</label><label class="choice"><input type="radio" name="approver" value="Team">Team</label></div></fieldset>
         <div id="status" role="status" aria-live="polite"></div>
-        <button id="submit" type="submit">Create My 24/7 Receptionist</button>
+        <button id="submit" type="submit">Create My Customer Site</button>
         <p class="fine">By continuing, you confirm the business information is accurate.</p>
       </form>
     </section>
@@ -112,7 +112,7 @@
         window.location.assign('/sites/' + encodeURIComponent(body.tenant_id) + '/web');
       } catch (error) {
         statusBox.className = 'error'; statusBox.textContent = error.message + ' Please check the form and try again.';
-        submit.disabled = false; submit.textContent = 'Create My 24/7 Receptionist';
+        submit.disabled = false; submit.textContent = 'Create My Customer Site';
       }
     });
   </script>

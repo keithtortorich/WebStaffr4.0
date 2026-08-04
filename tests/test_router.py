@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -46,6 +47,12 @@ class TestHealthEndpoint(RouterTestCase):
         resp = self.client.get("/health")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json(), {"status": "ok"})
+
+    def test_health_reports_vercel_release_when_available(self):
+        with patch.dict(os.environ, {"VERCEL_GIT_COMMIT_SHA": "abc123"}):
+            resp = self.client.get("/health")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), {"status": "ok", "release": "abc123"})
 
     def test_health_has_no_cors_header(self):
         resp = self.client.get("/health", headers={"Origin": "https://evil.example.com"})
