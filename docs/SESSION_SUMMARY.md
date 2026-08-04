@@ -1,71 +1,54 @@
-# Session Summary — 2026-08-03
+# Session Summary — 2026-08-04
+
+(Note: this file previously held a 2026-08-03 summary, carried over when this
+worktree was cut from the canonical repo today. That content is preserved in
+TASKS.md's session history; this file follows the repo's per-session
+convention of reflecting only the most recent session.)
 
 ## Completed
 
-**Stripe Webhook: Fixed and Secured**
-- `create_app()` was missing `stripe_webhook_verifier`; router existed but was unreachable (10/10 tests failing on TypeError).
-- Found and fixed a real vulnerability: `StripeSignatureVerifier.verify()` compared the signature against itself (`hmac.compare_digest(provided_sig, provided_sig)`) — always true. Rewrote to compute real HMAC-SHA256 over the raw request body; route now captures raw bytes before verification.
-- Fixed test fixture: 8 tests sent a placeholder signature that never matched the injected secret.
-- Added `appointments.status` column (founder-approved schema change): migration 0012 (SQLite) + 0014 (postgres_manual).
-- Tests: 403/403 passing. Health: HEALTHY. Commit: `ac71f95` (local, not pushed).
+- **ADR-025:** NetBuild.Pro locked as sole canonical brand name everywhere; Python package name `webstaffr` frozen (not customer-facing, avoids import breakage).
+- **ADR-026:** Essentials/Pro/Growth locked as canonical tier names, 1:1 mapped to retired pricing vocabulary — Essentials=Office Staff ($497), Pro=Business Manager ($2,497), Growth=White-Glove ($5,000+). ADR-024 amended: portal ships in **Pro** tier.
+- Scoped two previously-unscoped agent lanes from the "three-agent execution split" doc (`~/Desktop/menage a trois.md`), both grounded in verified repo state, not aspiration:
+  - `docs/CLAUDE_PRODUCT_UX_PLAN.md` — Phase 1 (lock the product) mostly resolved by ADR-025/026; one item still open (ICP, included/excluded services, supported trades, fair-use boundaries — founder input needed, not started).
+  - `docs/HERMES_OPERATIONS_PLAN.md` — Phase 1 starter skills approved (fix stale onboarding-smoketest repo detection, formalize the 5-skill site-audit pattern); Phases 2-6 gated on MVP going live + Codex Batch 4/5.
+- Reconciled Codex's `CODEX_SECURITY_EXECUTION_PLAN.md`; founder approved Batch 1 (fail-closed auth boundary) in Codex's isolated lane.
+- **Caught and corrected a live lane violation:** Hermes was editing `webstaffr/landing_router.py`, inside Codex's declared ownership, while building its own git-coordination-safety skill. Founder directed Hermes to stop and hand off; Hermes confirmed and is holding. Wrote `docs/HERMES_SKILL_CORRECTION_2026-08-04.md` (not editing Hermes's skill file directly) flagging the skill's stale Claude-ownership entry and the deeper gap: preflight checks disk state, not lane ownership.
+- Established Claude's own isolated worktree per Codex's addendum requirement: `/Users/doc/Desktop/WebStaffr4-claude`, branch `claude/product-docs`. Commits: `318dde8`, `ecc0c13`.
 
-**Brand Color Doctrine Locked (ADR-021)**
-- Founder approved `webstaffr-standalone.html` as canonical brand identity.
-- Wrote ADR-021 in `docs/DECISIONS.md`: navy `#000080`, royal blue `#4169E1`, orange `#FF6600`, gray `#E0E0E0`, logo variants, supporting tones.
-- Updated `WEBSTAFFR_GOVERNANCE.md`'s stale Visual Identity section (was gold `#bf9000`, deep blue `#1f4d78` — didn't match). Version bumped to 1.1.
-- Commit: `db345af` (local, not pushed).
+## Changed
 
-**webstaffr-standalone.html: Governance Fixes + True Standalone Fix**
-- Fixed 8 customer-facing em-dashes (ADR-020 rule) and an unlabeled fabricated testimonial (Marcus Rivera/Summit Plumbing) — de-identified into an explicitly-labeled "Illustrative example," matching the honest-disclosure pattern already used elsewhere in the page.
-- Diagnosed "doesn't render": the file wasn't actually standalone — pulled React, ReactDOM, Babel, and Tailwind from 4 external CDNs. Pre-compiled the JSX server-side (dropped the 3.1MB Babel runtime entirely) and inlined React/ReactDOM/Tailwind. Only Google Fonts stays external (graceful CSS fallback exists).
-- Verified by executing the file in a real DOM (jsdom): 488 elements rendered, correct headline text, 0 console errors.
-- File lives in this session's outputs folder, delivered to founder — **not yet committed to the repo.**
+- `docs/DECISIONS.md`: ADR-025, ADR-026 added; ADR-024 amended in place.
+- `TASKS.md`: session log entries for brand lock, tier lock, Batch 1 approval, Hermes lane-violation catch.
+- New: `docs/CLAUDE_PRODUCT_UX_PLAN.md`, `docs/HERMES_OPERATIONS_PLAN.md`, `docs/HERMES_SKILL_CORRECTION_2026-08-04.md`.
+- Addendum appended to `~/Desktop/menage a trois.md` (source doc, untouched otherwise).
 
-## Tests
-- 403/403 passing (webstaffr repo)
-- Health check: 10/10 HEALTHY
+## Blockers
 
-## Blockers / Known Gaps
-- ADR-020 (em-dash rule, 2026-07-30) referenced in TASKS.md/CLAUDE.md but never written into `docs/DECISIONS.md` — flagged, trivial backfill, not done.
-- `webstaffr-standalone.html` not integrated into the repo — founder hasn't asked for that yet.
-- Rest of the working tree's uncommitted changes (templates, `site_render_router.py`, `seed_demo_tenants.py`, Impeccable/Site Magic artifacts) untouched — Hermes' active work, out of scope this session.
+- **Claude Phase 1, item 4** (ICP, included/excluded services, supported trades, fair-use boundaries) — founder input required, not started.
+- **Hermes** — holding on canonical-tree writes pending: (a) applying the ownership-table correction to its own skill file, (b) confirming `landing_router.py` final disposition with Codex.
+- **Coordination broker** — founder proposed a shared real-time broker (heartbeat, file-ownership claims, atomic locking, stale-claim expiry, single preflight command, founder-readable status) to replace prose-based relay coordination. Codex requested explicit confirmation ("Approve the local coordination broker") — **not given in this session.** Observed via `git worktree list` at session end: Codex already created `/Users/doc/Desktop/WebStaffr4-coordination` on branch `codex/agent-coordination`, ahead of confirmed approval. Flag at next session start; don't treat as quietly approved.
 
-## Next Session
-1. Decide whether/how `webstaffr-standalone.html` becomes the actual served landing page.
-2. Backfill ADR-020 into `docs/DECISIONS.md`.
-3. Reconcile Site Magic / Impeccable work once Hermes' session lands (site_magic_engine.py, site_maker_engine.ts, PRODUCT.md, DESIGN.md still untracked).
-4. Push local commits `ac71f95` and `db345af` when founder gives the go-ahead.
+## Next (priority order)
 
-## Decisions
-- Self-approved (reversible, local, security best-practice): Stripe wiring fix, forged-signature fix, test fixture fix.
-- Founder-approved (D4 gates): `appointments.status` schema change; Stripe webhook confirmed in-MVP scope (corrects my initial scope call — payment processing isn't the "billing/tier logic" the repo's out-of-scope list meant); brand color lock.
-- Engineering call (self-approved): pre-compile JSX server-side rather than ship Babel standalone in-browser — smaller, faster, no runtime transpilation risk.
+1. Confirm (or hold) approval for Codex's coordination-broker work — already started in an isolated lane, no push/deploy, but the explicit go-ahead wasn't given before it began.
+2. Hermes applies its skill correction and closes out `landing_router.py` with Codex.
+3. Founder input on Claude Phase 1 item 4 (ICP/services/trades/fair-use) to unblock Phase 2 (onboarding spec).
+4. Once the broker exists: migrate coordination off prose/chat-relay onto whatever protocol it defines — all three lanes use the same commands, not separate interpretations.
 
-## Assumptions
-- Sandbox shell still cannot write git objects for this repo mount — commits went through Desktop Commander on the founder's Mac, confirmed working both times.
-- `webstaffr-standalone.html` is the founder's locked reference design; Site Magic's default direction should treat it as NetBuild.Pro's house style, distinct from the dynamic per-tenant `brand_colors` system in `DESIGN.md`.
+## Decisions this session
 
----
+- ADR-025, ADR-026 (founder D2, recorded in DECISIONS.md).
+- Codex Batch 1 approved (founder D4, security fix, isolated lane).
+- Claude worktree path/branch approved (founder D3) — confirmed as `claude/product-docs` when Codex proposed a different branch name (`product-ux`); kept the already-built, already-approved name.
+- Hermes lane-violation resolution: stop, hand off, correct ownership table (founder directive, immediate).
 
-# Session Summary — 2026-08-03 (afternoon, session 2)
+## Assumptions to carry forward
 
-## Completed
-- Committed site-generation-on-intake work: `a71ce32` on `main` (local) — "feat: wire site generation into intake pipeline"
-  - `webstaffr/site_magic_engine.py`: new, `resolve_site_workdir(db_path)`
-  - `webstaffr/intake_router.py`: calls `_generate_site_if_enabled()` post-commit, best-effort, logs real exception type on failure without failing the intake response
-  - `tests/test_intake.py`: new `test_submission_generates_site_artifacts`
-  - `TASKS.md`: Impeccable Phase 1 marked wired into intake
-- Verified: 408 passed, 4 subtests passed, 0 failures (full suite)
-- Killed two duplicate Claude Code sessions found running against this same repo (PIDs 67897 @ 11:36am, 72238 @ 12:20pm) — one had left a stale `.git/index.lock` blocking `git add`. Confirmed no live git process via `ps aux` before clearing the lock.
+- Canonical repo: `/Users/doc/Desktop/WebStaffr4`. Worktrees alongside it: `-claude` (mine), `-codex` (Codex's Batch 1), `-coordination` (Codex's broker work, unconfirmed).
+- `AGENT_COORDINATION.md` + Codex's addendum + Hermes's git-coordination-safety skill are three separate, partially-overlapping coordination docs. No single authoritative source yet — the gap the proposed broker would close.
+- Five files seen modified mid-session (`agency_router.py`, `SALES TOOL.html`, `landing_page_hormozi_voss.html`, two SKILL.md files) were reverted/discarded by end of session, origin never attributed. Closed as non-issue, not resolved-with-explanation.
 
-## Blocked
-- **Push to GitHub did not complete.** `git push origin main` failed: `fatal: could not read Username for 'https://github.com': Device not configured`. This sandbox has no stored GitHub credential. Commit `a71ce32` is local-only, not yet on `origin/main` — joins `ac71f95` and `db345af` from the earlier session in the same boat.
+## Files updated
 
-## Next (in order)
-1. **Founder:** run `git push origin main` from a real terminal on the Mac (credential helper is live there) — pushes all three pending local commits at once.
-2. Confirm `/health` still HEALTHY after push.
-3. Return to next TASKS.md priority.
-
-## Assumptions / things to know
-- Repo has a wider set of uncommitted changes beyond this session's scope (deleted `sales-crm.html`, modified templates, several new untracked files: `DESIGN.md`, `PRODUCT.md`, `SALES TOOL.html`, `claude_hermes*.md`, `.github/hooks/`, `.github/skills/`, `.claude/skills/impeccable/`, `site_maker_engine.ts`, `site_schema.py`). None touched, staged, or pushed this session — likely the other Hermes/Site-Magic session's in-flight work; left for separate reconciliation.
-- Multiple Claude Code sessions running against `/Users/doc/Desktop/WebStaffr4` at once caused the lock contention this session. Two were closed. Worth checking for concurrent sessions before starting new ones here.
+`docs/DECISIONS.md`, `TASKS.md`, `docs/CLAUDE_PRODUCT_UX_PLAN.md`, `docs/HERMES_OPERATIONS_PLAN.md`, `docs/HERMES_SKILL_CORRECTION_2026-08-04.md`, `~/Desktop/menage a trois.md` (addendum only).
