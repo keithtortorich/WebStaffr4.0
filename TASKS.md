@@ -86,6 +86,13 @@ Fixed site template regression (optional fields causing KeyError) by rebuilding 
 ### 2026-08-04: Brand Rename — WebStaffr → NetBuild.Pro
 Brand rename executed across repo: docs, templates, landing pages, tests, project rules, and saved logo asset. Kept Python package name `webstaffr` intact to avoid import breakage. Verified 421/421 tests passing. Logo saved to `docs/assets/netbuildpro-logo.png`.
 
+Git:
+- Resolved stale `.git/index.lock` after confirming no live git write operations were in flight.
+- Committed as `d547862` with exact-path staging per `AGENT_COORDINATION.md`.
+
+### 2026-08-04: Codex GitHub Auth Repair
+`gh auth status` showed no active GitHub session. Completed device/web login; `gh auth status` now shows authenticated session for `keithtortorich` with HTTPS protocol and token scopes `gist, read:org, repo, workflow`.
+
 ### 2026-08-01: Site Renderer Polish Pass (Complete)
 Ran 5-skill audit (design-critique, accessibility-review, design-system, governance-linter, research-synthesis) against live-rendered tenant pages. Fixed: WCAG label/focus-visible gaps, 5 em-dash governance violations (entity-encoded), verified no field leaks. Tests 26/26 passing, health 9/9 HEALTHY. Founder approved scope: site renderer only (Agency/investor site Lovable-hosted, out of scope). Gate cleared for push.
 
