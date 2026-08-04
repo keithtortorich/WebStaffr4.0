@@ -293,8 +293,61 @@ The portal is the clearest visible difference between the tiers and the stronges
 
 ### Consequences
 
-- Tier gating requires resolving the plan-name drift first: `webstaffr/intake.py`'s `VALID_PLANS` is `{essentials, pro, growth}` while pricing surfaces use Office Staff / Business Manager / White-Glove. No mapping exists between them. A tier check cannot be written against a tier name the code does not have. This becomes a Phase 3 prerequisite.
-- Office Staff tenants need a non-portal proof-of-value surface. A weekly summary email built on the same `activity_events` data covers it and doubles as the upgrade pitch.
-- Office Staff tenants see the Overview screen with their real numbers and deeper screens visibly gated, rather than a 403. The portal is a conversion surface for them, not a locked door.
+- **Superseded by ADR-026 (2026-08-04):** tier naming resolved as Essentials = Office Staff ($497), Pro = Business Manager ($2,497), Growth = White-Glove ($5,000+). Everywhere this ADR says "Business Manager tier," read "Pro tier" (`plan == "pro"` in code). The plan-name drift blocker below is now closed.
+- ~~Tier gating requires resolving the plan-name drift first: `webstaffr/intake.py`'s `VALID_PLANS` is `{essentials, pro, growth}` while pricing surfaces use Office Staff / Business Manager / White-Glove. No mapping exists between them. A tier check cannot be written against a tier name the code does not have. This becomes a Phase 3 prerequisite.~~ Resolved by ADR-026.
+- Essentials (Office Staff) tenants need a non-portal proof-of-value surface. A weekly summary email built on the same `activity_events` data covers it and doubles as the upgrade pitch.
+- Essentials (Office Staff) tenants see the Overview screen with their real numbers and deeper screens visibly gated, rather than a 403. The portal is a conversion surface for them, not a locked door.
+
+---
+
+## ADR-025: NetBuild.Pro Is the Single Canonical Brand Name
+
+**Date:** 2026-08-04
+**Status:** Accepted (founder decision)
+**Depth:** D2 (naming/governance, no schema or pricing impact)
+
+### Decision
+
+NetBuild.Pro is the canonical brand name everywhere, with no exceptions: all customer-facing copy, all docs, all internal references going forward. "WebStaffr" as a brand name is retired.
+
+### The one carve-out
+
+The Python package name `webstaffr` and internal code identifiers (directory names, module names) stay as-is. This is not a brand exception — it's simply not customer-visible, and renaming it risks import breakage for zero product value. No code identifier implies anything about the brand name.
+
+### Rationale
+
+Resolves the naming conflict flagged in `CLAUDE.md`, `TASKS.md`, and `docs/CLAUDE_PRODUCT_UX_PLAN.md`. Matches and formalizes the rename pass already executed 2026-08-04 across docs/templates/tests (see `TASKS.md`), which made the same package-name-frozen / everything-else-renamed split without it being written down as a rule until now.
+
+### Consequences
+
+- Any doc, template, string, or surface still saying "WebStaffr" outside the package/code-identifier layer is stale, not an accepted exception — correct it on next touch.
+- This does NOT resolve the separate tier-name conflict (Office Staff/Business Manager/White-Glove vs. code's `essentials/pro/growth`) flagged in ADR-024's consequences. Brand name and tier name are different open questions; only the former is closed by this ADR. **Resolved separately by ADR-026.**
+
+---
+
+## ADR-026: Tier Naming Is Essentials / Pro / Growth (Code Names Win)
+
+**Date:** 2026-08-04
+**Status:** Accepted (founder decision)
+**Depth:** D2 (naming reconciliation; no price change)
+
+### Decision
+
+`webstaffr/intake.py`'s existing `VALID_PLANS` names — Essentials, Pro, Growth — are canonical. The pricing-doc vocabulary (Office Staff, Business Manager, White-Glove) is retired in favor of them, not the other way around.
+
+### Mapping (1:1, in order)
+
+| New (canonical) | Old (retired) | Price |
+|---|---|---|
+| Essentials | Office Staff | $497/mo |
+| Pro | Business Manager | $2,497/mo |
+| Growth | White-Glove | $5,000+/mo custom |
+
+### Consequences
+
+- **ADR-024 amended:** "customer portal ships in Business Manager tier" now reads "customer portal ships in Pro tier" (`plan == "pro"`). No re-litigation of that decision's rationale — only the label changes.
+- `docs/AGENT_TEAM_PLAN.md`'s tier column (Office Staff/Business Manager/White-Glove) is stale as of this ADR — correct on next touch, don't treat as an accepted parallel vocabulary.
+- Any pricing page, sales copy, or onboarding screen using the old names needs updating. This was already flagged as blocking `docs/CLAUDE_PRODUCT_UX_PLAN.md` Phase 1 (Lock the product) — that blocker is now closed; Phase 1's remaining open item is ICP/scope definition (item 4), not tier naming.
+- No dollar amounts previously existed in code (`VALID_PLANS` was labels only) — this ADR is the first place the $497/$2,497/$5,000+ figures are tied to the code-canonical tier names. Any future price change updates this table, not a separate doc.
 
 ---
