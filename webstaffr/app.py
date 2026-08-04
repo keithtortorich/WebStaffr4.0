@@ -27,14 +27,17 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .agency_router import agency_router
-from .attribution_router import attribution_router
+from .attribution_router import create_attribution_router
+from .auth_router import create_auth_router
 from .custom_domain_middleware import CustomDomainMiddleware
+from .customer_auth import CustomerAuthorizer, IdentityVerifier, identity_verifier_from_env
 from .db import connect, migrate, using_postgres
 from .intake_router import intake_router
 from .landing_router import landing_router
 from .site_render_router import site_render_router
 from .site_router import site_router
-from .workers.angel.api_auth import SharedSecretVerifier
+from .security_middleware import RequestBodyLimitMiddleware, SecurityHeadersMiddleware
+from .workers.angel.api_auth import SharedSecretVerifier, internal_api_verifier_from_env
 from .workers.angel.ghl import GHLClient
 from .workers.angel.retell import RetellWebhookVerifier
 from .workers.angel.retell_router import create_retell_router
@@ -78,7 +81,7 @@ _SERVICETITAN_POLL_PATH = "/integrations/servicetitan/poll"
 # /book has no browser caller today. Scoping here means adding a
 # browser-facing caller for /book later requires a deliberate change to
 # this set, not an accidental side effect of an app-wide wildcard.
-_CORS_SCOPED_PATHS = {"/chat", "/intake"}
+_CORS_SCOPED_PATHS = {"/chat", "/intake", "/auth/session", "/auth/logout"}
 # /tenants/{tenant_id}/{metrics,calls,tracking-number} are read by the
 # Lovable dashboard client-side, same reasoning as /sites/{tenant_id} --
 # see _CORS_SCOPED_PREFIXES below, where the actual prefix is registered
@@ -124,6 +127,9 @@ def create_app(
     book_api_verifier: Optional[SharedSecretVerifier] = None,
     workflow_graph_verifier: Optional[SharedSecretVerifier] = None,
     stripe_webhook_verifier: Optional[SharedSecretVerifier] = None,
+    internal_api_verifier: Optional[SharedSecretVerifier] = None,
+    customer_identity_verifier: Optional[IdentityVerifier] = None,
+    max_request_body_bytes: int = 1_048_576,
 ) -> FastAPI:
     """Factory rather than a module-level app instance, so tests (and any
     future multi-tenant deployment shape) can construct an app pointed at
@@ -152,14 +158,20 @@ def create_app(
                 migrate(conn)
         yield
 
-    app = FastAPI(title="WebStaffr", lifespan=lifespan)
+    app = FastAPI(title="NetBuild.Pro", lifespan=lifespan)
     app.state.db_path = db_path  # read by intake_router's/site_router's _get_connection()
+    active_internal_api_verifier = internal_api_verifier or internal_api_verifier_from_env()
+    customer_authorizer = CustomerAuthorizer(
+        customer_identity_verifier or identity_verifier_from_env()
+    )
+    app.state.internal_api_verifier = active_internal_api_verifier
     app.include_router(landing_router)
     app.include_router(agency_router)
     app.include_router(intake_router)
     app.include_router(site_router)
     app.include_router(site_render_router)
-    app.include_router(attribution_router)
+    app.include_router(create_auth_router(customer_authorizer))
+    app.include_router(create_attribution_router(customer_authorizer))
     app.include_router(social_media_router)
     app.include_router(create_workflow_graph_router(verifier=workflow_graph_verifier))
     # /retell/* is server-to-server only (Retell calling this app, not a
@@ -194,6 +206,7 @@ def create_app(
             db_path=db_path,
             ghl_client=ghl_client,
             ghl_webhook_verifier=ghl_webhook_verifier,
+            internal_api_verifier=active_internal_api_verifier,
         )
     )
     # Leo's endpoints (/webhooks/ghl/lead, /leo/score) -- instantaneous
@@ -203,6 +216,7 @@ def create_app(
             db_path=db_path,
             ghl_messaging_client=ghl_messaging_client or ghl_client,
             ghl_webhook_verifier=ghl_webhook_verifier,
+            internal_api_verifier=active_internal_api_verifier,
         )
     )
     # Sam's endpoints (/quotes/generate, /quotes/{id}, /quotes/{id}/accept) --
@@ -212,6 +226,7 @@ def create_app(
         create_sam_router(
             db_path=db_path,
             ghl_client=ghl_client,
+            internal_api_verifier=active_internal_api_verifier,
         )
     )
 
@@ -227,6 +242,8 @@ def create_app(
     # ScopedCORSMiddleware above -- rather than an app-wide wildcard, which
     # would also cover /book and /webhooks/ghl as an unintended side effect.
     app.add_middleware(ScopedCORSMiddleware)
+    app.add_middleware(RequestBodyLimitMiddleware, max_bytes=max_request_body_bytes)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     @app.get("/health")
     def health() -> dict:

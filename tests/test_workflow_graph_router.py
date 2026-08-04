@@ -32,7 +32,7 @@ from fastapi.testclient import TestClient
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from webstaffr.workers.angel.api_auth import StaticSecretVerifier
+from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier, StaticSecretVerifier
 from webstaffr.app import create_app
 
 
@@ -60,15 +60,22 @@ def _all_route_paths(routes) -> list[str]:
     return found
 
 
+def _test_app(db_path: str):
+    return create_app(
+        db_path=db_path,
+        workflow_graph_verifier=NullSharedSecretVerifier(),
+    )
+
+
 def test_workflow_graph_routes_are_registered(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     paths = [p for p in _all_route_paths(app.routes) if "/workflow-graph" in p]
     assert "/workflow-graph/nodes" in paths
     assert any(p.startswith("/workflow-graph/nodes/") and p.endswith("/status") for p in paths)
 
 
 def test_create_and_get_node(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         create_resp = http.post(
             "/workflow-graph/nodes",
@@ -98,7 +105,7 @@ def test_create_and_get_node(db_path) -> None:
 
 
 def test_create_node_rejects_bad_type(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         resp = http.post(
             "/workflow-graph/nodes",
@@ -114,7 +121,7 @@ def test_create_node_rejects_bad_type(db_path) -> None:
 
 
 def test_create_node_rejects_invalid_tenant(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         resp = http.post(
             "/workflow-graph/nodes",
@@ -130,7 +137,7 @@ def test_create_node_rejects_invalid_tenant(db_path) -> None:
 
 
 def test_get_node_not_found(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         resp = http.get(
             "/workflow-graph/nodes/wf-does-not-exist/node-does-not-exist",
@@ -140,7 +147,7 @@ def test_get_node_not_found(db_path) -> None:
 
 
 def test_list_nodes_returns_full_trace_with_parent_linkage(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         http.post(
             "/workflow-graph/nodes",
@@ -177,7 +184,7 @@ def test_list_nodes_returns_full_trace_with_parent_linkage(db_path) -> None:
 
 
 def test_update_node_status_transitions_atomically(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         http.post(
             "/workflow-graph/nodes",
@@ -202,7 +209,7 @@ def test_update_node_status_transitions_atomically(db_path) -> None:
 
 
 def test_update_node_status_not_found(db_path) -> None:
-    app = create_app(db_path=db_path)
+    app = _test_app(db_path)
     with TestClient(app) as http:
         resp = http.post(
             "/workflow-graph/nodes/wf-none/node-none/status",
@@ -261,16 +268,22 @@ def test_workflow_graph_auth_rejects_missing_or_wrong_key(db_path) -> None:
         assert resp_ok.status_code == 200
 
 
-def test_workflow_graph_unconfigured_defaults_to_open() -> None:
-    """Explicit regression guard, same pattern as test_router.py's
-    TestBookAndWebhookAuthDefaultsToOpenWhenUnconfigured: confirms the
-    other tests in this file (which call create_app() with no
-    workflow_graph_verifier) are exercising the documented
-    fails-open-until-configured path on purpose, not by accident."""
+def test_workflow_graph_unconfigured_defaults_to_closed(db_path) -> None:
+    """Production construction denies access when the key is absent."""
     assert os.environ.get("WORKFLOW_GRAPH_API_KEY") is None, (
         "WORKFLOW_GRAPH_API_KEY must not be set in the test environment -- "
-        "otherwise create_app() with no explicit verifier would silently "
-        "pick up a real secret via workflow_graph_verifier_from_env(), "
-        "which would break every other test in this file that expects "
-        "the unconfigured/open default."
+        "this regression test requires an unconfigured environment."
     )
+    app = create_app(db_path=db_path)
+    with TestClient(app) as http:
+        response = http.post(
+            "/workflow-graph/nodes",
+            json={
+                "tenant_id": "tenant-1",
+                "workflow_instance_id": "wf-1",
+                "node_id": "root-1",
+                "type": "intake",
+                "status": "completed",
+            },
+        )
+    assert response.status_code == 401

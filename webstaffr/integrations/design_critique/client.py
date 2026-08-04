@@ -136,14 +136,22 @@ class OpenRouterDesignCritiqueClient:
             )
             response.raise_for_status()
         except httpx.HTTPError as exc:
-            logger.warning("design_critique_call_failed model=%s error=%s", self.model, exc)
+            logger.warning(
+                "design_critique_call_failed model=%s error_type=%s",
+                self.model,
+                type(exc).__name__,
+            )
             raise DesignCritiqueError(f"OpenRouter call failed: {exc}") from exc
 
         try:
             data = response.json()
             return data["choices"][0]["message"]["content"].strip()
         except (KeyError, IndexError, ValueError) as exc:
-            logger.warning("design_critique_response_unparseable model=%s error=%s", self.model, exc)
+            logger.warning(
+                "design_critique_response_unparseable model=%s error_type=%s",
+                self.model,
+                type(exc).__name__,
+            )
             raise DesignCritiqueError(f"OpenRouter response unparseable: {exc}") from exc
 
     def __del__(self) -> None:

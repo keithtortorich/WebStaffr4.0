@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from webstaffr.app import create_app
 from webstaffr.db import connect, migrate
 from webstaffr.tenant import Tenant
+from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier, StaticSecretVerifier
 from webstaffr.workers.sam.protocol import NullGHLQuoteClient
 from webstaffr.workers.sam.quote_repository import QuoteRepository
 
@@ -28,7 +29,10 @@ class SamRouterTestCase(unittest.TestCase):
     def setUp(self):
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
-        app = create_app(db_path=self.db_path)
+        app = create_app(
+            db_path=self.db_path,
+            internal_api_verifier=NullSharedSecretVerifier(),
+        )
         # Enter the TestClient as a context manager so the app's ASGI
         # lifespan (startup -> migrate()) actually fires; TestClient(app)
         # without __enter__ does not reliably run lifespan events.
@@ -51,6 +55,66 @@ class SamRouterTestCase(unittest.TestCase):
         self._ctx.__exit__(None, None, None)
         self._client_ctx.__exit__(None, None, None)
         os.remove(self.db_path)
+
+
+class TestSamAuthentication(unittest.TestCase):
+    def setUp(self):
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+
+    def tearDown(self):
+        os.remove(self.db_path)
+
+    @staticmethod
+    def _quote_payload():
+        return {
+            "tenant_id": "test_tenant",
+            "contact_id": "ghl_123",
+            "contact_name": "John Smith",
+            "service_scope": "AC repair service",
+            "industry": "HVAC",
+            "auto_send": False,
+        }
+
+    def test_unconfigured_sam_routes_deny_access(self):
+        with TestClient(create_app(db_path=self.db_path)) as client:
+            self.assertEqual(client.post("/quotes/generate", json=self._quote_payload()).status_code, 401)
+            self.assertEqual(client.get("/quotes/q_1", params={"tenant_id": "test_tenant"}).status_code, 401)
+            self.assertEqual(
+                client.post("/quotes/q_1/accept", json={"tenant_id": "test_tenant"}).status_code,
+                401,
+            )
+
+    def test_wrong_internal_key_is_rejected(self):
+        app = create_app(
+            db_path=self.db_path,
+            internal_api_verifier=StaticSecretVerifier("correct-key"),
+        )
+        with TestClient(app) as client:
+            response = client.post(
+                "/quotes/generate",
+                json=self._quote_payload(),
+                headers={"X-API-Key": "wrong-key"},
+            )
+        self.assertEqual(response.status_code, 401)
+
+    def test_valid_internal_key_is_accepted(self):
+        app = create_app(
+            db_path=self.db_path,
+            internal_api_verifier=StaticSecretVerifier("correct-key"),
+        )
+        with TestClient(app) as client:
+            with connect(self.db_path) as conn:
+                conn.execute(
+                    "INSERT OR IGNORE INTO tenants (tenant_id) VALUES (?)",
+                    ("test_tenant",),
+                )
+            response = client.post(
+                "/quotes/generate",
+                json=self._quote_payload(),
+                headers={"X-API-Key": "correct-key"},
+            )
+        self.assertEqual(response.status_code, 200)
 
 
 class TestGenerateQuote(SamRouterTestCase):

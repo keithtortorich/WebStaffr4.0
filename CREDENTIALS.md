@@ -37,9 +37,8 @@
 - **Behavior**:
   - Set -> `RetellSignatureVerifier` is used (HMAC-SHA256 over the raw
     request body).
-  - Unset -> falls back to `NullRetellWebhookVerifier` (accepts everything
-    -- safe default for tests and local dev, never intended for a real
-    deployment).
+  - Unset -> requests are denied. Tests may inject
+    `NullRetellWebhookVerifier` explicitly.
 - **Tenant resolution**: each tenant's Retell agent/phone number must be
   configured in the Retell dashboard with `metadata: {"tenant_id": "..."}`
   -- Retell echoes this back on every webhook/function-call payload for
@@ -63,9 +62,8 @@
 - **Behavior**:
   - Set -> `StaticSecretVerifier` checks the `X-Webhook-Secret` header
     (constant-time comparison); missing or mismatched -> `401`.
-  - Unset -> falls back to `NullSharedSecretVerifier` (accepts everything
-    -- same unconfigured-fails-open shape as `RETELL_WEBHOOK_SECRET`, safe
-    for tests and local dev, not intended for a real deployment).
+  - Unset -> requests are denied. Tests may inject
+    `NullSharedSecretVerifier` explicitly.
 - **Security**: never commit. Same as above.
 
 ### 5. `BOOK_API_KEY` (for `/book` shared-secret auth)
@@ -77,10 +75,40 @@
 - **Behavior**:
   - Set -> `StaticSecretVerifier` checks the `X-API-Key` header; missing or
     mismatched -> `401`.
-  - Unset -> falls back to `NullSharedSecretVerifier` (accepts everything).
+  - Unset -> requests are denied. Tests may inject
+    `NullSharedSecretVerifier` explicitly.
 - **Security**: never commit. Same as above.
 
-### 6. `SERVICETITAN_CLIENT_ID` + `SERVICETITAN_CLIENT_SECRET` + `SERVICETITAN_TENANT_ID` (+ optional `SERVICETITAN_BASE_URL`)
+### 6. `INTERNAL_API_KEY` (for Sam, Rita, and Leo internal routes)
+- **Purpose**: authenticates callers of `/quotes/*`,
+  `/workers/rita/draft-response`, and `/leo/score`.
+- **How to get**: choose a cryptographically random value and share it only
+  with the approved server-side caller.
+- **Behavior**:
+  - Set -> `StaticSecretVerifier` checks `X-API-Key`; missing or mismatched
+    requests receive `401`.
+  - Unset -> every protected internal request is denied.
+- **Security**: never commit. Same as above.
+
+### 7. `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` (customer authentication)
+- **Purpose**: verifies customer dashboard bearer tokens against Supabase
+  Auth before resolving a local session and tenant membership.
+- **Behavior**:
+  - Both set -> customer identity verification calls the project's
+    `/auth/v1/user` endpoint.
+  - Either missing -> `/auth/session`, `/auth/logout`, and private
+    `/tenants/{tenant_id}/*` routes fail closed with `401`.
+- **Session flow**: after Supabase sign-in, call `POST /auth/session` with
+  the access token. Repeat after token refresh so the local expiry follows
+  the newly issued access token. Call `POST /auth/logout` before signing
+  out of Supabase for immediate application-side revocation.
+- **Authorization data**: roles come only from `tenant_memberships` in
+  trusted storage. User-editable Supabase metadata is never authoritative.
+- **Security**: the publishable key is not a service-role secret, but keep
+  environment configuration centralized. Never use a Supabase secret or
+  service-role key in a browser client.
+
+### 8. `SERVICETITAN_CLIENT_ID` + `SERVICETITAN_CLIENT_SECRET` + `SERVICETITAN_TENANT_ID` (+ optional `SERVICETITAN_BASE_URL`)
 - **Purpose**: read-first polling of jobs, customers, appointments, invoices,
   payments, locations, projects, installed equipment, and technicians.
 - **Behavior**:
@@ -93,7 +121,7 @@
   wiring this live is explicitly post-MVP per this repo's `CLAUDE.md`.
 - **Security**: never commit. Same as above.
 
-### 7. `WEBSTAFFR_DB_PATH` / `DATABASE_URL`
+### 9. `WEBSTAFFR_DB_PATH` / `DATABASE_URL`
 - **Purpose**: `WEBSTAFFR_DB_PATH` sets the local SQLite file path for dev.
   `DATABASE_URL` (Postgres/Supabase) switches the app to the dual-backend
   Postgres path -- see `webstaffr/db.py`.
@@ -104,7 +132,7 @@
   that must be applied before this repo goes live against it.
 - **Security**: never commit. Same as above.
 
-### 8. `KOKORO_TTS_URL` (optional)
+### 10. `KOKORO_TTS_URL` (optional)
 - **Purpose**: when set, `POST /v1/audio/speech` proxies OpenAI-compatible
   TTS requests to this external Kokoro backend instead of the route not
   existing at all.
@@ -112,7 +140,7 @@
   model hosting required in this repo either way.
 - **Security**: never commit if it embeds any credential in the URL.
 
-### 9. `OPENROUTER_API_KEY` + `DESIGN_CRITIQUE_MODEL` (optional, for `OpenRouterDesignCritiqueClient`)
+### 11. `OPENROUTER_API_KEY` + `DESIGN_CRITIQUE_MODEL` (optional, for `OpenRouterDesignCritiqueClient`)
 - **Purpose**: on-demand design/UI critique of one rendered tenant site
   page (`scripts/design_critique.py`) -- founder- or session-invoked, not
   part of any automatic path. `site_renderer.py`'s render path and
@@ -142,6 +170,9 @@ GHL_LOCATION_ID=your_location_id_here
 RETELL_WEBHOOK_SECRET=your_retell_webhook_signing_secret_here
 GHL_WEBHOOK_SECRET=choose_your_own_shared_secret_here
 BOOK_API_KEY=choose_your_own_api_key_here
+INTERNAL_API_KEY=choose_a_separate_internal_api_key_here
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
 WEBSTAFFR_DB_PATH=./webstaffr.db
 EOF
 

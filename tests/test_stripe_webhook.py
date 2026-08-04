@@ -15,7 +15,7 @@ import unittest
 from fastapi.testclient import TestClient
 
 from webstaffr.app import create_app
-from webstaffr.workers.angel.api_auth import StaticSecretVerifier
+from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier, StaticSecretVerifier
 from webstaffr.workers.angel.ghl import NullGHLClient
 from webstaffr.workers.angel.voice import NullVoiceBackend
 
@@ -33,6 +33,7 @@ class StripeWebhookTestCase(unittest.TestCase):
             db_path=self.db_path,
             voice_backend=NullVoiceBackend(),
             ghl_client=self.ghl,
+            book_api_verifier=NullSharedSecretVerifier(),
             stripe_webhook_verifier=StaticSecretVerifier(self.stripe_secret),
         )
         self._client_ctx = TestClient(app)
@@ -60,7 +61,7 @@ class TestStripeWebhookSignatureVerification(StripeWebhookTestCase):
     """Verify signature verification works correctly."""
 
     def test_webhook_rejects_missing_signature(self):
-        """Webhook should reject requests with no X-Stripe-Signature header."""
+        """Webhook should reject requests with no Stripe-Signature header."""
         resp = self.client.post(
             "/webhooks/stripe",
             json={
@@ -79,7 +80,7 @@ class TestStripeWebhookSignatureVerification(StripeWebhookTestCase):
                 "type": "charge.succeeded",
                 "data": {"object": {"metadata": {"tenant_id": "acme", "appointment_id": "1"}}},
             },
-            headers={"X-Stripe-Signature": "invalid_signature"},
+            headers={"Stripe-Signature": "invalid_signature"},
         )
         self.assertEqual(resp.status_code, 401)
 
@@ -95,7 +96,7 @@ class TestStripeWebhookMissingMetadata(StripeWebhookTestCase):
                 "type": "charge.succeeded",
                 "data": {"object": {"metadata": {"appointment_id": "1"}}},
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Missing tenant_id or appointment_id", resp.json()["detail"])
@@ -108,7 +109,7 @@ class TestStripeWebhookMissingMetadata(StripeWebhookTestCase):
                 "type": "charge.succeeded",
                 "data": {"object": {"metadata": {"tenant_id": "acme"}}},
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Missing tenant_id or appointment_id", resp.json()["detail"])
@@ -134,7 +135,7 @@ class TestStripeWebhookStatusUpdates(StripeWebhookTestCase):
                     }
                 },
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["new_status"], "paid")
@@ -156,7 +157,7 @@ class TestStripeWebhookStatusUpdates(StripeWebhookTestCase):
                     }
                 },
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["new_status"], "payment_failed")
@@ -178,10 +179,30 @@ class TestStripeWebhookStatusUpdates(StripeWebhookTestCase):
                     }
                 },
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["new_status"], "refunded")
+
+    def test_duplicate_event_is_acknowledged_without_second_mutation(self):
+        appt_id = self._create_appointment("acme")
+        payload = {
+            "id": "evt_duplicate",
+            "type": "charge.succeeded",
+            "data": {"object": {"metadata": {
+                "tenant_id": "acme", "appointment_id": str(appt_id)
+            }}},
+        }
+        first = self.client.post(
+            "/webhooks/stripe", json=payload,
+            headers={"Stripe-Signature": self.stripe_secret},
+        )
+        second = self.client.post(
+            "/webhooks/stripe", json=payload,
+            headers={"Stripe-Signature": self.stripe_secret},
+        )
+        self.assertEqual(first.json()["status"], "handled")
+        self.assertEqual(second.json(), {"status": "duplicate", "event_id": "evt_duplicate"})
 
 
 class TestStripeWebhookTenantScoping(StripeWebhookTestCase):
@@ -206,7 +227,7 @@ class TestStripeWebhookTenantScoping(StripeWebhookTestCase):
                     }
                 },
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         # Request succeeds (200) but no rows are updated (tenant_id check prevents it)
         self.assertEqual(resp.status_code, 200)
@@ -233,7 +254,7 @@ class TestStripeWebhookUnhandledEventType(StripeWebhookTestCase):
                     }
                 },
             },
-            headers={"X-Stripe-Signature": self.stripe_secret},
+            headers={"Stripe-Signature": self.stripe_secret},
         )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["status"], "ignored")
@@ -261,7 +282,7 @@ class TestStripeWebhookNoCORSHeader(StripeWebhookTestCase):
                 },
             },
             headers={
-                "X-Stripe-Signature": self.stripe_secret,
+                "Stripe-Signature": self.stripe_secret,
                 "Origin": "https://evil.example.com",
             },
         )

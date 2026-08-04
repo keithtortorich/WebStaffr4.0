@@ -9,13 +9,12 @@ SMM's identity without importing SMM auth or database layout.
 """
 from __future__ import annotations
 
-import os
 from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel
 
-from .api_auth import SharedSecretVerifier, StaticSecretVerifier, NullSharedSecretVerifier, book_api_verifier_from_env
+from .api_auth import SharedSecretVerifier
 from ...db import DB_ERRORS, get_connection
 from ...integrations.social_media.client import (
     SocialMediaClient,
@@ -24,9 +23,6 @@ from ...integrations.social_media.client import (
     SocialMediaIntent,
 )
 from ...tenant import InvalidTenantError, Tenant
-
-SOCIAL_MEDIA_API_KEY = os.environ.get("SOCIAL_MEDIA_API_KEY")
-_social_media_verifier: SharedSecretVerifier = StaticSecretVerifier(SOCIAL_MEDIA_API_KEY) if SOCIAL_MEDIA_API_KEY else NullSharedSecretVerifier()
 
 social_media_router = APIRouter()
 
@@ -38,8 +34,9 @@ def _get_connection(request: Request):
         raise HTTPException(status_code=503, detail="Social media integration temporarily unavailable") from exc
 
 
-def _require_auth(x_api_key: Optional[str]) -> None:
-    if not _social_media_verifier.verify(x_api_key):
+def _require_auth(request: Request, x_api_key: Optional[str]) -> None:
+    verifier: SharedSecretVerifier = request.app.state.internal_api_verifier
+    if not verifier.verify(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
@@ -62,7 +59,7 @@ def mount_integration(
     request: Request,
     x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
 ) -> dict:
-    _require_auth(x_api_key)
+    _require_auth(request, x_api_key)
     try:
         Tenant(tenant_id=req.tenant_id)
     except InvalidTenantError as exc:
@@ -101,7 +98,7 @@ def create_intent(
     request: Request,
     x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
 ) -> dict:
-    _require_auth(x_api_key)
+    _require_auth(request, x_api_key)
     conn = _get_connection(request)
     try:
         client = SocialMediaClient(conn=conn)

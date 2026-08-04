@@ -88,13 +88,20 @@ def main() -> int:
         import tempfile
         from fastapi.testclient import TestClient
         from webstaffr.app import create_app
+        from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier
         from webstaffr.workers.angel.voice import NullVoiceBackend
         from webstaffr.workers.angel.ghl import NullGHLClient
 
         fd, db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         try:
-            app = create_app(db_path=db_path, voice_backend=NullVoiceBackend(), ghl_client=NullGHLClient())
+            app = create_app(
+                db_path=db_path,
+                voice_backend=NullVoiceBackend(),
+                ghl_client=NullGHLClient(),
+                book_api_verifier=NullSharedSecretVerifier(),
+                ghl_webhook_verifier=NullSharedSecretVerifier(),
+            )
             with TestClient(app) as client:
                 health_resp = client.get("/health")
                 assert health_resp.status_code == 200, f"unexpected /health status: {health_resp.status_code}"
@@ -377,7 +384,7 @@ def main() -> int:
     check("rate_limit_trips", check_rate_limit_trips)
     check("angel_prompt_loads", check_angel_prompt_loads)
 
-    print("WebStaffr health check")
+    print("NetBuild.Pro health check")
     print("=" * 40)
     all_ok = True
     for name, ok, error in checks:

@@ -6,6 +6,8 @@ test_intake.py/test_router.py."""
 import os
 import tempfile
 import unittest
+import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 
@@ -18,6 +20,15 @@ from webstaffr.attribution import (
 )
 from webstaffr.db import connect, migrate
 from webstaffr.app import create_app
+from webstaffr.customer_auth import VerifiedIdentity
+
+
+class _IdentityVerifier:
+    def __init__(self, identity):
+        self.identity = identity
+
+    def verify(self, access_token):
+        return self.identity if access_token == "test-token" else None
 
 
 def _valid_intake_payload(**overrides):
@@ -166,9 +177,25 @@ class AttributionRouterTestCase(unittest.TestCase):
     def setUp(self):
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
-        app = create_app(db_path=self.db_path)
+        self.user_id = str(uuid.uuid4())
+        self.session_id = str(uuid.uuid4())
+        identity = VerifiedIdentity(
+            user_id=self.user_id,
+            session_id=self.session_id,
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        )
+        app = create_app(
+            db_path=self.db_path,
+            customer_identity_verifier=_IdentityVerifier(identity),
+        )
         self._client_ctx = TestClient(app)
         self.client = self._client_ctx.__enter__()
+        with connect(self.db_path) as conn:
+            conn.execute(
+                "INSERT INTO customer_users (user_id) VALUES (?)", (self.user_id,)
+            )
+        response = self.client.post("/auth/session", headers=self._auth_headers())
+        self.assertEqual(response.status_code, 200)
 
     def tearDown(self):
         self._client_ctx.__exit__(None, None, None)
@@ -177,13 +204,29 @@ class AttributionRouterTestCase(unittest.TestCase):
     def _submit_intake(self):
         resp = self.client.post("/intake", json=_valid_intake_payload())
         self.assertEqual(resp.status_code, 200)
-        return resp.json()["tenant_id"]
+        tenant_id = resp.json()["tenant_id"]
+        with connect(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO tenant_memberships (tenant_id, user_id, role)
+                VALUES (?, ?, 'viewer')
+                """,
+                (tenant_id, self.user_id),
+            )
+        return tenant_id
+
+    @staticmethod
+    def _auth_headers(**extra):
+        return {"Authorization": "Bearer test-token", **extra}
+
+    def _get(self, path, **headers):
+        return self.client.get(path, headers=self._auth_headers(**headers))
 
 
 class TestIntakeCreatesTrackingNumber(AttributionRouterTestCase):
     def test_intake_submission_creates_a_tracking_number(self):
         tenant_id = self._submit_intake()
-        resp = self.client.get(f"/tenants/{tenant_id}/tracking-number")
+        resp = self._get(f"/tenants/{tenant_id}/tracking-number")
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["tenant_id"], tenant_id)
@@ -192,18 +235,18 @@ class TestIntakeCreatesTrackingNumber(AttributionRouterTestCase):
 
 class TestTrackingNumberEndpoint(AttributionRouterTestCase):
     def test_unknown_tenant_returns_404(self):
-        resp = self.client.get("/tenants/never_submitted/tracking-number")
-        self.assertEqual(resp.status_code, 404)
+        resp = self._get("/tenants/never_submitted/tracking-number")
+        self.assertEqual(resp.status_code, 403)
 
     def test_invalid_tenant_id_shape_returns_404_not_500(self):
-        resp = self.client.get("/tenants/not valid!!/tracking-number")
-        self.assertEqual(resp.status_code, 404)
+        resp = self._get("/tenants/not valid!!/tracking-number")
+        self.assertEqual(resp.status_code, 403)
 
 
 class TestMetricsEndpoint(AttributionRouterTestCase):
     def test_metrics_for_tenant_with_no_calls_is_zeroed_not_404(self):
         tenant_id = self._submit_intake()
-        resp = self.client.get(f"/tenants/{tenant_id}/metrics")
+        resp = self._get(f"/tenants/{tenant_id}/metrics")
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["calls_received"], 0)
@@ -211,20 +254,20 @@ class TestMetricsEndpoint(AttributionRouterTestCase):
         self.assertIn("estimated_value_note", body)
 
     def test_invalid_tenant_id_shape_returns_404(self):
-        resp = self.client.get("/tenants/../etc/metrics")
+        resp = self._get("/tenants/../etc/metrics")
         self.assertIn(resp.status_code, (404, 307))  # path traversal chars get normalized/rejected either way
 
 
 class TestCallsEndpoint(AttributionRouterTestCase):
     def test_calls_list_is_empty_for_new_tenant(self):
         tenant_id = self._submit_intake()
-        resp = self.client.get(f"/tenants/{tenant_id}/calls")
+        resp = self._get(f"/tenants/{tenant_id}/calls")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["calls"], [])
 
     def test_limit_is_capped_at_200(self):
         tenant_id = self._submit_intake()
-        resp = self.client.get(f"/tenants/{tenant_id}/calls?limit=99999")
+        resp = self._get(f"/tenants/{tenant_id}/calls?limit=99999")
         self.assertEqual(resp.status_code, 200)  # capped server-side, not rejected
 
 
@@ -233,7 +276,7 @@ class TestAttributionCORSScoping(AttributionRouterTestCase):
         tenant_id = self._submit_intake()
         resp = self.client.get(
             f"/tenants/{tenant_id}/metrics",
-            headers={"Origin": "https://example-customer-site.com"},
+            headers=self._auth_headers(Origin="https://example-customer-site.com"),
         )
         self.assertEqual(resp.status_code, 200)
         self.assertIn("access-control-allow-origin", resp.headers)

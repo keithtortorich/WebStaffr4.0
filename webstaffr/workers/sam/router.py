@@ -12,11 +12,12 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from ...db import DB_ERRORS, get_connection as _db_get_connection
 from ...tenant import InvalidTenantError, Tenant
+from ..angel.api_auth import SharedSecretVerifier, internal_api_verifier_from_env
 from .client import GoHighLevelQuoteClient, ghl_quote_client_from_env
 from .objections import ObjectionLibrary
 from .pricing import PricingEngine
@@ -98,6 +99,7 @@ class QuoteAcceptedResponse(BaseModel):
 def create_sam_router(
     db_path: str = "webstaffr.db",
     ghl_client: Optional[GHLQuoteClient] = None,
+    internal_api_verifier: Optional[SharedSecretVerifier] = None,
 ) -> APIRouter:
     """Factory (not a module-level router) so the caller controls db_path and GHL client.
 
@@ -108,6 +110,11 @@ def create_sam_router(
 
     # Use provided GHL client, fall back to env, otherwise use Null default
     active_ghl_client = ghl_client or ghl_quote_client_from_env() or NullGHLQuoteClient()
+    active_internal_api_verifier = internal_api_verifier or internal_api_verifier_from_env()
+
+    def require_internal_auth(x_api_key: Optional[str]) -> None:
+        if not active_internal_api_verifier.verify(x_api_key):
+            raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
     def get_connection():
         """Get DB connection, raising 503 on failure."""
@@ -118,7 +125,10 @@ def create_sam_router(
             raise HTTPException(status_code=503, detail="Service temporarily unavailable") from exc
 
     @router.post("/quotes/generate", response_model=QuoteResponse)
-    def generate_quote(req: GenerateQuoteRequest) -> QuoteResponse:
+    def generate_quote(
+        req: GenerateQuoteRequest,
+        x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+    ) -> QuoteResponse:
         """Generate and optionally send a quote.
 
         Validates service scope, pulls pricing from trade presets,
@@ -126,6 +136,7 @@ def create_sam_router(
 
         Server-to-server route: no CORS headers.
         """
+        require_internal_auth(x_api_key)
         try:
             tenant = Tenant(tenant_id=req.tenant_id)
         except InvalidTenantError as exc:
@@ -181,7 +192,11 @@ def create_sam_router(
                     logger.info("quote_email_sent quote_id=%s contact_id=%s", quote.id, req.contact_id)
                 except Exception as exc:
                     # Log but don't fail -- quote is still created locally
-                    logger.warning("quote_email_send_failed quote_id=%s error=%s", quote.id, str(exc))
+                    logger.warning(
+                        "quote_email_send_failed quote_id=%s error_type=%s",
+                        quote.id,
+                        type(exc).__name__,
+                    )
 
             # Log quote in GHL contact notes for sales visibility
             try:
@@ -191,7 +206,11 @@ def create_sam_router(
                     estimate_range=(quote.estimated_range_low, quote.estimated_range_high),
                 )
             except Exception as exc:
-                logger.warning("quote_note_log_failed quote_id=%s error=%s", quote.id, str(exc))
+                logger.warning(
+                    "quote_note_log_failed quote_id=%s error_type=%s",
+                    quote.id,
+                    type(exc).__name__,
+                )
 
             conn.commit()
         finally:
@@ -213,11 +232,16 @@ def create_sam_router(
         )
 
     @router.get("/quotes/{quote_id}", response_model=QuoteDetailResponse)
-    def get_quote(quote_id: str, tenant_id: str) -> QuoteDetailResponse:
+    def get_quote(
+        quote_id: str,
+        tenant_id: str,
+        x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+    ) -> QuoteDetailResponse:
         """Retrieve a quote by ID (tenant-scoped).
 
         Server-to-server route: no CORS headers.
         """
+        require_internal_auth(x_api_key)
         try:
             tenant = Tenant(tenant_id=tenant_id)
         except InvalidTenantError as exc:
@@ -252,12 +276,17 @@ def create_sam_router(
         )
 
     @router.post("/quotes/{quote_id}/accept", response_model=QuoteAcceptedResponse)
-    def accept_quote(quote_id: str, req: AcceptQuoteRequest) -> QuoteAcceptedResponse:
+    def accept_quote(
+        quote_id: str,
+        req: AcceptQuoteRequest,
+        x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+    ) -> QuoteAcceptedResponse:
         """Accept a quote and create an appointment.
 
         Calls Angel's book_appointment logic under the hood.
         Server-to-server route: no CORS headers.
         """
+        require_internal_auth(x_api_key)
         try:
             tenant = Tenant(tenant_id=req.tenant_id)
         except InvalidTenantError as exc:
@@ -297,7 +326,11 @@ def create_sam_router(
         except HTTPException:
             raise
         except Exception as exc:
-            logger.error("quote_accept_failed quote_id=%s error=%s", quote_id, str(exc))
+            logger.error(
+                "quote_accept_failed quote_id=%s error_type=%s",
+                quote_id,
+                type(exc).__name__,
+            )
             raise HTTPException(status_code=500, detail="Failed to create appointment") from exc
         finally:
             conn.close()

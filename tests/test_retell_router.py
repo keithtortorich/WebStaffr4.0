@@ -3,6 +3,7 @@ import hmac
 import json
 import os
 import tempfile
+import time
 import unittest
 
 from fastapi.testclient import TestClient
@@ -108,6 +109,21 @@ class TestCallLifecycleWebhook(RetellRouterTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(self.ghl.logged_notes), 0)
 
+    def test_duplicate_call_event_is_acknowledged_without_second_effect(self):
+        payload = {
+            "event": "call_ended",
+            "call": {
+                "call_id": "duplicate-call",
+                "metadata": {"tenant_id": "acme", "ghl_contact_id": "contact_1"},
+                "call_analysis": {"call_summary": "One note only."},
+            },
+        }
+        first = self.client.post("/retell/webhook", json=payload)
+        second = self.client.post("/retell/webhook", json=payload)
+        self.assertEqual(first.json()["status"], "received")
+        self.assertEqual(second.json()["status"], "duplicate")
+        self.assertEqual(len(self.ghl.logged_notes), 1)
+
 
 class TestFunctionCallWebhook(RetellRouterTestCase):
     def test_book_appointment_creates_local_appointment(self):
@@ -187,8 +203,23 @@ class TestSignatureVerifier(unittest.TestCase):
     def test_valid_signature_verifies(self):
         verifier = RetellSignatureVerifier("test-secret")
         body = b'{"event": "call_started"}'
-        sig = hmac.new(b"test-secret", body, hashlib.sha256).hexdigest()
+        timestamp = str(int(time.time() * 1000))
+        digest = hmac.new(b"test-secret", body + timestamp.encode("ascii"), hashlib.sha256).hexdigest()
+        sig = f"v={timestamp},d={digest}"
         self.assertTrue(verifier.verify(body, sig))
+
+    def test_stale_signature_rejected(self):
+        verifier = RetellSignatureVerifier("test-secret")
+        body = b"{}"
+        timestamp = str(int((time.time() - 301) * 1000))
+        digest = hmac.new(b"test-secret", body + timestamp.encode("ascii"), hashlib.sha256).hexdigest()
+        self.assertFalse(verifier.verify(body, f"v={timestamp},d={digest}"))
+
+    def test_legacy_bare_digest_rejected(self):
+        verifier = RetellSignatureVerifier("test-secret")
+        body = b"{}"
+        digest = hmac.new(b"test-secret", body, hashlib.sha256).hexdigest()
+        self.assertFalse(verifier.verify(body, digest))
 
     def test_invalid_signature_rejected(self):
         verifier = RetellSignatureVerifier("test-secret")
@@ -241,7 +272,9 @@ class TestSignatureEnforcement(unittest.TestCase):
 
     def test_correctly_signed_webhook_accepted(self):
         body = json.dumps({"event": "call_started", "call": {"metadata": {"tenant_id": "acme"}}}).encode()
-        sig = hmac.new(b"real-secret", body, hashlib.sha256).hexdigest()
+        timestamp = str(int(time.time() * 1000))
+        digest = hmac.new(b"real-secret", body + timestamp.encode("ascii"), hashlib.sha256).hexdigest()
+        sig = f"v={timestamp},d={digest}"
         resp = self.client.post(
             "/retell/webhook",
             content=body,

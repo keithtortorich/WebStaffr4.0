@@ -29,7 +29,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel
 
 from .api_auth import (
-    NullSharedSecretVerifier,
+    DenyAllSharedSecretVerifier,
     SharedSecretVerifier,
     StaticSecretVerifier,
 )
@@ -39,16 +39,11 @@ from ...tenant import InvalidTenantError, Tenant
 
 
 def workflow_graph_verifier_from_env() -> SharedSecretVerifier:
-    """WORKFLOW_GRAPH_API_KEY set -> real verification against the
-    X-API-Key header. Unset -> Null, matching every other
-    *_verifier_from_env() in this codebase (api_auth.py,
-    retell.py): never silently construct something that will fail on
-    first real use, and never require credentials to run tests or local
-    dev."""
+    """Return a real verifier when configured, otherwise deny all."""
     secret = os.environ.get("WORKFLOW_GRAPH_API_KEY")
     if secret:
         return StaticSecretVerifier(secret)
-    return NullSharedSecretVerifier()
+    return DenyAllSharedSecretVerifier()
 
 
 def create_workflow_graph_router(verifier: Optional[SharedSecretVerifier] = None) -> APIRouter:

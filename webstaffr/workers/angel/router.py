@@ -13,14 +13,16 @@ exposed as create_angel_router() for app.py to include.
 from __future__ import annotations
 
 import logging
+import json
 from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ...db import DB_ERRORS, get_connection as _db_get_connection
-from ...rate_limit import RateLimitExceeded, check_and_increment
+from ...rate_limit import RateLimitExceeded, check_and_increment, check_dimensions, direct_client_ip
 from ...tenant import InvalidTenantError, Tenant
+from ...webhook_replay import claim_delivery, complete_delivery, payload_digest
 from .angel import Angel
 from .api_auth import SharedSecretVerifier, book_api_verifier_from_env, ghl_webhook_verifier_from_env
 from .ghl import GHLClient
@@ -117,10 +119,9 @@ def create_angel_router(
 
     router = APIRouter()
 
-    # An explicit verifier wins, otherwise fall back to env, otherwise (env
-    # var unset) a Null verifier that accepts everything -- same
-    # unconfigured-fails-open shape as Retell's own webhook verification,
-    # not a new pattern invented for this router.
+    # An explicit verifier wins. Environment factories deny access when
+    # their credential is absent; permissive verifiers are test-only and
+    # must be injected explicitly.
     active_ghl_webhook_verifier = ghl_webhook_verifier or ghl_webhook_verifier_from_env()
     active_book_api_verifier = book_api_verifier or book_api_verifier_from_env()
     active_stripe_webhook_verifier = stripe_webhook_verifier or stripe_webhook_verifier_from_env()
@@ -228,7 +229,8 @@ def create_angel_router(
         )
 
     @router.post("/webhooks/ghl")
-    def ghl_webhook(
+    async def ghl_webhook(
+        request: Request,
         event: GHLWebhookEvent,
         x_webhook_secret: Optional[str] = Header(default=None, alias="X-Webhook-Secret"),
     ) -> dict:
@@ -253,13 +255,36 @@ def create_angel_router(
                 f"Supported: {sorted(SUPPORTED_EVENT_TYPES)}",
             )
 
+        raw_body = await request.body()
+        event_key = f"payload:{payload_digest(raw_body)}"
         conn = get_connection()
         try:
             try:
+                check_dimensions(
+                    conn,
+                    "webhooks_ghl",
+                    [
+                        ("account", event.tenant_id),
+                        ("principal", "ghl"),
+                        ("ip", direct_client_ip(request)),
+                    ],
+                )
                 check_and_increment(conn, event.tenant_id, "webhooks_ghl")
             except RateLimitExceeded as exc:
                 conn.commit()  # keep the counter increment even though this request is rejected
                 raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.") from exc
+
+            claim = claim_delivery(
+                conn,
+                provider="ghl",
+                event_key=event_key,
+                event_type=event.event_type,
+                raw_body=raw_body,
+                tenant_id=event.tenant_id,
+            )
+            if not claim.is_new:
+                conn.commit()
+                return {"status": "duplicate"}
 
             angel = Angel(
                 tenant=tenant,
@@ -271,6 +296,13 @@ def create_angel_router(
                 event.message or f"New {event.event_type} from {event.contact_name or 'a contact'}.",
                 extra_context={"event_type": event.event_type, "contact_id": event.contact_id},
             )
+            result = {"status": "handled", "reply": reply}
+            complete_delivery(
+                conn,
+                provider="ghl",
+                event_key=event_key,
+                response_json=json.dumps(result, sort_keys=True),
+            )
             conn.commit()
         finally:
             conn.close()
@@ -280,15 +312,15 @@ def create_angel_router(
             event.tenant_id,
             event.event_type,
         )
-        return {"status": "handled", "reply": reply}
+        return result
 
     @router.post("/webhooks/stripe")
     async def stripe_webhook(
         request: Request,
         payload: dict,
-        x_stripe_signature: Optional[str] = Header(default=None, alias="X-Stripe-Signature"),
+        stripe_signature: Optional[str] = Header(default=None, alias="Stripe-Signature"),
     ) -> dict:
-        """Stripe payment status webhook. Requires X-Stripe-Signature matching
+        """Stripe payment status webhook. Requires Stripe-Signature matching
         STRIPE_WEBHOOK_SECRET when that env var is set (see stripe_webhook.py).
         Unconfigured, this remains open (Null-verifier pattern).
 
@@ -307,7 +339,7 @@ def create_angel_router(
         and silently break every real signature check.
         """
         raw_body = await request.body()
-        if not active_stripe_webhook_verifier.verify(x_stripe_signature, raw_body):
+        if not active_stripe_webhook_verifier.verify(stripe_signature, raw_body):
             raise HTTPException(status_code=401, detail="Invalid or missing webhook signature")
 
         event_type = payload.get("type", "")
@@ -341,14 +373,51 @@ def create_angel_router(
             logger.info("stripe_webhook_ignored tenant=%s event_type=%s", tenant_id, event_type)
             return {"status": "ignored", "reason": f"Unhandled event type: {event_type}"}
 
+        event_key = payload.get("id") or f"payload:{payload_digest(raw_body)}"
         conn = get_connection()
         try:
+            try:
+                check_dimensions(
+                    conn,
+                    "webhooks_stripe",
+                    [
+                        ("account", tenant_id),
+                        ("principal", "stripe"),
+                        ("ip", direct_client_ip(request)),
+                    ],
+                )
+            except RateLimitExceeded as exc:
+                conn.commit()
+                raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.") from exc
+            claim = claim_delivery(
+                conn,
+                provider="stripe",
+                event_key=event_key,
+                event_type=event_type,
+                raw_body=raw_body,
+                tenant_id=tenant_id,
+            )
+            if not claim.is_new:
+                conn.commit()
+                return {"status": "duplicate", "event_id": event_key}
+
             # Update appointment status in DB (tenant-scoped by appointment_id + tenant_id WHERE clause)
-            conn.execute(
+            cursor = conn.execute(
                 "UPDATE appointments SET status = ? WHERE appointment_id = ? AND tenant_id = ?",
                 (new_status, int(appointment_id), tenant_id),
             )
-            rows_updated = conn.total_changes
+            rows_updated = cursor.rowcount
+            result = {
+                "status": "handled",
+                "appointment_id": appointment_id,
+                "new_status": new_status,
+            }
+            complete_delivery(
+                conn,
+                provider="stripe",
+                event_key=event_key,
+                response_json=json.dumps(result, sort_keys=True),
+            )
             conn.commit()
 
             if rows_updated == 0:
@@ -369,6 +438,6 @@ def create_angel_router(
         finally:
             conn.close()
 
-        return {"status": "handled", "appointment_id": appointment_id, "new_status": new_status}
+        return result
 
     return router

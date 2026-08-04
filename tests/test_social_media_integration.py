@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from webstaffr.app import create_app
+from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier
 from webstaffr.integrations.social_media.client import (
     SocialMediaConfigError,
     SocialMediaHTTPError,
@@ -80,7 +81,7 @@ from fastapi.testclient import TestClient
 
 
 def test_mount_endpoint_returns_mount() -> None:
-    app = create_app()
+    app = create_app(internal_api_verifier=NullSharedSecretVerifier())
     with TestClient(app) as http:
         response = http.post(
             "/integrations/social-media/mount",
@@ -104,7 +105,7 @@ def test_mount_endpoint_returns_mount() -> None:
 
 
 def test_intent_endpoint_returns_pending_review() -> None:
-    app = create_app()
+    app = create_app(internal_api_verifier=NullSharedSecretVerifier())
     with TestClient(app) as http:
         mount = http.post(
             "/integrations/social-media/mount",
@@ -129,6 +130,20 @@ def test_intent_endpoint_returns_pending_review() -> None:
         assert data["status"] == "pending_review"
         assert data["workflow_instance_id"] == "wf_1"
         assert data["approval_url"] == "/approvals/wf_1"
+
+
+def test_social_media_routes_default_to_closed() -> None:
+    app = create_app()
+    with TestClient(app) as http:
+        response = http.post(
+            "/integrations/social-media/mount",
+            json={
+                "tenant_id": "tenant-1",
+                "social_tenant_id": "org-1",
+                "platforms": ["meta"],
+            },
+        )
+    assert response.status_code == 401
 
 
 

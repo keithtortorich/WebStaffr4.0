@@ -18,7 +18,11 @@ from ...tenant import InvalidTenantError, Tenant
 from .client import ReviewRequestRepository, ReviewResponseRepository
 from .protocol import NullReviewPlatformClient, ReviewPlatformClient
 from .templates import select_response_template
-from ..angel.api_auth import NullSharedSecretVerifier, ghl_webhook_verifier_from_env
+from ..angel.api_auth import (
+    SharedSecretVerifier,
+    ghl_webhook_verifier_from_env,
+    internal_api_verifier_from_env,
+)
 from ..angel.ghl import GHLClient, NullGHLClient
 
 logger = logging.getLogger("webstaffr.rita.router")
@@ -67,6 +71,7 @@ def create_rita_router(
     ghl_client: Optional[GHLClient] = None,
     review_platform_client: Optional[ReviewPlatformClient] = None,
     ghl_webhook_verifier = None,
+    internal_api_verifier: Optional[SharedSecretVerifier] = None,
 ) -> APIRouter:
     """Factory for Rita's router."""
 
@@ -75,6 +80,7 @@ def create_rita_router(
     active_ghl_client = ghl_client or NullGHLClient()
     active_review_platform_client = review_platform_client or NullReviewPlatformClient()
     active_ghl_webhook_verifier = ghl_webhook_verifier or ghl_webhook_verifier_from_env()
+    active_internal_api_verifier = internal_api_verifier or internal_api_verifier_from_env()
 
     def get_connection():
         try:
@@ -153,8 +159,14 @@ def create_rita_router(
         )
 
     @router.post("/workers/rita/draft-response", response_model=DraftResponseResponse)
-    def draft_response(req: DraftResponseRequest) -> DraftResponseResponse:
+    def draft_response(
+        req: DraftResponseRequest,
+        x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+    ) -> DraftResponseResponse:
         """Draft a response to an incoming review."""
+        if not active_internal_api_verifier.verify(x_api_key):
+            raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
         try:
             tenant = Tenant(tenant_id=req.tenant_id)
         except InvalidTenantError as exc:

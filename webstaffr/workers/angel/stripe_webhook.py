@@ -1,7 +1,7 @@
 """Stripe webhook signature verification.
 
 Stripe signs outgoing webhooks with HMAC-SHA256 over the raw request body.
-The signature is sent in the X-Stripe-Signature header as:
+The signature is sent in the Stripe-Signature header as:
   t=<timestamp>,v1=<signature>
 
 This module provides signature verification matching Stripe's documented
@@ -22,18 +22,23 @@ class SharedSecretVerifier(Protocol):
 
 
 class NullStripeWebhookVerifier:
-    """Accepts everything -- safe default for tests and before
-    STRIPE_WEBHOOK_SECRET is set. Matches the Null-verifier pattern
-    used by GHL and book API verifiers."""
+    """Explicit test double. Never selected by the environment factory."""
 
     def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
         return True
 
 
+class DenyAllStripeWebhookVerifier:
+    """Safe unconfigured production default."""
+
+    def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
+        return False
+
+
 class StripeSignatureVerifier:
     """Verifies Stripe's HMAC-SHA256 signature on webhook payloads.
 
-    Stripe sends X-Stripe-Signature as: t=<timestamp>,v1=<sig>
+    Stripe sends Stripe-Signature as: t=<timestamp>,v1=<sig>
     We verify:
     1. Signature was generated within the last 5 minutes (prevents replay)
     2. HMAC-SHA256(<secret>, <timestamp>.<raw_body>) matches the provided sig
@@ -89,11 +94,8 @@ class StripeSignatureVerifier:
 
 
 def stripe_webhook_verifier_from_env() -> SharedSecretVerifier:
-    """STRIPE_WEBHOOK_SECRET set -> real verification of Stripe signatures.
-    Unset -> Null verifier. Follows the same pattern as ghl_webhook_verifier_from_env
-    and book_api_verifier_from_env: never silently construct something that will
-    fail on first use, and never require credentials to run tests."""
+    """Return a real verifier when configured, otherwise deny all."""
     secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
     if secret:
         return StripeSignatureVerifier(secret)
-    return NullStripeWebhookVerifier()
+    return DenyAllStripeWebhookVerifier()

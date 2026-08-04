@@ -5,21 +5,9 @@ CORS-scoped set: /book and /webhooks/ghl. Both previously accepted
 generated-site page source -- as if it were a credential, with no auth of
 any kind; this module closes that gap.
 
-Same Null-object + env-driven pattern as retell.py's RetellWebhookVerifier:
-an unset secret falls back to a Null verifier that accepts everything
-(consistent with NullVoiceBackend/NullGHLClient/NullRetellWebhookVerifier),
-so tests and a not-yet-configured deployment never require credentials to
-run. Once the relevant env var is set, a missing or mismatched header is
-rejected with 401.
-
-[Inference]: this closes the gap only once the founder actually sets
-GHL_WEBHOOK_SECRET / BOOK_API_KEY as real deployment secrets -- an
-unconfigured instance is unchanged from today (open). That's a deliberate
-continuation of this repo's existing convention (Retell's own webhook
-verification has the identical unconfigured-fail-open shape), not a
-compromise unique to this fix. Flagged explicitly rather than silently
-matched, since "auth that doesn't protect until configured" is a real
-tradeoff worth the founder knowing about, not assuming away.
+Environment-driven verifiers fail closed when their credential is absent.
+Tests that need a permissive boundary must inject NullSharedSecretVerifier
+explicitly through create_app(); production construction never selects it.
 
 This is a minimal shared-secret header, not a full auth system -- no
 sessions, no per-caller identity, no token expiry/rotation. That's a
@@ -40,12 +28,17 @@ class SharedSecretVerifier(Protocol):
 
 
 class NullSharedSecretVerifier:
-    """Accepts everything -- safe default for tests and before the relevant
-    secret env var is set. Same pattern as NullVoiceBackend/NullGHLClient/
-    NullRetellWebhookVerifier: an explicit, named no-op, not a silent skip."""
+    """Explicit test double. Never selected by an environment factory."""
 
     def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
         return True
+
+
+class DenyAllSharedSecretVerifier:
+    """Safe unconfigured production default."""
+
+    def verify(self, provided: Optional[str], raw_body: Optional[bytes] = None) -> bool:
+        return False
 
 
 class StaticSecretVerifier:
@@ -72,26 +65,33 @@ class StaticSecretVerifier:
 
 def ghl_webhook_verifier_from_env() -> SharedSecretVerifier:
     """GHL_WEBHOOK_SECRET set -> real verification against the
-    X-Webhook-Secret header. Unset -> Null, matching
-    _backend_from_env()/_ghl_client_from_env()/verifier_from_env() in
-    router.py/retell.py: never silently construct something that will fail
-    on first real use, and never require credentials to run tests or local
-    dev. Configure this as a custom header on GoHighLevel's workflow
-    Webhook action -- GHL does not sign outgoing webhooks itself, so a
-    shared secret set on both sides is the mechanism, not HMAC over the
-    body."""
+    X-Webhook-Secret header. Unset denies access. Configure this as a
+    custom header on GoHighLevel's workflow Webhook action. GHL does not
+    sign outgoing webhooks itself, so a shared secret set on both sides is
+    the mechanism, not HMAC over the body."""
     secret = os.environ.get("GHL_WEBHOOK_SECRET")
     if secret:
         return StaticSecretVerifier(secret)
-    return NullSharedSecretVerifier()
+    return DenyAllSharedSecretVerifier()
 
 
 def book_api_verifier_from_env() -> SharedSecretVerifier:
     """BOOK_API_KEY set -> real verification against the X-API-Key header.
-    Unset -> Null. /book has no browser caller today (see router.py's
-    docstring) -- this is for a future booking UI or server-side
-    integration, whichever calls it first."""
+    Unset denies access. /book has no browser caller today; this is for a
+    future booking UI or server-side integration."""
     secret = os.environ.get("BOOK_API_KEY")
     if secret:
         return StaticSecretVerifier(secret)
-    return NullSharedSecretVerifier()
+    return DenyAllSharedSecretVerifier()
+
+
+def internal_api_verifier_from_env() -> SharedSecretVerifier:
+    """Protect Sam, Rita, and Leo internal service routes.
+
+    INTERNAL_API_KEY is intentionally separate from provider webhook secrets.
+    Missing configuration denies every request.
+    """
+    secret = os.environ.get("INTERNAL_API_KEY")
+    if secret:
+        return StaticSecretVerifier(secret)
+    return DenyAllSharedSecretVerifier()

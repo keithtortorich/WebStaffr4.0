@@ -1,8 +1,14 @@
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from webstaffr.db import connect, migrate
-from webstaffr.rate_limit import RateLimitExceeded, check_and_increment
+from webstaffr.rate_limit import (
+    RateLimitExceeded,
+    check_and_increment,
+    check_dimensions,
+    direct_client_ip,
+)
 
 
 class RateLimitTestCase(unittest.TestCase):
@@ -58,6 +64,46 @@ class TestCheckAndIncrement(RateLimitTestCase):
         count = check_and_increment(self.conn, "other-tenant", "chat", max_requests=3)
         self.conn.commit()
         self.assertEqual(count, 1)
+
+
+class TestDimensionRateLimits(RateLimitTestCase):
+    def test_client_ip_ignores_spoofable_forwarding_headers(self):
+        request = SimpleNamespace(
+            client=SimpleNamespace(host="203.0.113.10"),
+            headers={"x-forwarded-for": "198.51.100.99"},
+        )
+        self.assertEqual(direct_client_ip(request), "203.0.113.10")
+
+    def test_each_dimension_has_an_independent_budget(self):
+        for _ in range(2):
+            check_dimensions(
+                self.conn,
+                "stripe",
+                [("account", "acme"), ("principal", "stripe"), ("ip", "192.0.2.1")],
+                max_requests=2,
+            )
+            self.conn.commit()
+
+        with self.assertRaises(RateLimitExceeded):
+            check_dimensions(self.conn, "stripe", [("account", "acme")], max_requests=2)
+        self.conn.rollback()
+
+        check_dimensions(self.conn, "stripe", [("account", "other")], max_requests=2)
+        self.conn.commit()
+
+    def test_same_key_on_different_dimensions_does_not_collide(self):
+        check_dimensions(
+            self.conn,
+            "retell",
+            [("account", "shared"), ("principal", "shared"), ("ip", "shared")],
+            max_requests=1,
+        )
+        self.conn.commit()
+        rows = self.conn.execute(
+            "SELECT COUNT(*) AS count FROM rate_limit_dimensions WHERE dimension_key = ?",
+            ("shared",),
+        ).fetchone()
+        self.assertEqual(rows["count"], 3)
 
     def test_endpoints_are_tracked_independently(self):
         for _ in range(3):

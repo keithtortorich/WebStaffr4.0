@@ -59,5 +59,9 @@ class ServiceTitanSync:
             data = fn()
             return SyncResult(resource=name, fetched=len(data), data=list(data))
         except ServiceTitanHTTPError as exc:
-            logger.warning("servicetitan_sync_failed resource=%s error=%s", name, exc)
+            logger.warning(
+                "servicetitan_sync_failed resource=%s error_type=%s",
+                name,
+                type(exc).__name__,
+            )
             return SyncResult(resource=name, failed=True, error=str(exc))

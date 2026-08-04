@@ -102,6 +102,10 @@ class _PGCursor:
         self._raw = raw_cursor
         self.lastrowid: Optional[int] = None
 
+    @property
+    def rowcount(self) -> int:
+        return self._raw.rowcount if self._raw is not None else 0
+
     def fetchone(self):
         return self._raw.fetchone() if self._raw is not None else None
 

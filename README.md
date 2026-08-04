@@ -28,7 +28,8 @@ See `CREDENTIALS.md` for a complete list of required env vars:
 - `GROK_API_KEY` (xAI chat backend)
 - `GHL_API_KEY` + `GHL_LOCATION_ID` (GoHighLevel sync)
 - `RETELL_WEBHOOK_SECRET` (Retell voice webhooks)
-- `BOOK_API_KEY` / `GHL_WEBHOOK_SECRET` (endpoint auth)
+- `BOOK_API_KEY` / `INTERNAL_API_KEY` / `GHL_WEBHOOK_SECRET` (endpoint auth)
+- `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` (customer dashboard identity)
 - `NETBUILD_DB_PATH` or `DATABASE_URL` (database)
 
 ## Folder Structure

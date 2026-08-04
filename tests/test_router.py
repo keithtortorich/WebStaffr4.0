@@ -4,7 +4,7 @@ import unittest
 
 from fastapi.testclient import TestClient
 
-from webstaffr.workers.angel.api_auth import StaticSecretVerifier
+from webstaffr.workers.angel.api_auth import NullSharedSecretVerifier, StaticSecretVerifier
 from webstaffr.workers.angel.ghl import NullGHLClient
 from webstaffr.app import create_app
 from webstaffr.workers.angel.voice import NullVoiceBackend
@@ -21,7 +21,13 @@ class RouterTestCase(unittest.TestCase):
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         self.ghl = NullGHLClient()
-        app = create_app(db_path=self.db_path, voice_backend=NullVoiceBackend(), ghl_client=self.ghl)
+        app = create_app(
+            db_path=self.db_path,
+            voice_backend=NullVoiceBackend(),
+            ghl_client=self.ghl,
+            book_api_verifier=NullSharedSecretVerifier(),
+            ghl_webhook_verifier=NullSharedSecretVerifier(),
+        )
         # Enter the TestClient as a context manager so the app's ASGI
         # lifespan (startup -> migrate()) actually fires. TestClient(app)
         # without __enter__ does not reliably run lifespan events, which
@@ -204,6 +210,13 @@ class TestGHLWebhookEndpoint(RouterTestCase):
         )
         self.assertEqual(resp.status_code, 200)
 
+    def test_exact_duplicate_is_acknowledged_without_reprocessing(self):
+        payload = {"tenant_id": "acme", "event_type": "missed_call", "contact_id": "dup-1"}
+        first = self.client.post("/webhooks/ghl", json=payload)
+        second = self.client.post("/webhooks/ghl", json=payload)
+        self.assertEqual(first.json()["status"], "handled")
+        self.assertEqual(second.json(), {"status": "duplicate"})
+
     def test_unsupported_event_type_is_rejected(self):
         resp = self.client.post(
             "/webhooks/ghl",
@@ -319,36 +332,35 @@ class TestGHLWebhookSecretAuth(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
 
 
-class TestBookAndWebhookAuthDefaultsToOpenWhenUnconfigured(RouterTestCase):
-    """RouterTestCase's default app passes no verifier and (per setUp,
-    below) runs with GHL_WEBHOOK_SECRET/BOOK_API_KEY cleared, so it
-    exercises the Null-verifier fall-through in api_auth.py -- confirms the
-    pre-existing TestBookEndpoint/TestGHLWebhookEndpoint tests above are
-    hitting the documented fails-open-until-configured path deliberately,
-    not accidentally passing due to test-environment env vars."""
+class TestBookAndWebhookAuthDefaultsToClosedWhenUnconfigured(unittest.TestCase):
+    """Production construction denies access when credentials are absent."""
 
     def setUp(self):
         self._old_ghl_secret = os.environ.pop("GHL_WEBHOOK_SECRET", None)
         self._old_book_key = os.environ.pop("BOOK_API_KEY", None)
-        super().setUp()
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        self._client_ctx = TestClient(create_app(db_path=self.db_path))
+        self.client = self._client_ctx.__enter__()
 
     def tearDown(self):
-        super().tearDown()
+        self._client_ctx.__exit__(None, None, None)
+        os.remove(self.db_path)
         if self._old_ghl_secret is not None:
             os.environ["GHL_WEBHOOK_SECRET"] = self._old_ghl_secret
         if self._old_book_key is not None:
             os.environ["BOOK_API_KEY"] = self._old_book_key
 
-    def test_book_works_without_api_key_header_when_unconfigured(self):
+    def test_book_rejects_missing_api_key_when_unconfigured(self):
         resp = self.client.post(
             "/book",
             json={"tenant_id": "acme", "contact_name": "Jane", "starts_at": "2026-08-01T15:00:00Z"},
         )
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 401)
 
-    def test_webhook_works_without_secret_header_when_unconfigured(self):
+    def test_webhook_rejects_missing_secret_when_unconfigured(self):
         resp = self.client.post("/webhooks/ghl", json={"tenant_id": "acme", "event_type": "missed_call"})
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 401)
 
 
 if __name__ == "__main__":

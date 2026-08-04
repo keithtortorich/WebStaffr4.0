@@ -33,10 +33,20 @@ job before this matters at real production volume.
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, Iterable
 
 DEFAULT_WINDOW_SECONDS = 60
 DEFAULT_MAX_REQUESTS_PER_WINDOW = 30
+
+
+def direct_client_ip(request: Any) -> str:
+    """Return the ASGI peer address and never trust caller-set forwarding headers.
+
+    A future deployment may add an explicit trusted-proxy allowlist. Until then,
+    accepting X-Forwarded-For would let any caller choose its own rate-limit key.
+    """
+    client = getattr(request, "client", None)
+    return getattr(client, "host", None) or "unknown"
 
 
 class RateLimitExceeded(Exception):
@@ -55,6 +65,40 @@ class RateLimitExceeded(Exception):
             f"tenant={tenant_id!r} endpoint={endpoint!r} exceeded {max_requests} "
             f"requests in {window_seconds}s (count={count})"
         )
+
+
+def check_dimensions(
+    conn: Any,
+    endpoint: str,
+    dimensions: Iterable[tuple[str, str]],
+    *,
+    window_seconds: int = DEFAULT_WINDOW_SECONDS,
+    max_requests: int = DEFAULT_MAX_REQUESTS_PER_WINDOW,
+) -> None:
+    """Atomically increment independent account, principal, and IP buckets."""
+    window_start = int(time.time() // window_seconds) * window_seconds
+    for dimension_type, dimension_key in dimensions:
+        conn.execute(
+            """
+            INSERT INTO rate_limit_dimensions AS t
+                (dimension_type, dimension_key, endpoint, window_start, request_count)
+            VALUES (?, ?, ?, ?, 1)
+            ON CONFLICT (dimension_type, dimension_key, endpoint, window_start)
+            DO UPDATE SET request_count = t.request_count + 1
+            """,
+            (dimension_type, dimension_key, endpoint, window_start),
+        )
+        row = conn.execute(
+            """
+            SELECT request_count FROM rate_limit_dimensions
+            WHERE dimension_type = ? AND dimension_key = ?
+              AND endpoint = ? AND window_start = ?
+            """,
+            (dimension_type, dimension_key, endpoint, window_start),
+        ).fetchone()
+        count = row["request_count"]
+        if count > max_requests:
+            raise RateLimitExceeded(dimension_key, endpoint, count, max_requests, window_seconds)
 
 
 def check_and_increment(

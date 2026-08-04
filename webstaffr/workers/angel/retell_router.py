@@ -34,7 +34,9 @@ from pydantic import BaseModel
 
 from ...attribution import CallEvent, CallEventRepository, TrackingNumberRepository
 from ...db import DB_ERRORS, StorageError, get_connection
+from ...rate_limit import RateLimitExceeded, check_dimensions, direct_client_ip
 from ...tenant import InvalidTenantError, Tenant
+from ...webhook_replay import claim_delivery, complete_delivery, payload_digest
 from .angel import Angel
 from .ghl import GHLClient
 from .retell import RetellWebhookVerifier, verifier_from_env
@@ -103,7 +105,7 @@ def create_retell_router(
         except DB_ERRORS as exc:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable") from exc
 
-    async def _verified_payload(request: Request) -> dict:
+    async def _verified_payload(request: Request) -> tuple[dict, bytes]:
         """Reads the raw body (required for signature verification --
         request.json() would hide the exact bytes Retell signed), verifies
         it, and only then parses it as JSON. Malformed JSON after a valid
@@ -114,9 +116,9 @@ def create_retell_router(
         if not active_verifier.verify(body, signature):
             raise HTTPException(status_code=401, detail="Invalid webhook signature")
         if not body:
-            return {}
+            return {}, body
         try:
-            return json.loads(body)
+            return json.loads(body), body
         except json.JSONDecodeError as exc:
             raise HTTPException(status_code=400, detail="Malformed JSON payload") from exc
 
@@ -126,7 +128,7 @@ def create_retell_router(
         or invalid tenant_id is logged and acknowledged rather than
         rejected with an error status -- Retell doesn't need to see this
         app's internal tenant-routing problems as a call-level failure."""
-        payload = await _verified_payload(request)
+        payload, raw_body = await _verified_payload(request)
         event_type = payload.get("event")
         call = payload.get("call", {}) or {}
         call_id = call.get("call_id")
@@ -153,6 +155,31 @@ def create_retell_router(
         if event_type in ("call_started", "call_ended"):
             conn = _get_connection()
             try:
+                try:
+                    check_dimensions(
+                        conn,
+                        "retell_webhook",
+                        [
+                            ("account", tenant.tenant_id),
+                            ("principal", "retell"),
+                            ("ip", direct_client_ip(request)),
+                        ],
+                    )
+                except RateLimitExceeded as exc:
+                    conn.commit()
+                    raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.") from exc
+                event_key = f"{call_id}:{event_type}" if call_id else f"payload:{payload_digest(raw_body)}"
+                claim = claim_delivery(
+                    conn,
+                    provider="retell",
+                    event_key=event_key,
+                    event_type=event_type or "unknown",
+                    raw_body=raw_body,
+                    tenant_id=tenant.tenant_id,
+                )
+                if not claim.is_new:
+                    conn.commit()
+                    return {"status": "duplicate"}
                 call_analysis = call.get("call_analysis", {}) or {}
 
                 try:
@@ -201,6 +228,13 @@ def create_retell_router(
                         angel = Angel(tenant=tenant, conn=conn, voice_backend=voice_backend, ghl_client=ghl_client)
                         angel.log_note_to_ghl(ghl_contact_id, f"Angel voice call summary: {summary}")
 
+                result = {"status": "received"}
+                complete_delivery(
+                    conn,
+                    provider="retell",
+                    event_key=event_key,
+                    response_json=json.dumps(result, sort_keys=True),
+                )
                 conn.commit()
             finally:
                 conn.close()
@@ -214,7 +248,7 @@ def create_retell_router(
         error status here would leave the caller mid-conversation with
         nothing to say. Errors are logged and degrade to a fallback line
         instead."""
-        payload = await _verified_payload(request)
+        payload, raw_body = await _verified_payload(request)
         name = payload.get("name")
         args = payload.get("args") or {}
         tenant_id = _tenant_id_from_payload(payload)
@@ -229,6 +263,39 @@ def create_retell_router(
 
         conn = _get_connection()
         try:
+            try:
+                check_dimensions(
+                    conn,
+                    "retell_function_call",
+                    [
+                        ("account", tenant.tenant_id),
+                        ("principal", "retell"),
+                        ("ip", direct_client_ip(request)),
+                    ],
+                )
+            except RateLimitExceeded as exc:
+                conn.commit()
+                raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.") from exc
+            call_id = _call_id_from_payload(payload)
+            event_key = (
+                f"{call_id}:function:{name}"
+                if call_id and name
+                else f"payload:{payload_digest(raw_body)}"
+            )
+            claim = claim_delivery(
+                conn,
+                provider="retell",
+                event_key=event_key,
+                event_type=f"function:{name or 'unknown'}",
+                raw_body=raw_body,
+                tenant_id=tenant.tenant_id,
+            )
+            if not claim.is_new:
+                conn.commit()
+                if claim.response_json:
+                    return FunctionCallResult.model_validate_json(claim.response_json)
+                return FunctionCallResult(result=_FALLBACK_RESULT)
+
             angel = Angel(tenant=tenant, conn=conn, voice_backend=voice_backend, ghl_client=ghl_client)
 
             if name == "book_appointment":
@@ -244,10 +311,18 @@ def create_retell_router(
             else:
                 logger.warning("retell_unknown_function name=%r tenant=%s", name, tenant.tenant_id)
                 result = _FALLBACK_RESULT
+            response = FunctionCallResult(result=result)
+            complete_delivery(
+                conn,
+                provider="retell",
+                event_key=event_key,
+                response_json=response.model_dump_json(),
+            )
+            conn.commit()
         finally:
             conn.close()
 
-        return FunctionCallResult(result=result)
+        return response
 
     def _handle_book_appointment(
         angel: Angel, args: dict, conn, tenant_id: str, call_id: Optional[str]
@@ -290,7 +365,6 @@ def create_retell_router(
             except (*DB_ERRORS, StorageError):
                 logger.exception("retell_attribution_logging_failed tenant=%s event=appointment_booked", tenant_id)
 
-            conn.commit()
             return f"You're all set for {appt.starts_at}. You'll get a confirmation shortly."
         except DB_ERRORS:
             logger.exception("retell_booking_failed tenant=%s", angel.tenant.tenant_id)

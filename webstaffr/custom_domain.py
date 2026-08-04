@@ -47,5 +47,9 @@ def resolve_tenant_from_host(host_header: str, db_path: str) -> Optional[str]:
         finally:
             conn.close()
     except DB_ERRORS as exc:
-        logger.warning("Failed to resolve custom domain %s: %s", domain, exc)
+        logger.warning(
+            "custom_domain_resolution_failed domain=%s error_type=%s",
+            domain,
+            type(exc).__name__,
+        )
         return None

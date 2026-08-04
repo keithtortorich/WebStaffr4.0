@@ -114,10 +114,10 @@ class GrokVoiceBackend:
             data = response.json()
             return data["choices"][0]["message"]["content"].strip()
         except httpx.HTTPError as exc:
-            logger.warning("grok_api_call_failed error=%s", exc)
+            logger.warning("grok_api_call_failed error_type=%s", type(exc).__name__)
             return _FALLBACK_REPLY
         except (KeyError, IndexError, ValueError) as exc:
-            logger.warning("grok_api_response_unparseable error=%s", exc)
+            logger.warning("grok_api_response_unparseable error_type=%s", type(exc).__name__)
             return _FALLBACK_REPLY
 
     def __del__(self) -> None:

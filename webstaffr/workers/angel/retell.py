@@ -13,14 +13,10 @@ This module holds the one piece of real logic Retell integration needs
 beyond thin webhook handling: verifying that a webhook actually came from
 Retell before trusting its payload.
 
-[Unverified]: implemented from Retell's publicly documented webhook-signing
-convention (HMAC-SHA256 over the raw request body, secret issued when a
-webhook is registered). Not yet exercised against a real Retell-signed
-request -- same status GoHighLevelClient's endpoint paths carried before
-they were checked against live docs on 2026-07-08. Confirm the exact header
-name and signature format in Retell's dashboard/docs before relying on this
-in production; the header name and prefix-stripping logic below are best
-guesses at a stable convention, not a confirmed contract.
+Implements Retell's documented ``X-Retell-Signature`` contract:
+``v=<timestamp_ms>,d=<hmac_sha256>`` over the raw body plus timestamp,
+with a five-minute freshness tolerance. Live staging verification remains
+required before production activation.
 """
 
 from __future__ import annotations
@@ -28,6 +24,8 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
+import re
+import time
 from typing import Optional, Protocol
 
 
@@ -36,20 +34,23 @@ class RetellWebhookVerifier(Protocol):
 
 
 class NullRetellWebhookVerifier:
-    """Accepts everything -- safe default for tests and for local dev before
-    RETELL_WEBHOOK_SECRET is set. Same pattern as NullVoiceBackend and
-    NullGHLClient: an explicit, named no-op rather than a silent skip."""
+    """Explicit test double. Never selected by verifier_from_env()."""
 
     def verify(self, payload: bytes, signature_header: Optional[str]) -> bool:
         return True
 
 
+class DenyAllRetellWebhookVerifier:
+    """Safe unconfigured production default."""
+
+    def verify(self, payload: bytes, signature_header: Optional[str]) -> bool:
+        return False
+
+
 class RetellSignatureVerifier:
-    """HMAC-SHA256 verification against a signing secret. [Unverified] --
-    see module docstring. Fails closed: any missing header, malformed
-    header, or mismatch returns False rather than raising, so a caller can
-    always treat "not verify()" as "reject the request" without a second
-    exception-handling path."""
+    """Verify Retell's documented ``v=<ms>,d=<hex>`` signature format."""
+
+    MAX_SIGNATURE_AGE_SECONDS = 300
 
     def __init__(self, signing_secret: str) -> None:
         if not signing_secret:
@@ -59,22 +60,25 @@ class RetellSignatureVerifier:
     def verify(self, payload: bytes, signature_header: Optional[str]) -> bool:
         if not signature_header:
             return False
-        expected = hmac.new(self._secret, payload, hashlib.sha256).hexdigest()
-        # Some webhook providers prefix the digest with a scheme, e.g.
-        # "v1,<hex>" or "sha256=<hex>" -- take whatever follows the last
-        # separator so either a bare hex digest or a prefixed one verifies
-        # the same way. Confirm Retell's actual format before depending on
-        # this in production.
-        candidate = signature_header.replace("=", ",").split(",")[-1].strip()
-        return hmac.compare_digest(expected, candidate)
+        match = re.fullmatch(r"v=(\d+),d=([0-9a-fA-F]{64})", signature_header.strip())
+        if not match:
+            return False
+        timestamp_ms, candidate = match.groups()
+        try:
+            age = abs(time.time() - (int(timestamp_ms) / 1000))
+        except ValueError:
+            return False
+        if age > self.MAX_SIGNATURE_AGE_SECONDS:
+            return False
+        expected = hmac.new(
+            self._secret, payload + timestamp_ms.encode("ascii"), hashlib.sha256
+        ).hexdigest()
+        return hmac.compare_digest(expected, candidate.lower())
 
 
 def verifier_from_env() -> RetellWebhookVerifier:
-    """RETELL_WEBHOOK_SECRET set -> real verification. Unset -> Null,
-    matching _backend_from_env()/_ghl_client_from_env() in router.py: never
-    silently construct something that will fail on first real use, and
-    never require credentials to run tests or local dev."""
+    """Return a real verifier when configured, otherwise deny all."""
     secret = os.environ.get("RETELL_WEBHOOK_SECRET")
     if secret:
         return RetellSignatureVerifier(secret)
-    return NullRetellWebhookVerifier()
+    return DenyAllRetellWebhookVerifier()

@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from ...db import DB_ERRORS, get_connection as _db_get_connection
 from ...rate_limit import RateLimitExceeded, check_and_increment
 from ...tenant import InvalidTenantError, Tenant
+from ..angel.api_auth import SharedSecretVerifier, internal_api_verifier_from_env
 from .protocol import GHLMessagingClient
 from .scoring import calculate_aokai_score
 
@@ -171,6 +172,7 @@ def create_leo_router(
     db_path: str = "webstaffr.db",
     ghl_messaging_client: Optional[GHLMessagingClient] = None,
     ghl_webhook_verifier = None,
+    internal_api_verifier: Optional[SharedSecretVerifier] = None,
 ) -> APIRouter:
     """Factory for Leo's router (same pattern as Angel's create_angel_router).
     The caller controls db_path, backends, and verifiers."""
@@ -179,6 +181,7 @@ def create_leo_router(
 
     # Verifier: explicit arg wins, otherwise fall back to env, otherwise Null
     active_ghl_webhook_verifier = ghl_webhook_verifier or ghl_webhook_verifier_from_env()
+    active_internal_api_verifier = internal_api_verifier or internal_api_verifier_from_env()
 
     def get_connection():
         """Same pattern as Angel: DB error → 503, never propagate raw error."""
@@ -189,9 +192,15 @@ def create_leo_router(
             raise HTTPException(status_code=503, detail="Service temporarily unavailable") from exc
 
     @router.post("/leo/score", response_model=ScoreResponse)
-    def score_lead(req: ScoreRequest) -> ScoreResponse:
+    def score_lead(
+        req: ScoreRequest,
+        x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
+    ) -> ScoreResponse:
         """Internal scoring endpoint for testing/debugging. No webhook
         verification, no GHL sync, just AOKAI calculation."""
+
+        if not active_internal_api_verifier.verify(x_api_key):
+            raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
         result = calculate_aokai_score(
             phone_answered=req.company_phone_answered,
@@ -339,15 +348,20 @@ def create_leo_router(
                             (lead_id,),
                         )
 
-                except Exception as e:  # noqa: BLE001
-                    # GHL sync failed: store error, mark as pending_sync
-                    ghl_error = str(e)
+                except Exception as exc:  # noqa: BLE001
+                    # Store a safe diagnostic category, never provider
+                    # response text or customer data.
+                    ghl_error = type(exc).__name__
                     sync_status = "pending_sync"
                     conn.execute(
                         "UPDATE webstaffr_leads SET sync_status = ?, ghl_error = ? WHERE lead_id = ?",
                         (sync_status, ghl_error, lead_id),
                     )
-                    logger.warning("leo_ghl_sync_failed lead_id=%s error=%s", lead_id, ghl_error)
+                    logger.warning(
+                        "leo_ghl_sync_failed lead_id=%s error_type=%s",
+                        lead_id,
+                        ghl_error,
+                    )
 
             conn.commit()
         finally:

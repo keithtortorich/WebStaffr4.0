@@ -75,6 +75,7 @@ class LeoRouterTestCase(unittest.TestCase):
             db_path=self.db_path,
             ghl_messaging_client=self.ghl_client,
             ghl_webhook_verifier=self.webhook_verifier,
+            internal_api_verifier=StaticSecretVerifier("internal-test-secret"),
         )
         self._client_ctx = TestClient(app)
         self.client = self._client_ctx.__enter__()
@@ -95,12 +96,27 @@ class LeoRouterTestCase(unittest.TestCase):
     def _auth_headers(self):
         return {"X-Webhook-Secret": "test-secret"}
 
+    def _internal_headers(self):
+        return {"X-API-Key": "internal-test-secret"}
+
 
 class TestLeoScoreEndpoint(LeoRouterTestCase):
     """Test the /leo/score internal endpoint."""
 
-    def test_score_endpoint_no_signals_returns_low_score(self):
+    def test_score_endpoint_rejects_missing_internal_key(self):
         resp = self.client.post("/leo/score", json={})
+        self.assertEqual(resp.status_code, 401)
+
+    def test_score_endpoint_rejects_wrong_internal_key(self):
+        resp = self.client.post(
+            "/leo/score",
+            json={},
+            headers={"X-API-Key": "wrong"},
+        )
+        self.assertEqual(resp.status_code, 401)
+
+    def test_score_endpoint_no_signals_returns_low_score(self):
+        resp = self.client.post("/leo/score", json={}, headers=self._internal_headers())
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
 
@@ -115,6 +131,7 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
     def test_score_endpoint_high_signals_returns_high_score(self):
         resp = self.client.post(
             "/leo/score",
+            headers=self._internal_headers(),
             json={
                 "company_phone_answered": True,  # 15
                 "owner_answered": True,  # 10
@@ -146,6 +163,7 @@ class TestLeoScoreEndpoint(LeoRouterTestCase):
     def test_score_endpoint_tier_1_threshold(self):
         resp = self.client.post(
             "/leo/score",
+            headers=self._internal_headers(),
             json={
                 "company_phone_answered": True,  # 15
                 "owner_answered": True,  # 10

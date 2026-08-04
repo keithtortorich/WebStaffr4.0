@@ -14,8 +14,12 @@ import tempfile
 import unittest
 from datetime import datetime
 
+from fastapi.testclient import TestClient
+
+from webstaffr.app import create_app
 from webstaffr.db import connect, migrate
 from webstaffr.tenant import Tenant
+from webstaffr.workers.angel.api_auth import StaticSecretVerifier
 from webstaffr.workers.rita.client import ReviewRequestRepository, ReviewResponseRepository
 from webstaffr.workers.rita.protocol import NullReviewPlatformClient
 from webstaffr.workers.rita.templates import (
@@ -55,6 +59,53 @@ class RitaTestCase(unittest.TestCase):
     def tearDown(self):
         self._ctx.__exit__(None, None, None)
         os.remove(self.db_path)
+
+
+class TestRitaInternalAuthentication(unittest.TestCase):
+    def setUp(self):
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        app = create_app(
+            db_path=self.db_path,
+            internal_api_verifier=StaticSecretVerifier("internal-test-key"),
+        )
+        self._client_ctx = TestClient(app)
+        self.client = self._client_ctx.__enter__()
+        with connect(self.db_path) as conn:
+            conn.execute("INSERT OR IGNORE INTO tenants (tenant_id) VALUES (?)", ("acme",))
+
+    def tearDown(self):
+        self._client_ctx.__exit__(None, None, None)
+        os.remove(self.db_path)
+
+    @staticmethod
+    def _payload():
+        return {
+            "tenant_id": "acme",
+            "review_id": "review-1",
+            "review_text": "Great service",
+            "review_rating": 5,
+        }
+
+    def test_draft_response_rejects_missing_key(self):
+        response = self.client.post("/workers/rita/draft-response", json=self._payload())
+        self.assertEqual(response.status_code, 401)
+
+    def test_draft_response_rejects_wrong_key(self):
+        response = self.client.post(
+            "/workers/rita/draft-response",
+            json=self._payload(),
+            headers={"X-API-Key": "wrong"},
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_draft_response_accepts_valid_key(self):
+        response = self.client.post(
+            "/workers/rita/draft-response",
+            json=self._payload(),
+            headers={"X-API-Key": "internal-test-key"},
+        )
+        self.assertEqual(response.status_code, 200)
 
 
 class TestReviewRequestTemplates(unittest.TestCase):
