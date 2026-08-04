@@ -168,6 +168,53 @@ Log to TASKS.md (don't fix inline unless trivial):
 
 ---
 
-**Last updated:** 2026-08-01  
+## Inter-Agent Task Dispatch Protocol (agent_broker.py)
+
+When delegating sub-tasks to Codex or Hermes, use `agent_broker.py`
+(`/Users/doc/Desktop/WebStaffr4-coordination/scripts/agent_broker.py`) directly.
+Do not create unmonitored side-car files or a second coordination mechanism.
+
+**Broker primitives actually available** (verified against `--help`, not assumed):
+`init`, `register`, `heartbeat`, `claim`, `guard`, `release`, `handoff`, `alert`,
+`inbox`, `ack`, `ack-notify`, `notifications`, `status`.
+
+There is no `dispatch` subcommand, no task queue, and no `--task-id` flag. Dispatch
+is a `handoff` call — nothing more. Verify flags with `--help` before scripting
+against them; they have changed shape mid-session before.
+
+**Domain scoping:**
+- **Codex CLI:** bulk code generation, unit tests, refactoring, execution.
+- **Hermes Agent:** webhooks, MCP tool calling, live integration validation.
+
+**To dispatch a task:**
+
+```bash
+python /Users/doc/Desktop/WebStaffr4-coordination/scripts/agent_broker.py handoff \
+  --from-agent claude \
+  --to-agent <codex|hermes> \
+  --subject "<short task slug>" \
+  --message "<instructions, context file paths, and verification command>" \
+  --priority normal
+```
+
+**Before writing to any file another agent might also touch**, acquire a guard:
+
+```bash
+python /Users/doc/Desktop/WebStaffr4-coordination/scripts/agent_broker.py guard \
+  --agent claude --action write --task "<slug>" <file paths...>
+```
+
+Guard claims expire after 15 minutes (TTL). A denied guard means another agent
+holds an active claim on that path — do not override it, wait or coordinate.
+
+**Reading responses:** poll your own inbox, don't assume delivery.
+
+```bash
+python /Users/doc/Desktop/WebStaffr4-coordination/scripts/agent_broker.py inbox --agent claude
+```
+
+---
+
+**Last updated:** 2026-08-04  
 **Status:** Engineering Director mode + Headroom (:8787) + Caveman plugin auto-active  
 **User email:** keithtortorich@gmail.com
