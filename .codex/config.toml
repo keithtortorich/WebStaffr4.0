@@ -1,0 +1,22 @@
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+web_search = "live"
+model_verbosity = "low"
+model_reasoning_summary = "concise"
+[features]
+multi_agent = true
+memories = false
+personality = true
+shell_tool = true
+unified_exec = true
+shell_snapshot = true
+
+[shell_environment_policy]
+ignore_default_excludes = false
+
+[shell_environment_policy.filters]
+"PATH" = "include"
+"HOME" = "include"
+
+[tui.keymap.composer]
+submit = ["enter", "ctrl-m"]
