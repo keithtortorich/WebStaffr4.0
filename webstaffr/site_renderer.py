@@ -98,7 +98,7 @@ def _hsl_to_hex(h: float, l: float, s: float) -> str:
 
 
 def generate_palette(brand_primary: Optional[str]) -> dict[str, str]:
-    """Generate a 5-color palette from a brand primary hex color.
+    """Generate a palette from a brand primary hex color.
 
     Returns a dict with keys: primary, primary_dark, primary_light, neutral_dark,
     neutral_light. If brand_primary is None or invalid, returns the default
@@ -115,21 +115,30 @@ def generate_palette(brand_primary: Optional[str]) -> dict[str, str]:
     }
 
     if not brand_primary:
-        return default_palette
+        palette = default_palette
+        palette["primary_accessible"] = _accessible_action_color(palette)
+        palette["primary_accessible_dark"] = _accessible_action_dark_color(palette)
+        return palette
 
     try:
         h, l, s = _hex_to_hsl(brand_primary)
     except (ValueError, IndexError):
         logger.warning("Invalid brand color %s, using default palette", brand_primary)
-        return default_palette
+        palette = default_palette
+        palette["primary_accessible"] = _accessible_action_color(palette)
+        palette["primary_accessible_dark"] = _accessible_action_dark_color(palette)
+        return palette
 
-    return {
+    palette = {
         "primary": brand_primary,
         "primary_dark": _hsl_to_hex(h, max(0.2, l - 0.25), s),  # darken 25%
         "primary_light": _hsl_to_hex(h, min(0.9, l + 0.25), s),  # lighten 25%
         "neutral_dark": "#16202e",  # fixed dark (not derived)
         "neutral_light": "#f4f6f9",  # fixed light (not derived)
     }
+    palette["primary_accessible"] = _accessible_action_color(palette)
+    palette["primary_accessible_dark"] = _accessible_action_dark_color(palette)
+    return palette
 
 
 def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
@@ -162,6 +171,33 @@ def _contrast_ratio(hex_a: str, hex_b: str) -> float:
     return (lighter + 0.05) / (darker + 0.05)
 
 
+def _accessible_action_color(palette: dict[str, str]) -> str:
+    """Keep the tenant brand color when safe, otherwise use a safe dark variant.
+
+    Action color is used both as text on light surfaces and as a background
+    behind white button text, so it must meet 4.5:1 against both surfaces.
+    The original primary remains available for decorative brand treatment.
+    """
+    backgrounds = ("#ffffff", palette["neutral_light"])
+    for candidate in (
+        palette["primary"],
+        palette["primary_dark"],
+        palette["neutral_dark"],
+    ):
+        if all(_contrast_ratio(candidate, background) >= 4.5 for background in backgrounds):
+            return candidate
+    return "#16202e"
+
+
+def _accessible_action_dark_color(palette: dict[str, str]) -> str:
+    """Return an accessible hover/active companion for the action color."""
+    backgrounds = ("#ffffff", palette["neutral_light"])
+    for candidate in (palette["primary_dark"], palette["neutral_dark"]):
+        if all(_contrast_ratio(candidate, background) >= 4.5 for background in backgrounds):
+            return candidate
+    return palette["primary_accessible"]
+
+
 def validate_palette_contrast(palette: dict[str, str]) -> list[ContrastWarning]:
     """Validate WCAG 2.1 AA contrast ratios for key color pairs.
 
@@ -169,8 +205,19 @@ def validate_palette_contrast(palette: dict[str, str]) -> list[ContrastWarning]:
     rendering; warnings are logged for manual review."""
     warnings = []
     checks = [
-        ("primary-on-neutral-light", palette["primary"], palette["neutral_light"], 4.5),
-        ("primary-dark-on-neutral-light", palette["primary_dark"], palette["neutral_light"], 4.5),
+        ("primary-accessible-on-white", palette["primary_accessible"], "#ffffff", 4.5),
+        (
+            "primary-accessible-on-neutral-light",
+            palette["primary_accessible"],
+            palette["neutral_light"],
+            4.5,
+        ),
+        (
+            "primary-accessible-dark-on-neutral-light",
+            palette["primary_accessible_dark"],
+            palette["neutral_light"],
+            4.5,
+        ),
         ("neutral-dark-on-neutral-light", palette["neutral_dark"], palette["neutral_light"], 4.5),
     ]
 

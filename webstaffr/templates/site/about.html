@@ -10,25 +10,25 @@
         <h1 class="ws-h1">{{ site.biz_name }}</h1>
         
         {% if site.years_in_biz %}
-        <p class="ws-body-text">Serving {{ site.service_area }} for {{ site.years_in_biz }} years with reliable service and a commitment to doing the work right.</p>
+        <p class="ws-body-text">Serving {{ site.service_area }} for {{ site.years_in_biz }} years.</p>
         {% else %}
-        <p class="ws-body-text">{{ site.biz_name }} is committed to delivering exceptional service in {{ site.service_area }}.</p>
+        <p class="ws-body-text">{{ site.biz_name }} provides {{ site.industry | lower }} services in {{ site.service_area }}.</p>
         {% endif %}
 
         {% if site.differentiator %}
         <p class="ws-body-text">{{ site.differentiator }}</p>
         {% endif %}
 
-        {% if site.certifications or site.emergency_service %}
+        {% if site.certifications or has_emergency_service %}
         <div class="ws-badge-row">
-          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} Licensed &amp; Insured</span>{% endif %}
-          {% if site.emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
+          {% if site.certifications %}<span class="ws-badge-chip">{{ icons.icon('shield', 14) }} {{ site.certifications }}</span>{% endif %}
+          {% if has_emergency_service %}<span class="ws-badge-chip">{{ icons.icon('bolt', 14) }} 24/7 Emergency Service</span>{% endif %}
         </div>
         {% endif %}
 
         <div class="ws-hero-ctas">
           <a href="tel:{{ site.phone }}" class="ws-btn ws-btn-primary">{{ icons.icon('phone', 16) }} Call {{ site.phone }}</a>
-          <a href="/#lead-capture" class="ws-btn ws-btn-secondary">Get a Free Estimate</a>
+          <a href="{{ site_root }}/contact" class="ws-btn ws-btn-secondary">Request Service</a>
         </div>
       </div>
 
@@ -41,8 +41,7 @@
 </section>
 
 <!-- Trust Signals Section -->
-{% set trust_signal_count = (site.years_in_biz|int) + (site.certifications|int) + (site.emergency_service|int) + (site.rating_value|int) %}
-{% if trust_signal_count >= 2 %}
+{% if show_about_trust_bar %}
 <section class="ws-trust-grid">
   <div class="ws-container">
     {% if site.years_in_biz %}
@@ -55,11 +54,11 @@
     {% if site.certifications %}
     <div class="ws-trust-item">
       <div class="ws-trust-icon">{{ icons.icon('shield', 20) }}</div>
-      <div class="ws-trust-num">Licensed</div>
+      <div class="ws-trust-num">Credentials</div>
       <div class="ws-trust-label">{{ site.certifications }}</div>
     </div>
     {% endif %}
-    {% if site.emergency_service %}
+    {% if has_emergency_service %}
     <div class="ws-trust-item">
       <div class="ws-trust-icon">{{ icons.icon('bolt', 20) }}</div>
       <div class="ws-trust-num">24/7</div>
@@ -78,7 +77,7 @@
 {% endif %}
 
 <!-- Why Choose Us Section -->
-{% if site.differentiator or site.emergency_service or site.certifications %}
+{% if site.differentiator or has_emergency_service or site.certifications %}
 <section class="ws-section">
   <div class="ws-container">
     <div class="ws-section-header">
@@ -94,7 +93,7 @@
         <p>{{ site.differentiator }}</p>
       </div>
       {% endif %}
-      {% if site.emergency_service %}
+      {% if has_emergency_service %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">{{ icons.icon('bolt', 26) }}</span>
         <h3>24/7 Emergency Service</h3>
@@ -104,7 +103,7 @@
       {% if site.certifications %}
       <div class="ws-reason-card">
         <span class="ws-reason-icon">{{ icons.icon('shield', 26) }}</span>
-        <h3>Licensed &amp; Certified</h3>
+        <h3>Credentials</h3>
         <p>{{ site.certifications }}</p>
       </div>
       {% endif %}

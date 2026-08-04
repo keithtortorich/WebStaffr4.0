@@ -3,10 +3,12 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from webstaffr.app import create_app
+from webstaffr.rate_limit import RateLimitExceeded
 
 
 def _valid_payload(**overrides):
@@ -104,6 +106,38 @@ class TestIntakeSubmission(IntakeTestCase):
         self.assertTrue((web_dir / "tokens.css").exists(), msg="expected tokens.css")
         for page in ("home.html", "about.html", "contact.html", "services.html"):
             self.assertTrue((web_dir / page).exists(), msg=f"expected {page}")
+
+    def test_rate_limited_submission_creates_no_tenant_or_site(self):
+        workdir = Path(self.db_path).resolve().parent / "generated_sites"
+        sites_before = set(workdir.iterdir()) if workdir.exists() else set()
+        with patch(
+            "webstaffr.intake_router.check_dimensions",
+            side_effect=RateLimitExceeded("testclient", "intake", 31, 30, 60),
+        ) as check:
+            resp = self.client.post("/intake", json=_valid_payload())
+
+        self.assertEqual(resp.status_code, 429)
+        self.assertEqual(
+            resp.json()["detail"],
+            "Too many setup requests. Please try again shortly.",
+        )
+        check.assert_called_once()
+        dimensions = check.call_args.args[2]
+        self.assertEqual(dimensions, [("ip", "testclient")])
+
+        conn = sqlite3.connect(self.db_path)
+        try:
+            tenant_count = conn.execute("SELECT COUNT(*) FROM tenants").fetchone()[0]
+            submission_count = conn.execute(
+                "SELECT COUNT(*) FROM intake_submissions"
+            ).fetchone()[0]
+        finally:
+            conn.close()
+        self.assertEqual(tenant_count, 0)
+        self.assertEqual(submission_count, 0)
+
+        sites_after = set(workdir.iterdir()) if workdir.exists() else set()
+        self.assertEqual(sites_after, sites_before)
 
 
 class TestIntakeValidation(IntakeTestCase):

@@ -12,8 +12,9 @@
 <meta property="og:url" content="{{ page_url }}">
 <style>
 :root {
-  --ws-primary: {{ palette.primary }};
-  --ws-primary-dark: {{ palette.primary_dark }};
+  --ws-brand-primary: {{ palette.primary }};
+  --ws-primary: {{ palette.primary_accessible }};
+  --ws-primary-dark: {{ palette.primary_accessible_dark }};
   --ws-primary-light: {{ palette.primary_light }};
   --ws-ink: {{ palette.neutral_dark }};
   --ws-ink-invert: {{ palette.neutral_light }};
@@ -37,8 +38,8 @@
 {% import "site/_icons.html" as icons %}
 <div class="ws-utility-bar">
   <div class="ws-utility-bar-inner">
-    <span class="ws-utility-item">{{ icons.icon('clock', 15) }} Available 24/7</span>
-    {% if site.emergency_service %}<span class="ws-utility-item ws-utility-item-accent">{{ icons.icon('bolt', 15) }} Emergency service</span>{% endif %}
+    <span class="ws-utility-item">{{ site.industry }} service in {{ site.service_area }}</span>
+    {% if has_emergency_service %}<span class="ws-utility-item ws-utility-item-accent">{{ icons.icon('bolt', 15) }} 24/7 emergency service</span>{% endif %}
     <a class="ws-utility-phone" href="tel:{{ site.phone }}">{{ icons.icon('phone', 15) }} {{ site.phone }}</a>
   </div>
 </div>
@@ -69,5 +70,37 @@
 </footer>
 
 <script src="/static/angel-widget.js" data-tenant-id="{{ site.tenant_id }}" data-api-base="{{ api_base }}"></script>
+<script>
+document.querySelectorAll('.ws-lead-form').forEach(function (form) {
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"]');
+    const status = form.querySelector('.ws-lead-status');
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Sending...';
+    status.className = 'ws-lead-status';
+    status.textContent = '';
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(form).entries()))
+      });
+      if (!response.ok) throw new Error('request_failed');
+      const result = await response.json();
+      form.reset();
+      status.className = 'ws-lead-status ws-lead-status-success';
+      status.textContent = 'Request received. Reference: ' + result.lead_id;
+    } catch (error) {
+      status.className = 'ws-lead-status ws-lead-status-error';
+      status.textContent = 'We could not save your request. Please call or email the business directly.';
+    } finally {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  });
+});
+</script>
 </body>
 </html>

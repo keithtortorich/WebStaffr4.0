@@ -6,11 +6,15 @@ business plan PDF for investors.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
+
+from .db import DB_ERRORS, get_connection
 
 landing_router = APIRouter(tags=["public"])
+logger = logging.getLogger("webstaffr.landing_router")
 _INTAKE_PAGE = Path(__file__).parent / "templates" / "intake_start.html"
 
 # Single source of truth for the public contact details. These appear in the
@@ -107,19 +111,18 @@ async def investor_pitch():
 
     pdf_path = os.path.join(os.path.dirname(__file__), "investor_pitch.pdf")
     if os.path.exists(pdf_path):
-        return FileResponse(pdf_path, media_type="application/pdf", filename="WebStaffr_Pitch.pdf")
+        return FileResponse(pdf_path, media_type="application/pdf", filename="NetBuildPro_Pitch.pdf")
 
     # Fallback: return investor summary from INVESTOR_EMAIL_FINAL.md
     return JSONResponse({
         "message": "NetBuild.Pro Investment Overview",
         "narrative": "You don't need more leads. You need to stop losing the ones you already have.",
-        "problem": "27% of home-service calls go unanswered. A single missed job costs $500-$5,000.",
-        "solution": "NetBuild.Pro answers every call 24/7. $497/month. Built for contractors.",
-        "unit_economics": {
-            "arpu_monthly": 487,
-            "gross_margin_pct": 88,
-            "cac_payback_months": 4,
-            "ltv": 8500
+        "problem": "Home-service contractors need a reliable way to capture incoming demand while they are working.",
+        "solution": "NetBuild.Pro builds the customer site first, then activates call handling, CRM routing, and booking after each approved integration is verified.",
+        "pricing": {
+            "essentials_monthly": 497,
+            "pro_monthly": 2497,
+            "growth": "custom"
         },
         "ask": "$15K-50K SAFE",
         "contact": {
@@ -131,24 +134,26 @@ async def investor_pitch():
 
 
 @landing_router.get("/demos/{trade}")
-async def demo_redirect(trade: str):
-    """Redirect demo site links to live customer sites.
-
-    /demos/hvac → /sites/demo-hvac/web
-    /demos/plumbing → /sites/demo-plumbing/web
-    etc.
-    """
+async def demo_redirect(trade: str, request: Request):
+    """Redirect only to a demo tenant that is actually provisioned."""
     from fastapi.responses import RedirectResponse
 
-    valid_trades = [
-        "salon", "contractor", "restaurant", "medspa", "dentist",
-        "plumbing", "electrician", "realestate", "lawfirm", "gym"
-    ]
-
-    if trade.lower() not in valid_trades:
-        return {"error": f"Demo for '{trade}' not found. Available: {', '.join(valid_trades)}"}
-
     tenant_id = f"demo-{trade.lower()}"
+    try:
+        conn = get_connection(request.app.state.db_path)
+        try:
+            exists = conn.execute(
+                "SELECT 1 FROM tenants WHERE tenant_id = ?",
+                (tenant_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+    except DB_ERRORS as exc:
+        logger.error("demo_lookup_failed error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=503, detail="Demo lookup unavailable") from exc
+
+    if not exists:
+        raise HTTPException(status_code=404, detail="Demo not found")
     return RedirectResponse(url=f"/sites/{tenant_id}/web", status_code=302)
 
 
@@ -208,107 +213,85 @@ _LANDING_PAGE_HTML = """
     </header>
 
     <div class="hook">
-        <h2>You left money on the table this week.</h2>
-        <p class="subhead">NetBuild.Pro answers your phone so you don't lose jobs you already paid to generate.</p>
+        <h2>Turn more incoming calls into booked work.</h2>
+        <p class="subhead">NetBuild.Pro gives home-service businesses a customer-ready site and an integrated receptionist workflow.</p>
     </div>
 
     <div class="container">
         <div class="math-box">
-            <h3>The Math</h3>
-            <p><strong>27% of home service calls go unanswered.</strong> Most don't call back.</p>
-            <p>A single missed job costs <strong>$500 to $5,000</strong>. Lose 10 calls a week, you're walking away from <strong>$16,000 a month</strong> in revenue.</p>
-            <p>NetBuild.Pro costs <strong>$497/month</strong> and answers every call.</p>
-            <p class="no-ai">No software. No AI. No chatbot. A 24/7 receptionist that qualifies leads and books appointments.</p>
+            <h3>What NetBuild.Pro Sets Up</h3>
+            <p><strong>Your customer site:</strong> services, service area, contact details, and Angel chat built from the business information you provide.</p>
+            <p><strong>Your receptionist workflow:</strong> call handling, lead routing, and booking are activated after your approved phone, calendar, GHL, and Retell integrations are configured and verified.</p>
+            <p>Your site can go live first. Voice and CRM automation are not represented as active until their integrations pass an end-to-end check.</p>
         </div>
 
         <div class="pricing">
             <h3>Pick Your Plan</h3>
-            <p>Start free for 14 days. No credit card. Cancel anytime.</p>
+            <p>Choose the service level that matches the work you want NetBuild.Pro to manage.</p>
             <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h4>Test Drive</h4>
-                    <p style="color: #8b5cf6;">14 days free</p>
-                    <p style="font-size: 0.9rem;">Try it risk-free</p>
-                </div>
                 <div class="pricing-card featured">
-                    <h4>Office Staff</h4>
+                    <h4>Essentials</h4>
                     <div class="price">$497</div>
                     <p style="font-size: 0.9rem;">/month. Most popular.</p>
-                    <a href="/start" class="start-link" style="display:block; background:#FF6600; color:white; width:100%; margin-top:12px; padding:12px 24px; border-radius:6px; font-weight:600; text-decoration:none;">Start Free</a>
+                    <a href="/start" class="start-link" style="display:block; background:#FF6600; color:white; width:100%; margin-top:12px; padding:12px 24px; border-radius:6px; font-weight:600; text-decoration:none;">Start Setup</a>
                 </div>
                 <div class="pricing-card">
-                    <h4>Business Manager</h4>
+                    <h4>Pro</h4>
                     <div class="price">$2,497</div>
                     <p style="font-size: 0.9rem;">/month. Full front office.</p>
                 </div>
                 <div class="pricing-card">
-                    <h4>White-Glove</h4>
+                    <h4>Growth</h4>
                     <p style="color: #FF6600;">Custom pricing</p>
                     <p style="font-size: 0.9rem;">Enterprise support</p>
                 </div>
             </div>
         </div>
 
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h3>See It Live</h3>
-            <div class="demo-links">
-                <a href="/demos/hvac" class="demo-link">HVAC</a>
-                <a href="/demos/plumbing" class="demo-link">Plumbing</a>
-                <a href="/demos/electrical" class="demo-link">Electrical</a>
-                <a href="/demos/roofing" class="demo-link">Roofing</a>
-                <a href="/demos/water-damage" class="demo-link">Water Damage</a>
-                <a href="/demos/garage-door" class="demo-link">Garage Door</a>
-                <a href="/demos/pest-control" class="demo-link">Pest Control</a>
-                <a href="/demos/landscaping" class="demo-link">Landscaping</a>
-                <a href="/demos/tree-service" class="demo-link">Tree Service</a>
-                <a href="/demos/cleaning" class="demo-link">Cleaning</a>
-            </div>
-        </div>
-
         <div class="faq">
             <h3>Common Questions</h3>
             <div class="faq-item">
-                <div class="faq-question">Fair?</div>
-                <div class="faq-answer">You get $16K in monthly calls answered. We get $497. Fair.</div>
+                <div class="faq-question">What is included at setup?</div>
+                <div class="faq-answer">We collect your business details, generate your customer site, and prepare the integration checklist for the receptionist workflow.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">What's the real concern here?</div>
-                <div class="faq-answer">That it won't work as well as a human. It will. We use proven voice AI and your team's own sales process. Faster, cheaper, on-call.</div>
+                <div class="faq-question">When does call handling become active?</div>
+                <div class="faq-answer">After the approved phone, Retell, calendar, and CRM configuration passes a controlled end-to-end verification.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">Can I cancel?</div>
-                <div class="faq-answer">Yes. Anytime. No contract.</div>
+                <div class="faq-question">Can the site launch before the voice workflow?</div>
+                <div class="faq-answer">Yes. Site generation and voice activation are verified separately, so neither is represented as live before it is ready.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">How fast does it book?</div>
-                <div class="faq-answer">Instantly. Appointments go straight to your calendar and GHL. Caller gets a confirmation text.</div>
+                <div class="faq-question">How does booking work?</div>
+                <div class="faq-answer">Booking uses your approved calendar and GHL configuration. The workflow is activated only after a test appointment is created, observed, and safely removed or retained as agreed.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">Does it need my sales process?</div>
                 <div class="faq-answer">Yes. We import your intake questions, your pricing, your objection responses. It sounds like your team.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">What if I'm not ready?</div>
-                <div class="faq-answer">Fourteen days free. Set it up, try it with real calls, decide after.</div>
+                <div class="faq-question">What if an integration is not ready?</div>
+                <div class="faq-answer">It stays disabled while the site and other verified parts continue to operate.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">What if a call is weird?</div>
-                <div class="faq-answer">It transfers to you or voicemail. You stay in control.</div>
+                <div class="faq-question">Who controls the business information?</div>
+                <div class="faq-answer">You provide the services, service area, credentials, pricing signals, and escalation rules. NetBuild.Pro does not invent them.</div>
             </div>
             <div class="faq-item">
-                <div class="faq-question">Will my customers notice?</div>
-                <div class="faq-answer">No. They get a fast answer and a real person if they ask. That's all they need.</div>
+                <div class="faq-question">How are failures handled?</div>
+                <div class="faq-answer">Each integration has a readiness check and rollback procedure. A failed external sync must not erase the local customer record.</div>
             </div>
             <div class="faq-item">
                 <div class="faq-question">What's next?</div>
-                <div class="faq-answer">Click below. Pick a date. We'll call you to set it up. Fourteen days later, decide.</div>
+                <div class="faq-answer">Complete the setup form. We will use the submitted business information to generate your site and identify the remaining activation steps.</div>
             </div>
         </div>
 
         <div class="cta-section">
-            <h3>Stop Leaving Money on the Table</h3>
-            <p>Start your free 14-day trial. Answers every call while you work.</p>
-            <a href="/start" class="start-link" style="display:inline-block; background:#FF6600; color:white; font-size:1.1rem; padding:14px 28px; margin-top:16px; border-radius:6px; font-weight:600; text-decoration:none;">Get Started Free</a>
+            <h3>Build Your Customer Site</h3>
+            <p>Start with verified business information. Activate voice and CRM automation after their integrations are ready.</p>
+            <a href="/start" class="start-link" style="display:inline-block; background:#FF6600; color:white; font-size:1.1rem; padding:14px 28px; margin-top:16px; border-radius:6px; font-weight:600; text-decoration:none;">Start Setup</a>
             <p style="margin-top: 16px; font-size: 0.95rem;">Questions? Call <a href="tel:__CONTACT_PHONE_TEL__" style="color: #FF6600; text-decoration: none;">__CONTACT_PHONE__</a> or email __CONTACT_EMAIL__</p>
         </div>
     </div>

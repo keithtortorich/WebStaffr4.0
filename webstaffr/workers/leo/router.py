@@ -133,8 +133,8 @@ def _sms_template_tier_1_2(business_name: Optional[str] = None) -> str:
     """SMS template for Tier 1-2 leads (call-led immediate/same-day follow-up).
     Compact, CTA-focused, asks for callback or demo link."""
     if business_name:
-        return f"Hi! We noticed {business_name} is missing calls. WebStaffr recovers those 24/7 as your virtual receptionist. Quick 10-min demo? Reply YES"
-    return "Hi! You're missing calls that cost you revenue. WebStaffr is a 24/7 virtual receptionist for your business. Quick 10-min demo? Reply YES"
+        return f"Hi! NetBuild.Pro helps businesses like {business_name} capture customer requests through a dedicated site and verified call-handling workflow. Would you like details? Reply YES"
+    return "Hi! NetBuild.Pro combines a customer site with verified call handling and lead routing. Would you like details? Reply YES"
 
 
 def _email_template_tier_3(business_name: Optional[str] = None, contact_name: Optional[str] = None) -> tuple[str, str]:
@@ -144,27 +144,27 @@ def _email_template_tier_3(business_name: Optional[str] = None, contact_name: Op
     if business_name:
         body = f"""{greeting}
 
-You're likely leaving money on the table every week — missed calls that your team never hears about.
+Customer requests can arrive while your team is busy in the field.
 
-WebStaffr acts as your 24/7 virtual receptionist, capturing every inbound call and routing it to the right person or taking a message. Built for contractors: HVAC, plumbing, electrical, and more.
+NetBuild.Pro combines a customer-ready site with lead capture and a call-handling workflow that is activated after its integrations are verified.
 
-See how other {business_name}-type businesses are recovering lost calls: [demo link]
+If that workflow is relevant to {business_name}, reply and we will share the current setup details.
 
 Talk soon,
-WebStaffr"""
+NetBuild.Pro"""
     else:
         body = f"""{greeting}
 
-You're likely leaving money on the table every week — missed calls that your team never hears about.
+Customer requests can arrive while your team is busy in the field.
 
-WebStaffr acts as your 24/7 virtual receptionist, capturing every inbound call and routing it to the right person or taking a message.
+NetBuild.Pro combines a customer-ready site with lead capture and a call-handling workflow that is activated after its integrations are verified.
 
-See how other businesses are recovering lost calls: [demo link]
+Reply if you would like the current setup details.
 
 Talk soon,
-WebStaffr"""
+NetBuild.Pro"""
 
-    subject = f"Recover your missed calls with {business_name}" if business_name else "You're missing calls. Here's how much they cost."
+    subject = f"Customer-request workflow for {business_name}" if business_name else "Customer site and call-handling workflow"
     return subject, body
 
 

@@ -37,6 +37,7 @@ from .intake_router import intake_router
 from .landing_router import landing_router
 from .site_render_router import site_render_router
 from .site_router import site_router
+from .website_lead_router import create_website_lead_router
 from .security_middleware import RequestBodyLimitMiddleware, SecurityHeadersMiddleware
 from .workers.angel.api_auth import SharedSecretVerifier, internal_api_verifier_from_env
 from .workers.angel.ghl import GHLClient
@@ -217,6 +218,7 @@ def create_app(
     app.include_router(intake_router)
     app.include_router(site_router)
     app.include_router(site_render_router)
+    app.include_router(create_website_lead_router(ghl_client=ghl_client))
     app.include_router(create_auth_router(customer_authorizer))
     app.include_router(create_attribution_router(customer_authorizer))
     app.include_router(social_media_router)
@@ -261,7 +263,10 @@ def create_app(
     app.include_router(
         create_leo_router(
             db_path=db_path,
-            ghl_messaging_client=ghl_messaging_client or ghl_client,
+            # Deliberately separate from the general GHL client. Configuring
+            # CRM sync for Angel must not silently activate automated SMS or
+            # email outreach before the TCPA/DNC gate is cleared.
+            ghl_messaging_client=ghl_messaging_client,
             ghl_webhook_verifier=ghl_webhook_verifier,
             internal_api_verifier=active_internal_api_verifier,
         )
@@ -301,7 +306,11 @@ def create_app(
 
     @app.get("/health")
     def health() -> dict:
-        return {"status": "ok"}
+        payload = {"status": "ok"}
+        release = _os.environ.get("VERCEL_GIT_COMMIT_SHA", "").strip()
+        if release:
+            payload["release"] = release
+        return payload
 
     if _KOKORO_TTS_URL:
         @app.post("/v1/audio/speech")
@@ -380,16 +389,26 @@ def _ghl_client_from_env() -> Optional[GHLClient]:
     return None
 
 
+def _leo_outreach_enabled_from_env() -> bool:
+    """Require an explicit activation flag for automated outbound messaging."""
+    return _os.environ.get("LEO_OUTREACH_ENABLED", "").strip().lower() == "true"
+
+
 # Default app instance for `uvicorn webstaffr.app:app` (local dev) and for
 # the Vercel entrypoint at /index.py (deployed). db_path and backends are
 # picked up from environment at process start -- set WEBSTAFFR_DB_PATH,
 # DATABASE_URL, GHL_API_KEY/GHL_LOCATION_ID, etc. as Vercel project
 # environment variables. No Dockerfile/docker-compose in this repo --
 # deployment is Vercel, not containers.
+_default_ghl_client = _ghl_client_from_env()
+
 app = create_app(
     db_path=_os.environ.get("WEBSTAFFR_DB_PATH", "webstaffr.db"),
     voice_backend=_backend_from_env(),
-    ghl_client=_ghl_client_from_env(),
+    ghl_client=_default_ghl_client,
+    ghl_messaging_client=(
+        _default_ghl_client if _leo_outreach_enabled_from_env() else None
+    ),
     retell_verifier=None,  # resolved from RETELL_WEBHOOK_SECRET inside create_retell_router()
     ghl_webhook_verifier=None,  # resolved from GHL_WEBHOOK_SECRET inside create_angel_router()
     book_api_verifier=None,  # resolved from BOOK_API_KEY inside create_angel_router()

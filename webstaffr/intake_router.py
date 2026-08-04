@@ -25,6 +25,11 @@ from .intake import (
 )
 from .site_magic_engine import generate_site_for_submission, resolve_site_workdir
 from .trade_presets import SUPPORTED_INDUSTRIES, get_preset
+from .rate_limit import (
+    RateLimitExceeded,
+    check_dimensions,
+    direct_client_ip,
+)
 
 logger = logging.getLogger("webstaffr.intake_router")
 
@@ -128,11 +133,23 @@ def submit_intake(req: IntakeRequest, request: Request) -> IntakeResponse:
     except IntakeValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    tenant_id = generate_tenant_id(req.biz_name)
-    submission = IntakeSubmission.from_payload(tenant_id, data)
-
     conn = _get_connection(request)
     try:
+        try:
+            check_dimensions(
+                conn,
+                "intake",
+                [("ip", direct_client_ip(request))],
+            )
+        except RateLimitExceeded as exc:
+            conn.commit()
+            raise HTTPException(
+                status_code=429,
+                detail="Too many setup requests. Please try again shortly.",
+            ) from exc
+
+        tenant_id = generate_tenant_id(req.biz_name)
+        submission = IntakeSubmission.from_payload(tenant_id, data)
         repo = IntakeRepository(conn)
         repo.save(submission)
         # Every tenant gets a tracking number the moment they have a real
