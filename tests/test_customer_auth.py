@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from webstaffr.app import create_app
@@ -77,6 +78,11 @@ class TestSupabaseIdentityVerifier:
         with patch.dict(os.environ, {}, clear=True):
             assert isinstance(identity_verifier_from_env(), DenyAllIdentityVerifier)
 
+    def test_private_cors_wildcard_configuration_is_rejected(self):
+        with patch.dict(os.environ, {"CUSTOMER_ALLOWED_ORIGINS": "*"}):
+            with pytest.raises(ValueError, match="exact http\\(s\\) origins"):
+                create_app()
+
 
 class TestCustomerAuthorization:
     def setup_method(self):
@@ -92,6 +98,7 @@ class TestCustomerAuthorization:
         app = create_app(
             db_path=self.db_path,
             customer_identity_verifier=StaticIdentityVerifier(self.identity),
+            customer_allowed_origins={"https://dashboard.example"},
         )
         self.client = TestClient(app)
         self.client.__enter__()
@@ -202,4 +209,13 @@ class TestCustomerAuthorization:
             headers={"Origin": "https://dashboard.example"},
         )
         assert response.status_code == 200
-        assert response.headers["access-control-allow-origin"] == "*"
+        assert response.headers["access-control-allow-origin"] == "https://dashboard.example"
+        assert response.headers["access-control-allow-credentials"] == "true"
+
+    def test_auth_routes_reject_unlisted_cross_origin(self):
+        response = self.client.options(
+            "/auth/session",
+            headers={"Origin": "https://attacker.example"},
+        )
+        assert response.status_code == 403
+        assert "access-control-allow-origin" not in response.headers

@@ -21,7 +21,8 @@ from __future__ import annotations
 import logging
 import os as _os
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import AbstractSet, Optional
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -81,7 +82,8 @@ _SERVICETITAN_POLL_PATH = "/integrations/servicetitan/poll"
 # /book has no browser caller today. Scoping here means adding a
 # browser-facing caller for /book later requires a deliberate change to
 # this set, not an accidental side effect of an app-wide wildcard.
-_CORS_SCOPED_PATHS = {"/chat", "/intake", "/auth/session", "/auth/logout"}
+_PUBLIC_CORS_PATHS = {"/chat", "/intake"}
+_PRIVATE_CORS_PATHS = {"/auth/session", "/auth/logout"}
 # /tenants/{tenant_id}/{metrics,calls,tracking-number} are read by the
 # Lovable dashboard client-side, same reasoning as /sites/{tenant_id} --
 # see _CORS_SCOPED_PREFIXES below, where the actual prefix is registered
@@ -89,30 +91,74 @@ _CORS_SCOPED_PATHS = {"/chat", "/intake", "/auth/session", "/auth/logout"}
 # Prefixes rather than exact paths, for routes with a path parameter
 # (/intake/presets/{industry}, /sites/{tenant_id}) -- exact-match
 # membership in _CORS_SCOPED_PATHS can't match a dynamic segment.
-_CORS_SCOPED_PREFIXES = ("/intake/presets", "/sites/", "/tenants/")
+_PUBLIC_CORS_PREFIXES = ("/intake/presets", "/sites/")
+_PRIVATE_CORS_PREFIXES = ("/tenants/",)
+
+
+def _customer_allowed_origins_from_env() -> frozenset[str]:
+    """Parse exact private-dashboard origins; wildcard and URL paths are invalid."""
+    raw = _os.environ.get("CUSTOMER_ALLOWED_ORIGINS", "")
+    origins: set[str] = set()
+    for item in raw.split(","):
+        origin = item.strip().rstrip("/")
+        if not origin:
+            continue
+        parsed = urlsplit(origin)
+        if (
+            origin == "*"
+            or parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+            or parsed.username
+            or parsed.password
+        ):
+            raise ValueError("CUSTOMER_ALLOWED_ORIGINS must contain exact http(s) origins")
+        origins.add(origin)
+    return frozenset(origins)
 
 
 class ScopedCORSMiddleware(BaseHTTPMiddleware):
-    """CORS restricted to `_CORS_SCOPED_PATHS`/`_CORS_SCOPED_PREFIXES`,
-    replacing FastAPI's CORSMiddleware which is app-wide only. Origin
-    stays wildcarded per-path rather than app-wide, so /book and
-    /webhooks/ghl never accidentally pick up CORS headers meant for the
-    browser-facing routes."""
+    """Keep public embed CORS separate from private credentialed CORS.
+
+    Public widget/intake routes remain readable from arbitrary customer
+    sites. Auth and dashboard routes accept cross-origin requests only from
+    exact configured origins and emit credentials support for a future
+    HttpOnly-cookie transport. Moving tokens into cookies additionally
+    requires CSRF protection and a deliberate SameSite policy review.
+    """
+
+    def __init__(self, app, customer_allowed_origins: AbstractSet[str]):
+        super().__init__(app)
+        self._customer_allowed_origins = frozenset(customer_allowed_origins)
 
     async def dispatch(self, request: Request, call_next):
         origin = request.headers.get("origin")
         path = request.url.path
-        scoped = path in _CORS_SCOPED_PATHS or path.startswith(_CORS_SCOPED_PREFIXES)
+        public = path in _PUBLIC_CORS_PATHS or path.startswith(_PUBLIC_CORS_PREFIXES)
+        private = path in _PRIVATE_CORS_PATHS or path.startswith(_PRIVATE_CORS_PREFIXES)
+        private_origin_allowed = private and origin in self._customer_allowed_origins
 
-        if scoped and request.method == "OPTIONS":
+        if private and origin and not private_origin_allowed:
+            return Response(status_code=403)
+        if (public or private_origin_allowed) and request.method == "OPTIONS":
             response = Response(status_code=200)
         else:
             response = await call_next(request)
 
-        if scoped and origin:
+        if public and origin:
             response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "*"
+        elif private_origin_allowed:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Authorization, Content-Type, X-Correlation-ID"
+            )
+            response.headers["Vary"] = "Origin"
 
         return response
 
@@ -129,6 +175,7 @@ def create_app(
     stripe_webhook_verifier: Optional[SharedSecretVerifier] = None,
     internal_api_verifier: Optional[SharedSecretVerifier] = None,
     customer_identity_verifier: Optional[IdentityVerifier] = None,
+    customer_allowed_origins: Optional[AbstractSet[str]] = None,
     max_request_body_bytes: int = 1_048_576,
 ) -> FastAPI:
     """Factory rather than a module-level app instance, so tests (and any
@@ -241,7 +288,14 @@ def create_app(
     # the same for /intake. Scoped to just those paths -- see
     # ScopedCORSMiddleware above -- rather than an app-wide wildcard, which
     # would also cover /book and /webhooks/ghl as an unintended side effect.
-    app.add_middleware(ScopedCORSMiddleware)
+    app.add_middleware(
+        ScopedCORSMiddleware,
+        customer_allowed_origins=(
+            frozenset(customer_allowed_origins)
+            if customer_allowed_origins is not None
+            else _customer_allowed_origins_from_env()
+        ),
+    )
     app.add_middleware(RequestBodyLimitMiddleware, max_bytes=max_request_body_bytes)
     app.add_middleware(SecurityHeadersMiddleware)
 
