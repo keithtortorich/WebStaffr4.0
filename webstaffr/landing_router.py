@@ -204,6 +204,25 @@ _LANDING_PAGE_HTML = """
         .demo-link { background: white; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; text-decoration: none; color: #1f2937; text-align: center; transition: all 0.2s; }
         .demo-link:hover { border-color: #FF6600; transform: translateY(-2px); }
         .no-ai { font-size: 0.9rem; color: #6b7280; font-style: italic; margin-top: 16px; }
+
+        /* Motion: entrance reveals + micro-interactions (Emil Kowalski rules:
+           scale from 0.95 not 0, purpose-driven timing, respects reduced-motion) */
+        .reveal { opacity: 0; transform: translateY(16px) scale(0.98);
+            transition: opacity 480ms cubic-bezier(0.23,1,0.32,1), transform 480ms cubic-bezier(0.23,1,0.32,1); }
+        .reveal.is-visible { opacity: 1; transform: translateY(0) scale(1); }
+        header { animation: fadeInDown 420ms cubic-bezier(0.23,1,0.32,1) both; }
+        .hook h2 { animation: fadeInUp 560ms cubic-bezier(0.23,1,0.32,1) 80ms both; }
+        .hook .subhead { animation: fadeInUp 560ms cubic-bezier(0.23,1,0.32,1) 180ms both; }
+        @keyframes fadeInDown { from { opacity:0; transform:translateY(-12px);} to { opacity:1; transform:translateY(0);} }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(18px);} to { opacity:1; transform:translateY(0);} }
+        .pricing-card { transition: transform 200ms cubic-bezier(0.23,1,0.32,1), box-shadow 200ms cubic-bezier(0.23,1,0.32,1); }
+        .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        button, .start-link { transition: transform 140ms cubic-bezier(0.23,1,0.32,1), background 140ms ease; }
+        button:active, .start-link:active { transform: scale(0.97); }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal, header, .hook h2, .hook .subhead { animation:none!important; transition:none!important; opacity:1!important; transform:none!important; }
+            .pricing-card:hover, .demo-link:hover, button:active, .start-link:active { transform:none!important; }
+        }
     </style>
 </head>
 <body>
@@ -218,14 +237,14 @@ _LANDING_PAGE_HTML = """
     </div>
 
     <div class="container">
-        <div class="math-box">
+        <div class="math-box reveal">
             <h3>What NetBuild.Pro Sets Up</h3>
             <p><strong>Your customer site:</strong> services, service area, contact details, and Angel chat built from the business information you provide.</p>
             <p><strong>Your receptionist workflow:</strong> call handling, lead routing, and booking are activated after your approved phone, calendar, GHL, and Retell integrations are configured and verified.</p>
             <p>Your site can go live first. Voice and CRM automation are not represented as active until their integrations pass an end-to-end check.</p>
         </div>
 
-        <div class="pricing">
+        <div class="pricing reveal">
             <h3>Pick Your Plan</h3>
             <p>Choose the service level that matches the work you want NetBuild.Pro to manage.</p>
             <div class="pricing-grid">
@@ -248,7 +267,7 @@ _LANDING_PAGE_HTML = """
             </div>
         </div>
 
-        <div class="faq">
+        <div class="faq reveal">
             <h3>Common Questions</h3>
             <div class="faq-item">
                 <div class="faq-question">What is included at setup?</div>
@@ -288,13 +307,34 @@ _LANDING_PAGE_HTML = """
             </div>
         </div>
 
-        <div class="cta-section">
+        <div class="cta-section reveal">
             <h3>Build Your Customer Site</h3>
             <p>Start with verified business information. Activate voice and CRM automation after their integrations are ready.</p>
             <a href="/start" class="start-link" style="display:inline-block; background:#FF6600; color:white; font-size:1.1rem; padding:14px 28px; margin-top:16px; border-radius:6px; font-weight:600; text-decoration:none;">Start Setup</a>
             <p style="margin-top: 16px; font-size: 0.95rem;">Questions? Call <a href="tel:__CONTACT_PHONE_TEL__" style="color: #FF6600; text-decoration: none;">__CONTACT_PHONE__</a> or email __CONTACT_EMAIL__</p>
         </div>
     </div>
+    <script>
+        // Scroll-reveal for .reveal sections. No-op (all visible) if IntersectionObserver
+        // is unavailable or the user prefers reduced motion.
+        (function () {
+            var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var targets = document.querySelectorAll('.reveal');
+            if (prefersReduced || !('IntersectionObserver' in window)) {
+                targets.forEach(function (el) { el.classList.add('is-visible'); });
+                return;
+            }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+            targets.forEach(function (el) { io.observe(el); });
+        })();
+    </script>
 </body>
 </html>
 """
