@@ -30,6 +30,31 @@ a:hover { text-decoration: underline; }
 
 .ws-icon { display: inline-block; vertical-align: -3px; flex-shrink: 0; }
 
+/* Motion: entrance + scroll-reveal (Emil Kowalski rules: start from
+   scale(0.98)/opacity 0 not scale(0), purpose-driven timing, respects
+   prefers-reduced-motion). Applied by selector so no template changes
+   are needed per customer site. */
+.ws-hero { animation: ws-fade-in-up 560ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+.ws-section {
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition: opacity 480ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 480ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ws-section.ws-is-visible { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes ws-fade-in-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-hero, .ws-section {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 .ws-visually-hidden {
   position: absolute;
   width: 1px;
