@@ -431,10 +431,9 @@ def build_page_context(
         palette_config = design.get('palette_config', {})
         if palette_config:
             # Generate palette from optimized HSL values
-            from .site_renderer import _hsl_to_hex
-            h = palette_config.get('base_hue', 215) / 360.0
+            h = palette_config.get('hue', 210) / 360.0
             s = palette_config.get('sat', 75) / 100.0
-            l = palette_config.get('light', 50) / 100.0
+            l = palette_config.get('light', 45) / 100.0
             optimized_primary = _hsl_to_hex(h, l, s)
             site_data['brand_colors'] = optimized_primary
     
