@@ -187,6 +187,7 @@ class AttributionRouterTestCase(unittest.TestCase):
         app = create_app(
             db_path=self.db_path,
             customer_identity_verifier=_IdentityVerifier(identity),
+            customer_allowed_origins={"https://example-customer-site.com"},
         )
         self._client_ctx = TestClient(app)
         self.client = self._client_ctx.__enter__()
@@ -279,7 +280,20 @@ class TestAttributionCORSScoping(AttributionRouterTestCase):
             headers=self._auth_headers(Origin="https://example-customer-site.com"),
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("access-control-allow-origin", resp.headers)
+        self.assertEqual(
+            resp.headers["access-control-allow-origin"],
+            "https://example-customer-site.com",
+        )
+        self.assertEqual(resp.headers["access-control-allow-credentials"], "true")
+
+    def test_tenants_prefix_rejects_unlisted_cross_origin(self):
+        tenant_id = self._submit_intake()
+        resp = self.client.get(
+            f"/tenants/{tenant_id}/metrics",
+            headers=self._auth_headers(Origin="https://attacker.example"),
+        )
+        self.assertEqual(resp.status_code, 403)
+        self.assertNotIn("access-control-allow-origin", resp.headers)
 
     def test_book_endpoint_still_has_no_cors(self):
         """Regression guard: adding '/tenants/' to _CORS_SCOPED_PREFIXES

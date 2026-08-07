@@ -38,7 +38,7 @@
         <a href="tel:{{ site.phone }}" style="display:inline-flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:500; color:var(--ws-primary);">
           {{ icons.icon('phone', 18) }} {{ site.phone }}
         </a>
-        <p style="color:var(--ws-muted); margin-top:8px; font-size:0.9rem;">Call us for immediate assistance</p>
+        <p style="color:var(--ws-muted); margin-top:8px; font-size:0.9rem;">Call us about your service request</p>
       </div>
 
       <div>
@@ -63,22 +63,28 @@
     <div class="ws-section-header" style="margin:0 auto; text-align:center;">
       <div class="ws-eyebrow">Ready to get started?</div>
       <h2>Tell Us What You Need</h2>
-      <p class="ws-body-text" style="margin:12px auto 0;">Provide a little info and we'll respond within 1 hour.</p>
+      <p class="ws-body-text" style="margin:12px auto 0;">Provide your contact information and a short description of what you need.</p>
     </div>
 
-    <form class="ws-lead-form" action="{{ api_base }}/intake" method="post">
-      <input type="hidden" name="industry" value="{{ site.industry }}" />
-      <input type="hidden" name="service_area" value="{{ site.service_area }}" />
+    <form class="ws-lead-form" action="{{ lead_endpoint }}" method="post">
+      <input type="hidden" name="source_path" value="{{ lead_source_path }}" />
       <label class="ws-visually-hidden" for="lead-name">Your Name</label>
       <input type="text" id="lead-name" placeholder="Your Name" name="name" required />
       <label class="ws-visually-hidden" for="lead-phone">Phone Number</label>
       <input type="tel" id="lead-phone" placeholder="Phone Number" name="phone" required />
       <label class="ws-visually-hidden" for="lead-email">Email</label>
       <input type="email" id="lead-email" placeholder="Email" name="email" required />
+      <label class="ws-visually-hidden" for="lead-message">What do you need?</label>
+      <textarea id="lead-message" placeholder="What do you need?" name="message" required></textarea>
+      <div class="ws-honeypot" aria-hidden="true">
+        <label for="lead-website">Website</label>
+        <input type="text" id="lead-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
       <button type="submit" class="ws-btn ws-btn-primary">Submit &rarr;</button>
+      <div class="ws-lead-status" role="status" aria-live="polite"></div>
     </form>
 
-    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} We'll respond within 1 business hour</div>
+    <div class="ws-lead-disclaimer">{{ icons.icon('check', 13) }} Your request goes directly to {{ site.biz_name }}</div>
   </div>
 </section>
 
@@ -92,8 +98,8 @@
 
     <div class="ws-faq-list">
       <div class="ws-faq-item">
-        <h3>What's your response time?</h3>
-        <p>We aim to respond to all inquiries within 1 business hour. For urgent matters, call {{ site.phone }} to speak with us directly.</p>
+        <h3>How do I reach you directly?</h3>
+        <p>Call {{ site.phone }} or email {{ site.email }}.</p>
       </div>
 
       <div class="ws-faq-item">
@@ -102,13 +108,8 @@
       </div>
 
       <div class="ws-faq-item">
-        <h3>Do you offer free estimates?</h3>
-        <p>Yes. Contact us today for a free estimate with no obligation.</p>
-      </div>
-
-      <div class="ws-faq-item">
         <h3>How do I schedule a service?</h3>
-        <p>Call {{ site.phone }} directly or use the contact form above. We'll confirm your appointment and answer any questions you have.</p>
+        <p>Call {{ site.phone }} directly or use the contact form above to request service.</p>
       </div>
     </div>
   </div>

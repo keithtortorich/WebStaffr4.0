@@ -90,7 +90,7 @@
   - Unset -> every protected internal request is denied.
 - **Security**: never commit. Same as above.
 
-### 7. `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` (customer authentication)
+### 7. `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY` + `CUSTOMER_ALLOWED_ORIGINS` (customer authentication)
 - **Purpose**: verifies customer dashboard bearer tokens against Supabase
   Auth before resolving a local session and tenant membership.
 - **Behavior**:
@@ -104,6 +104,16 @@
   out of Supabase for immediate application-side revocation.
 - **Authorization data**: roles come only from `tenant_memberships` in
   trusted storage. User-editable Supabase metadata is never authoritative.
+- **Private browser origins**: `CUSTOMER_ALLOWED_ORIGINS` is a comma-separated
+  list of exact origins such as `https://dashboard.netbuild.pro`. Wildcards,
+  URL paths, query strings, fragments, and embedded credentials are rejected.
+  When unset, private cross-origin `/auth/*` and `/tenants/*` requests are
+  denied; same-origin requests still work. Public widget/site routes retain
+  their separate wildcard CORS behavior.
+- **Cookie readiness**: private allowlisted responses include credentialed
+  CORS headers, but the current application still uses Bearer tokens. Before
+  adopting HttpOnly cookies, add CSRF protection and explicitly review the
+  cookie `Secure`, `HttpOnly`, `SameSite`, domain, path, and lifetime settings.
 - **Security**: the publishable key is not a service-role secret, but keep
   environment configuration centralized. Never use a Supabase secret or
   service-role key in a browser client.
@@ -173,6 +183,7 @@ BOOK_API_KEY=choose_your_own_api_key_here
 INTERNAL_API_KEY=choose_a_separate_internal_api_key_here
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
+CUSTOMER_ALLOWED_ORIGINS=http://localhost:3000
 WEBSTAFFR_DB_PATH=./webstaffr.db
 EOF
 

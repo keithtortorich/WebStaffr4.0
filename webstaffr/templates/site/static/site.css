@@ -301,9 +301,14 @@ button:focus-visible,
 .ws-cities li { background: white; padding: 4px 14px; border-radius: 4px; font-size: 0.85rem; color: var(--ws-muted); border: 1px solid var(--ws-border); }
 
 .ws-lead-form { max-width: 440px; margin: 32px auto 0; display: flex; flex-direction: column; gap: 12px; }
-.ws-lead-form input { padding: 16px 20px; border-radius: 4px; border: 1px solid var(--ws-border); background: white; color: var(--ws-ink); font-size: 1rem; }
-.ws-lead-form input:focus { outline: 2px solid var(--ws-primary); background: white; }
+.ws-lead-form input, .ws-lead-form textarea { padding: 16px 20px; border-radius: 4px; border: 1px solid var(--ws-border); background: white; color: var(--ws-ink); font: inherit; }
+.ws-lead-form textarea { min-height: 120px; resize: vertical; }
+.ws-lead-form input:focus, .ws-lead-form textarea:focus { outline: 2px solid var(--ws-primary); background: white; }
 .ws-lead-form .ws-btn { width: 100%; padding: 18px; font-size: 1.05rem; }
+.ws-honeypot { position: absolute !important; left: -10000px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
+.ws-lead-status { min-height: 1.5rem; font-size: 0.9rem; }
+.ws-lead-status-success { color: #12633a; }
+.ws-lead-status-error { color: #9b241b; }
 
 .ws-lead-disclaimer { font-size: 0.8rem; color: var(--ws-muted); margin-top: 12px; }
 

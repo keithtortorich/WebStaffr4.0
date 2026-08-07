@@ -29,7 +29,8 @@ See `CREDENTIALS.md` for a complete list of required env vars:
 - `GHL_API_KEY` + `GHL_LOCATION_ID` (GoHighLevel sync)
 - `RETELL_WEBHOOK_SECRET` (Retell voice webhooks)
 - `BOOK_API_KEY` / `INTERNAL_API_KEY` / `GHL_WEBHOOK_SECRET` (endpoint auth)
-- `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` (customer dashboard identity)
+- `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` / `CUSTOMER_ALLOWED_ORIGINS`
+  (customer dashboard identity and exact private browser origins)
 - `NETBUILD_DB_PATH` or `DATABASE_URL` (database)
 
 ## Folder Structure

@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from html import escape as _html_escape
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -154,15 +155,15 @@ def generate_site_for_submission(
 
 def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
     """Render a single page HTML blob from prepared context."""
-    title = context.get("title") or page_title(schema.to_dict())
-    meta = context.get("meta_description") or meta_description(schema.to_dict())
+    title = _esc(context.get("title") or page_title(schema.to_dict()))
+    meta = _esc(context.get("meta_description") or meta_description(schema.to_dict()))
     site = schema.to_dict()
     site_root = context.get("site_root", "")
     api_base = context.get("api_base", site_root)
 
     services = service_pages(site)
     service_links = "".join(
-        f'<li><a href="{site_root}/services/{svc["slug"]}">{svc["name"]}</a></li>'
+        f'<li><a href="{_esc(site_root)}/services/{_esc(svc["slug"])}">{_esc(svc["name"])}</a></li>'
         for svc in services
     )
 
@@ -181,7 +182,7 @@ def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
     if context.get("service_schema"):
         service_schema_script = (
             '<script type="application/ld+json">'
-            + json.dumps(context.get("service_schema") or {}, ensure_ascii=False)
+            + _json_script(context.get("service_schema") or {})
             + "</script>"
         )
 
@@ -193,17 +194,17 @@ def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
         f"<title>{title}</title>\n"
         f"<meta name=\"description\" content=\"{meta}\">\n"
-        f"<link rel=\"canonical\" href=\"{context.get('page_url', site_root)}\">\n"
+        f"<link rel=\"canonical\" href=\"{_esc(context.get('page_url', site_root))}\">\n"
         f"<meta property=\"og:title\" content=\"{title}\">\n"
         f"<meta property=\"og:description\" content=\"{meta}\">\n"
         "<meta property=\"og:type\" content=\"website\">\n"
-        f"<meta property=\"og:url\" content=\"{context.get('page_url', site_root)}\">\n"
+        f"<meta property=\"og:url\" content=\"{_esc(context.get('page_url', site_root))}\">\n"
         "<style>\n"
         f":root {_tokens_css_vars(context.get('design_tokens') or {})}\n"
         "</style>\n"
         "<link rel=\"stylesheet\" href=\"/static/site.css\">\n"
         "<script type=\"application/ld+json\">"
-        + json.dumps(context.get("local_business_schema") or {}, ensure_ascii=False)
+        + _json_script(context.get("local_business_schema") or {})
         + "</script>\n"
         + service_schema_script
         + "</head>\n"
@@ -213,12 +214,12 @@ def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
         + "</main>\n"
         "<footer class=\"ws-footer\">\n"
         "  <div class=\"ws-footer-inner\">\n"
-        f"    <p>&copy; {context.get('current_year') or ''} {site.get('biz_name', '')}. Serving {site.get('service_area', '')}.</p>\n"
-        f"    <p><a href=\"tel:{site.get('phone', '')}\">{site.get('phone', '')}</a> &middot; <a href=\"mailto:{site.get('email', '')}\">{site.get('email', '')}</a></p>\n"
+        f"    <p>&copy; {_esc(context.get('current_year') or '')} {_esc(site.get('biz_name', ''))}. Serving {_esc(site.get('service_area', ''))}.</p>\n"
+        f"    <p><a href=\"tel:{_esc(site.get('phone', ''))}\">{_esc(site.get('phone', ''))}</a> &middot; <a href=\"mailto:{_esc(site.get('email', ''))}\">{_esc(site.get('email', ''))}</a></p>\n"
         "    <p class=\"ws-footer-attribution\">Site by NetBuild.Pro</p>\n"
         "  </div>\n"
         "</footer>\n"
-        f"<script src=\"/static/angel-widget.js\" data-tenant-id=\"{site.get('tenant_id', '')}\" data-api-base=\"{api_base}\"></script>\n"
+        f"<script src=\"/static/angel-widget.js\" data-tenant-id=\"{_esc(site.get('tenant_id', ''))}\" data-api-base=\"{_esc(api_base)}\"></script>\n"
         "</body>\n"
         "</html>\n"
     )
@@ -227,12 +228,15 @@ def _render_page_html(page_name: str, context: dict, schema: SiteSchema) -> str:
 def _tokens_css_vars(palette: dict) -> str:
     primary = palette.get("primary", "#2a6df5")
     primary_dark = palette.get("primary_dark", "#1f4fb8")
+    primary_accessible = palette.get("primary_accessible", primary)
+    primary_accessible_dark = palette.get("primary_accessible_dark", primary_dark)
     primary_light = palette.get("primary_light", "#5b8dff")
     neutral_dark = palette.get("neutral_dark", "#16202e")
     neutral_light = palette.get("neutral_light", "#f4f6f9")
     return (
-        f"  --ws-primary: {primary};"
-        f" --ws-primary-dark: {primary_dark};"
+        f"  --ws-brand-primary: {primary};"
+        f" --ws-primary: {primary_accessible};"
+        f" --ws-primary-dark: {primary_accessible_dark};"
         f" --ws-primary-light: {primary_light};"
         f" --ws-ink: {neutral_dark};"
         f" --ws-ink-invert: {neutral_light};"
@@ -243,14 +247,17 @@ def _tokens_css_vars(palette: dict) -> str:
 def _build_tokens_css(palette: dict, site_data: dict) -> str:
     primary = palette.get("primary", "#2a6df5")
     primary_dark = palette.get("primary_dark", "#1f4fb8")
+    primary_accessible = palette.get("primary_accessible", primary)
+    primary_accessible_dark = palette.get("primary_accessible_dark", primary_dark)
     primary_light = palette.get("primary_light", "#5b8dff")
     neutral_dark = palette.get("neutral_dark", "#16202e")
     neutral_light = palette.get("neutral_light", "#f4f6f9")
     return (
         f"/* WebStaffr site tokens: {site_data.get('tenant_id', '')} */\n"
         ":root {\n"
-        f"  --ws-primary: {primary};\n"
-        f"  --ws-primary-dark: {primary_dark};\n"
+        f"  --ws-brand-primary: {primary};\n"
+        f"  --ws-primary: {primary_accessible};\n"
+        f"  --ws-primary-dark: {primary_accessible_dark};\n"
         f"  --ws-primary-light: {primary_light};\n"
         f"  --ws-ink: {neutral_dark};\n"
         f"  --ws-ink-invert: {neutral_light};\n"
@@ -260,7 +267,26 @@ def _build_tokens_css(palette: dict, site_data: dict) -> str:
 
 
 def _esc(text: Optional[str]) -> str:
-    return (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return _html_escape(str(text or ""), quote=True)
+
+
+def _json_script(value: object) -> str:
+    """Serialize JSON-LD without permitting an attacker-controlled script close."""
+    return (
+        json.dumps(value, ensure_ascii=False)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("'", "\\u0027")
+    )
+
+
+def _enabled_flag(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on", "24/7"}
 
 
 def _home_body(site: dict, services: list[dict], service_links: str, site_root: str) -> str:
@@ -268,18 +294,19 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
     industry = _esc(site.get("industry"))
     area = _esc(site.get("service_area"))
     phone = _esc(site.get("phone"))
-    emergency = site.get("emergency_service")
+    emergency = _enabled_flag(site.get("emergency_service"))
     certs = site.get("certifications")
-    pricing = site.get("pricing_shown")
+    pricing = _enabled_flag(site.get("pricing_shown"))
     diff = _esc(site.get("differentiator"))
+    lead_endpoint = "/sites/" + _esc(site.get("tenant_id")) + "/leads"
 
     hero = (
         "    <div class=\"ws-hero-tag\">" + industry + " &bull; " + area + "</div>\n"
-        "    <h1 class=\"ws-h1\">Stop losing jobs you already paid to generate</h1>\n"
-        "    <p class=\"ws-body-text\">" + _esc(site.get("tagline", "")) + " " + _esc(site.get("differentiator", "")) + "</p>\n"
+        "    <h1 class=\"ws-h1\">" + _esc(site.get("tagline", "")) + "</h1>\n"
+        "    <p class=\"ws-body-text\">Contact " + biz + " to discuss your " + industry.lower() + " service needs.</p>\n"
         "    <div class=\"ws-hero-ctas\">\n"
         "      <a href=\"tel:" + phone + "\" class=\"ws-btn ws-btn-primary\">Call " + phone + "</a>\n"
-        "      <a href=\"#lead-capture\" class=\"ws-btn ws-btn-secondary\">Get a Free Estimate</a>\n"
+        "      <a href=\"#lead-capture\" class=\"ws-btn ws-btn-secondary\">Request Service</a>\n"
         "    </div>\n"
     )
 
@@ -296,7 +323,7 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
         trust_items.append(
             "    <div class=\"ws-trust-item\">\n"
             "      <div class=\"ws-trust-icon\">&#128737;</div>\n"
-            "      <div class=\"ws-trust-num\">Licensed</div>\n"
+            "      <div class=\"ws-trust-num\">Credentials</div>\n"
             "      <div class=\"ws-trust-label\">" + _esc(certs) + "</div>\n"
             "    </div>\n"
         )
@@ -312,8 +339,8 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
         trust_items.append(
             "    <div class=\"ws-trust-item\">\n"
             "      <div class=\"ws-trust-icon\">&#128181;</div>\n"
-            "      <div class=\"ws-trust-num\">Free</div>\n"
-            "      <div class=\"ws-trust-label\">Estimates</div>\n"
+            "      <div class=\"ws-trust-num\">Pricing</div>\n"
+            "      <div class=\"ws-trust-label\">Information Available</div>\n"
             "    </div>\n"
         )
 
@@ -328,7 +355,7 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
         )
 
     review_section = ""
-    if site.get("testimonials") or (site.get("rating_value") and site.get("review_count")):
+    if site.get("testimonials"):
         review_section = (
             "<section class=\"ws-section\">\n"
             "  <div class=\"ws-container\">\n"
@@ -336,7 +363,7 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
             "    <div class=\"ws-reviews-grid\">\n"
             "      <div class=\"ws-review-card\">\n"
             "        <div class=\"ws-review-stars\">&#9733;&#9733;&#9733;&#9733;&#9733;</div>\n"
-            "        <div class=\"ws-review-quote\">" + _esc(site.get("testimonials") or "Great work!") + "</div>\n"
+            "        <div class=\"ws-review-quote\">" + _esc(site.get("testimonials")) + "</div>\n"
             "        <div class=\"ws-review-attribution\">" + biz + " Customer</div>\n"
             "      </div>\n"
             "    </div>\n"
@@ -366,7 +393,7 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
     certs_card = ""
     if certs:
         certs_card = (
-            "<div class=\"ws-reason-card\"><h3>Licensed & Certified</h3>"
+            "<div class=\"ws-reason-card\"><h3>Credentials</h3>"
             "<p>" + _esc(certs) + "</p></div>"
         )
 
@@ -408,13 +435,14 @@ def _home_body(site: dict, services: list[dict], service_links: str, site_root: 
         + "<section class=\"ws-section ws-cta-band\" id=\"lead-capture\">\n"
         "  <div class=\"ws-container\">\n"
         "    <h2>Tell Us What You Need</h2>\n"
-        "    <p>Name, phone, and what you are looking for. We will call within 1 hour.</p>\n"
-        "    <form class=\"ws-lead-form\" action=\"" + site_root + "/intake\" method=\"post\">\n"
-        "      <input type=\"hidden\" name=\"industry\" value=\"" + industry + "\" />\n"
-        "      <input type=\"hidden\" name=\"service_area\" value=\"" + area + "\" />\n"
+        "    <p>Share your name and contact details to request service.</p>\n"
+        "    <form class=\"ws-lead-form\" action=\"" + lead_endpoint + "\" method=\"post\">\n"
+        "      <input type=\"hidden\" name=\"source_path\" value=\"/\" />\n"
         "      <input type=\"text\" name=\"name\" placeholder=\"Your Name\" required />\n"
         "      <input type=\"tel\" name=\"phone\" placeholder=\"Phone Number\" required />\n"
         "      <input type=\"email\" name=\"email\" placeholder=\"Email\" required />\n"
+        "      <textarea name=\"message\" placeholder=\"What do you need?\" required></textarea>\n"
+        "      <div class=\"ws-honeypot\" aria-hidden=\"true\"><input type=\"text\" name=\"website\" tabindex=\"-1\" autocomplete=\"off\" /></div>\n"
         "      <button type=\"submit\" class=\"ws-btn ws-btn-primary\">Get Help &rarr;</button>\n"
         "    </form>\n"
         "  </div>\n"
@@ -429,7 +457,7 @@ def _about_body(site: dict, services: list[dict], service_links: str, site_root:
     years = site.get("years_in_biz")
     diff = _esc(site.get("differentiator"))
     phone = _esc(site.get("phone"))
-    emergency = site.get("emergency_service")
+    emergency = _enabled_flag(site.get("emergency_service"))
     certs = site.get("certifications")
 
     story = ""
@@ -437,9 +465,8 @@ def _about_body(site: dict, services: list[dict], service_links: str, site_root:
         story = (
             "<section class=\"ws-section\">\n"
             "  <div class=\"ws-container\">\n"
-            "    <h2>Our Story</h2>\n"
-            "    <p>" + biz + " was founded on a simple principle: do the work right, charge fair prices, and show up when you say you will. "
-            "We have been serving " + area + " with that promise for " + str(years) + " years.</p>\n"
+            "    <h2>Experience</h2>\n"
+            "    <p>" + biz + " has served " + area + " for " + str(years) + " years.</p>\n"
             "  </div>\n"
             "</section>\n"
         )
@@ -457,7 +484,7 @@ def _about_body(site: dict, services: list[dict], service_links: str, site_root:
     certs_card = ""
     if certs:
         certs_card = (
-            "<div class=\"ws-reason-card\"><h3>Licensed & Certified</h3>"
+            "<div class=\"ws-reason-card\"><h3>Credentials</h3>"
             "<p>" + _esc(certs) + "</p></div>"
         )
 
@@ -468,15 +495,15 @@ def _about_body(site: dict, services: list[dict], service_links: str, site_root:
         "      <div>\n"
         "        <div class=\"ws-hero-tag\">About Us</div>\n"
         "        <h1 class=\"ws-h1\">" + biz + "</h1>\n"
-        "        <p class=\"ws-body-text\">Serving " + area + " with reliable service and a commitment to doing the work right.</p>\n"
+        "        <p class=\"ws-body-text\">" + biz + " provides " + industry.lower() + " services in " + area + ".</p>\n"
         + diff_para
         + "        <div class=\"ws-hero-ctas\">\n"
         "          <a href=\"tel:" + phone + "\" class=\"ws-btn ws-btn-primary\">Call " + phone + "</a>\n"
-        "          <a href=\"" + site_root + "/contact\" class=\"ws-btn ws-btn-secondary\">Get a Free Estimate</a>\n"
+        "          <a href=\"" + site_root + "/contact\" class=\"ws-btn ws-btn-secondary\">Request Service</a>\n"
         "        </div>\n"
         "      </div>\n"
         "      <div class=\"ws-hero-badge\">\n"
-        "        <div class=\"ws-hero-badge-label\">" + (str(years) if years else "Trusted") + "<br>" + ("Years" if years else "Partner") + "</div>\n"
+        "        <div class=\"ws-hero-badge-label\">" + (str(years) if years else industry) + "<br>" + ("Years" if years else area) + "</div>\n"
         "      </div>\n"
         "    </div>\n"
         "  </div>\n"
@@ -513,6 +540,7 @@ def _contact_body(site: dict, services: list[dict], service_links: str, site_roo
     industry = _esc(site.get("industry"))
     phone = _esc(site.get("phone"))
     email = _esc(site.get("email"))
+    lead_endpoint = "/sites/" + _esc(site.get("tenant_id")) + "/leads"
 
     return (
         "<section class=\"ws-hero\">\n"
@@ -536,20 +564,21 @@ def _contact_body(site: dict, services: list[dict], service_links: str, site_roo
         "<section class=\"ws-section\">\n"
         "  <div class=\"ws-container\">\n"
         "    <h2>Contact Information</h2>\n"
-        "    <p>Call <a href=\"tel:" + phone + "\">" + phone + "</a> for immediate assistance or email <a href=\"mailto:" + email + "\">" + email + "</a> with questions.</p>\n"
-        "    <p>We serve " + area + " and respond within 1 business hour.</p>\n"
+        "    <p>Call <a href=\"tel:" + phone + "\">" + phone + "</a> or email <a href=\"mailto:" + email + "\">" + email + "</a> about your service request.</p>\n"
+        "    <p>Service area: " + area + ".</p>\n"
         "  </div>\n"
         "</section>\n"
         "<section class=\"ws-section ws-cta-band\">\n"
         "  <div class=\"ws-container\">\n"
         "    <h2>Tell Us What You Need</h2>\n"
-        "    <p>Provide a little info and we will respond within 1 hour.</p>\n"
-        "    <form class=\"ws-lead-form\" action=\"" + api_base + "/intake\" method=\"post\">\n"
-        "      <input type=\"hidden\" name=\"industry\" value=\"" + industry + "\" />\n"
-        "      <input type=\"hidden\" name=\"service_area\" value=\"" + area + "\" />\n"
+        "    <p>Provide your contact information to request service.</p>\n"
+        "    <form class=\"ws-lead-form\" action=\"" + lead_endpoint + "\" method=\"post\">\n"
+        "      <input type=\"hidden\" name=\"source_path\" value=\"/contact\" />\n"
         "      <input type=\"text\" name=\"name\" placeholder=\"Your Name\" required />\n"
         "      <input type=\"tel\" name=\"phone\" placeholder=\"Phone Number\" required />\n"
         "      <input type=\"email\" name=\"email\" placeholder=\"Email\" required />\n"
+        "      <textarea name=\"message\" placeholder=\"What do you need?\" required></textarea>\n"
+        "      <div class=\"ws-honeypot\" aria-hidden=\"true\"><input type=\"text\" name=\"website\" tabindex=\"-1\" autocomplete=\"off\" /></div>\n"
         "      <button type=\"submit\" class=\"ws-btn ws-btn-primary\">Submit &rarr;</button>\n"
         "    </form>\n"
         "  </div>\n"
@@ -573,12 +602,7 @@ def _reviews_body(site: dict, site_root: str) -> str:
             "      </div>\n"
         )
     else:
-        review_card = (
-            "      <div class=\"ws-review-card\">\n"
-            "        <div class=\"ws-review-quote\">Great work!</div>\n"
-            "        <div class=\"ws-review-attribution\">" + biz + " Customer</div>\n"
-            "      </div>\n"
-        )
+        review_card = ""
 
     return (
         "<section class=\"ws-hero\">\n"
@@ -590,7 +614,7 @@ def _reviews_body(site: dict, site_root: str) -> str:
         "        <p class=\"ws-body-text\">Real feedback from real customers.</p>\n"
         "      </div>\n"
         "      <div class=\"ws-hero-badge\">\n"
-        "        <div class=\"ws-hero-badge-label\">" + (str(rating) if rating else "5") + "/5<br>" + (str(reviews) if reviews else "100+") + " Reviews</div>\n"
+        "        <div class=\"ws-hero-badge-label\">" + str(rating) + "/5<br>" + str(reviews) + " Reviews</div>\n"
         "      </div>\n"
         "    </div>\n"
         "  </div>\n"

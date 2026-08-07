@@ -314,6 +314,37 @@ class TestGHLClients(unittest.TestCase):
             if old_loc is not None:
                 os.environ["GHL_LOCATION_ID"] = old_loc
 
+    def test_upsert_contact_calls_documented_endpoint_and_payload(self):
+        client = GoHighLevelClient(api_key="k", location_id="loc")
+        captured = {}
+
+        def _fake_request(method, path, payload=None):
+            captured.update(method=method, path=path, payload=payload)
+            return {"contact": {"id": "contact_1"}}
+
+        client._request = _fake_request
+        result = client.upsert_contact(
+            "Jordan Customer",
+            "602-555-0199",
+            "jordan@example.com",
+            "NetBuild.Pro website",
+        )
+
+        self.assertEqual(captured["method"], "POST")
+        self.assertEqual(captured["path"], "/contacts/upsert")
+        self.assertEqual(
+            captured["payload"],
+            {
+                "name": "Jordan Customer",
+                "phone": "602-555-0199",
+                "email": "jordan@example.com",
+                "locationId": "loc",
+                "source": "NetBuild.Pro website",
+                "createNewIfDuplicateAllowed": False,
+            },
+        )
+        self.assertEqual(result["contact"]["id"], "contact_1")
+
     def test_update_appointment_calls_expected_endpoint(self):
         """Verifies GoHighLevelClient.update_appointment() calls _request
         with the right method/path -- mocked, no live GHL account to hit."""

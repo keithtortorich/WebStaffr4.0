@@ -379,7 +379,7 @@ def _build_quote_email(contact_name: str, quote: Quote, industry: str) -> str:
         {estimate_section}
 
         <h3>Next Steps</h3>
-        <p>Our team will reach out within 24 hours to confirm a time for a site visit. During the visit, we'll:</p>
+        <p>Our team will contact you to confirm whether a site visit is needed. If scheduled, the visit will:</p>
         <ul>
             <li>Assess your specific situation in detail</li>
             <li>Answer any questions you have</li>

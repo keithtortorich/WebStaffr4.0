@@ -87,8 +87,30 @@ class PaletteGenerationTestCase(unittest.TestCase):
 
     def test_palette_has_all_keys(self):
         palette = generate_palette("#3498db")
-        required_keys = {"primary", "primary_dark", "primary_light", "neutral_dark", "neutral_light"}
+        required_keys = {
+            "primary",
+            "primary_accessible",
+            "primary_accessible_dark",
+            "primary_dark",
+            "primary_light",
+            "neutral_dark",
+            "neutral_light",
+        }
         self.assertEqual(set(palette.keys()), required_keys)
+
+    def test_light_brand_color_uses_accessible_action_fallback(self):
+        palette = generate_palette("#cccccc")
+        self.assertEqual(palette["primary"], "#cccccc")
+        self.assertNotEqual(palette["primary_accessible"], palette["primary"])
+        self.assertGreaterEqual(
+            _contrast_ratio(palette["primary_accessible"], "#ffffff"), 4.5
+        )
+        self.assertGreaterEqual(
+            _contrast_ratio(
+                palette["primary_accessible"], palette["neutral_light"]
+            ),
+            4.5,
+        )
 
     def test_palette_colors_are_valid_hex(self):
         palette = generate_palette("#3498db")
@@ -130,7 +152,15 @@ class PaletteContrastValidationTestCase(unittest.TestCase):
         warnings = validate_palette_contrast(palette)
         for warning in warnings:
             self.assertIsInstance(warning, ContrastWarning)
-            self.assertIn(warning.issue, ["primary-on-neutral-light", "primary-dark-on-neutral-light", "neutral-dark-on-neutral-light"])
+            self.assertIn(
+                warning.issue,
+                [
+                    "primary-accessible-on-white",
+                    "primary-accessible-on-neutral-light",
+                    "primary-accessible-dark-on-neutral-light",
+                    "neutral-dark-on-neutral-light",
+                ],
+            )
             self.assertGreater(warning.required_ratio, 0)
             self.assertGreater(warning.actual_ratio, 0)
 

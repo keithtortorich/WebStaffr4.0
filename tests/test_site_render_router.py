@@ -19,6 +19,20 @@ _NEVER_LEAK_VALUES = {
 
 _FORBIDDEN_COPY = ("AI", "—")  # brand governance: no "AI", no em-dash
 
+_UNSUPPORTED_DEFAULT_CLAIMS = (
+    "24/7 answering service",
+    "free estimate",
+    "within 1 hour",
+    "within 1 business hour",
+    "licensed & insured",
+    "licensed & certified",
+    "no missed opportunities",
+    "no voicemail loops",
+    "upfront price",
+    "no surprises",
+    "day or night",
+)
+
 
 def _valid_payload(**overrides):
     payload = {
@@ -87,6 +101,20 @@ class TestRenderedPagesRoundTrip(SiteRenderTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Desert Pro Plumbing", resp.text)
 
+    def test_about_trust_bar_requires_two_rendered_signals(self):
+        tenant_id = self._make_tenant(emergency_service="Yes")
+        resp = self.client.get(f"/sites/{tenant_id}/web/about")
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('<section class="ws-trust-grid">', resp.text)
+
+    def test_about_trust_bar_renders_when_two_signals_exist(self):
+        tenant_id = self._make_tenant(emergency_service="Yes", years_in_biz=8)
+        resp = self.client.get(f"/sites/{tenant_id}/web/about")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('<section class="ws-trust-grid">', resp.text)
+        self.assertIn("8+", resp.text)
+        self.assertIn("Emergency Service", resp.text)
+
     def test_contact_page_renders_phone_and_email(self):
         tenant_id = self._make_tenant()
         resp = self.client.get(f"/sites/{tenant_id}/web/contact")
@@ -127,6 +155,13 @@ class TestRenderedPagesRoundTrip(SiteRenderTestCase):
         self.assertIn('src="/static/angel-widget.js"', resp.text)
         self.assertIn(f'data-tenant-id="{tenant_id}"', resp.text)
 
+    def test_light_brand_color_is_preserved_but_not_used_for_actions(self):
+        tenant_id = self._make_tenant(brand_colors="#cccccc")
+        resp = self.client.get(f"/sites/{tenant_id}/web")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("--ws-brand-primary: #cccccc", resp.text)
+        self.assertNotIn("--ws-primary: #cccccc", resp.text)
+
 
 class TestReviewsPageGating(SiteRenderTestCase):
     def test_reviews_page_404s_when_no_rating_on_file(self):
@@ -151,6 +186,44 @@ class TestReviewsPageGating(SiteRenderTestCase):
 
 
 class TestNoFabrication(SiteRenderTestCase):
+    def test_explicit_no_flags_never_render_emergency_or_pricing_claims(self):
+        tenant_id = self._make_tenant(
+            emergency_service="no",
+            pricing_shown="no",
+        )
+
+        for path in ("/web", "/web/about", "/web/contact", "/web/services/leak-repair"):
+            resp = self.client.get(f"/sites/{tenant_id}{path}")
+            self.assertEqual(resp.status_code, 200, path)
+            rendered = resp.text.lower()
+            self.assertNotIn("24/7 emergency service", rendered, path)
+            self.assertNotIn("pricing information available", rendered, path)
+
+    def test_templates_do_not_invent_unsupported_default_promises(self):
+        tenant_id = self._make_tenant(years_in_biz=8, certifications="EPA 608")
+
+        for path in ("/web", "/web/about", "/web/contact", "/web/services/leak-repair"):
+            resp = self.client.get(f"/sites/{tenant_id}{path}")
+            self.assertEqual(resp.status_code, 200, path)
+            rendered = resp.text.lower()
+            for claim in _UNSUPPORTED_DEFAULT_CLAIMS:
+                self.assertNotIn(claim, rendered, f"{claim!r} found in {path}")
+
+        home = self.client.get(f"/sites/{tenant_id}/web").text
+        self.assertIn("EPA 608", home)
+        self.assertNotIn(">Licensed<", home)
+
+    def test_positive_flags_render_only_the_supported_claim(self):
+        tenant_id = self._make_tenant(
+            emergency_service="yes",
+            pricing_shown="yes",
+        )
+        resp = self.client.get(f"/sites/{tenant_id}/web")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("24/7 Emergency Service", resp.text)
+        self.assertIn("Pricing Information Available", resp.text)
+        self.assertNotIn("Free Estimate", resp.text)
+
     def test_no_review_schema_without_real_review_data(self):
         """The SEO blueprint's Review schema example hardcodes a fabricated
         rating/review as boilerplate (flagged in

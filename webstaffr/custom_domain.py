@@ -43,7 +43,7 @@ def resolve_tenant_from_host(host_header: str, db_path: str) -> Optional[str]:
                 (domain,),
             )
             row = cursor.fetchone()
-            return row[0] if row else None
+            return row["tenant_id"] if row else None
         finally:
             conn.close()
     except DB_ERRORS as exc:

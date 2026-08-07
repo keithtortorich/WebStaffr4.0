@@ -21,7 +21,8 @@ from __future__ import annotations
 import logging
 import os as _os
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import AbstractSet, Optional
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -36,6 +37,7 @@ from .intake_router import intake_router
 from .landing_router import landing_router
 from .site_render_router import site_render_router
 from .site_router import site_router
+from .website_lead_router import create_website_lead_router
 from .security_middleware import RequestBodyLimitMiddleware, SecurityHeadersMiddleware
 from .workers.angel.api_auth import SharedSecretVerifier, internal_api_verifier_from_env
 from .workers.angel.ghl import GHLClient
@@ -86,7 +88,8 @@ _ALLOWED_ORIGINS = _os.environ.get(
 # /book has no browser caller today. Scoping here means adding a
 # browser-facing caller for /book later requires a deliberate change to
 # this set, not an accidental side effect of an app-wide wildcard.
-_CORS_SCOPED_PATHS = {"/chat", "/intake", "/auth/session", "/auth/logout"}
+_PUBLIC_CORS_PATHS = {"/chat", "/intake"}
+_PRIVATE_CORS_PATHS = {"/auth/session", "/auth/logout"}
 # /tenants/{tenant_id}/{metrics,calls,tracking-number} are read by the
 # Lovable dashboard client-side, same reasoning as /sites/{tenant_id} --
 # see _CORS_SCOPED_PREFIXES below, where the actual prefix is registered
@@ -94,42 +97,74 @@ _CORS_SCOPED_PATHS = {"/chat", "/intake", "/auth/session", "/auth/logout"}
 # Prefixes rather than exact paths, for routes with a path parameter
 # (/intake/presets/{industry}, /sites/{tenant_id}) -- exact-match
 # membership in _CORS_SCOPED_PATHS can't match a dynamic segment.
-_CORS_SCOPED_PREFIXES = ("/intake/presets", "/sites/", "/tenants/")
+_PUBLIC_CORS_PREFIXES = ("/intake/presets", "/sites/")
+_PRIVATE_CORS_PREFIXES = ("/tenants/",)
+
+
+def _customer_allowed_origins_from_env() -> frozenset[str]:
+    """Parse exact private-dashboard origins; wildcard and URL paths are invalid."""
+    raw = _os.environ.get("CUSTOMER_ALLOWED_ORIGINS", "")
+    origins: set[str] = set()
+    for item in raw.split(","):
+        origin = item.strip().rstrip("/")
+        if not origin:
+            continue
+        parsed = urlsplit(origin)
+        if (
+            origin == "*"
+            or parsed.scheme not in {"http", "https"}
+            or not parsed.netloc
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+            or parsed.username
+            or parsed.password
+        ):
+            raise ValueError("CUSTOMER_ALLOWED_ORIGINS must contain exact http(s) origins")
+        origins.add(origin)
+    return frozenset(origins)
 
 
 class ScopedCORSMiddleware(BaseHTTPMiddleware):
-    """CORS restricted to `_CORS_SCOPED_PATHS`/`_CORS_SCOPED_PREFIXES`,
-    replacing FastAPI's CORSMiddleware which is app-wide only. Origin
-    stays wildcarded per-path rather than app-wide, so /book and
-    /webhooks/ghl never accidentally pick up CORS headers meant for the
-    browser-facing routes.
+    """Keep public embed CORS separate from private credentialed CORS.
 
-    For allowed origins, we set Access-Control-Allow-Origin to the
-    requesting origin (if it's in the allowlist) and
-    Access-Control-Allow-Credentials: true so that cookies can be sent
-    with cross-origin requests.
+    Public widget/intake routes remain readable from arbitrary customer
+    sites. Auth and dashboard routes accept cross-origin requests only from
+    exact configured origins and emit credentials support for a future
+    HttpOnly-cookie transport. Moving tokens into cookies additionally
+    requires CSRF protection and a deliberate SameSite policy review.
     """
+
+    def __init__(self, app, customer_allowed_origins: AbstractSet[str]):
+        super().__init__(app)
+        self._customer_allowed_origins = frozenset(customer_allowed_origins)
 
     async def dispatch(self, request: Request, call_next):
         origin = request.headers.get("origin")
         path = request.url.path
-        scoped = path in _CORS_SCOPED_PATHS or path.startswith(_CORS_SCOPED_PREFIXES)
+        public = path in _PUBLIC_CORS_PATHS or path.startswith(_PUBLIC_CORS_PREFIXES)
+        private = path in _PRIVATE_CORS_PATHS or path.startswith(_PRIVATE_CORS_PREFIXES)
+        private_origin_allowed = private and origin in self._customer_allowed_origins
 
-        if scoped:
-            if request.method == "OPTIONS":
-                # Preflight request
-                response = Response(status_code=200)
-            else:
-                response = await call_next(request)
-
-            if origin in _ALLOWED_ORIGINS:
-                response.headers["Access-Control-Allow-Origin"] = origin
-                response.headers["Access-Control-Allow-Credentials"] = "true"
-                if request.method == "OPTIONS":
-                    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-                    response.headers["Access-Control-Allow-Headers"] = "*"
+        if private and origin and not private_origin_allowed:
+            return Response(status_code=403)
+        if (public or private_origin_allowed) and request.method == "OPTIONS":
+            response = Response(status_code=200)
         else:
             response = await call_next(request)
+
+        if public and origin:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+        elif private_origin_allowed:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Authorization, Content-Type, X-Correlation-ID"
+            )
+            response.headers["Vary"] = "Origin"
 
         return response
 
@@ -146,6 +181,7 @@ def create_app(
     stripe_webhook_verifier: Optional[SharedSecretVerifier] = None,
     internal_api_verifier: Optional[SharedSecretVerifier] = None,
     customer_identity_verifier: Optional[IdentityVerifier] = None,
+    customer_allowed_origins: Optional[AbstractSet[str]] = None,
     max_request_body_bytes: int = 1_048_576,
 ) -> FastAPI:
     """Factory rather than a module-level app instance, so tests (and any
@@ -188,6 +224,7 @@ def create_app(
     app.include_router(intake_router)
     app.include_router(site_router)
     app.include_router(site_render_router)
+    app.include_router(create_website_lead_router(ghl_client=ghl_client))
     app.include_router(create_auth_router(customer_authorizer))
     app.include_router(create_attribution_router(customer_authorizer))
     app.include_router(social_media_router)
@@ -232,7 +269,10 @@ def create_app(
     app.include_router(
         create_leo_router(
             db_path=db_path,
-            ghl_messaging_client=ghl_messaging_client or ghl_client,
+            # Deliberately separate from the general GHL client. Configuring
+            # CRM sync for Angel must not silently activate automated SMS or
+            # email outreach before the TCPA/DNC gate is cleared.
+            ghl_messaging_client=ghl_messaging_client,
             ghl_webhook_verifier=ghl_webhook_verifier,
             internal_api_verifier=active_internal_api_verifier,
         )
@@ -259,13 +299,24 @@ def create_app(
     # the same for /intake. Scoped to just those paths -- see
     # ScopedCORSMiddleware above -- rather than an app-wide wildcard, which
     # would also cover /book and /webhooks/ghl as an unintended side effect.
-    app.add_middleware(ScopedCORSMiddleware)
+    app.add_middleware(
+        ScopedCORSMiddleware,
+        customer_allowed_origins=(
+            frozenset(customer_allowed_origins)
+            if customer_allowed_origins is not None
+            else _customer_allowed_origins_from_env()
+        ),
+    )
     app.add_middleware(RequestBodyLimitMiddleware, max_bytes=max_request_body_bytes)
     app.add_middleware(SecurityHeadersMiddleware)
 
     @app.get("/health")
     def health() -> dict:
-        return {"status": "ok"}
+        payload = {"status": "ok"}
+        release = _os.environ.get("VERCEL_GIT_COMMIT_SHA", "").strip()
+        if release:
+            payload["release"] = release
+        return payload
 
     if _KOKORO_TTS_URL:
         @app.post("/v1/audio/speech")
@@ -342,16 +393,26 @@ def _ghl_client_from_env() -> Optional[GHLClient]:
     return None
 
 
+def _leo_outreach_enabled_from_env() -> bool:
+    """Require an explicit activation flag for automated outbound messaging."""
+    return _os.environ.get("LEO_OUTREACH_ENABLED", "").strip().lower() == "true"
+
+
 # Default app instance for `uvicorn webstaffr.app:app` (local dev) and for
 # the Vercel entrypoint at /index.py (deployed). db_path and backends are
 # picked up from environment at process start -- set WEBSTAFFR_DB_PATH,
 # DATABASE_URL, GHL_API_KEY/GHL_LOCATION_ID, etc. as Vercel project
 # environment variables. No Dockerfile/docker-compose in this repo --
 # deployment is Vercel, not containers.
+_default_ghl_client = _ghl_client_from_env()
+
 app = create_app(
     db_path=_os.environ.get("WEBSTAFFR_DB_PATH", "webstaffr.db"),
     voice_backend=_backend_from_env(),
-    ghl_client=_ghl_client_from_env(),
+    ghl_client=_default_ghl_client,
+    ghl_messaging_client=(
+        _default_ghl_client if _leo_outreach_enabled_from_env() else None
+    ),
     retell_verifier=None,  # resolved from RETELL_WEBHOOK_SECRET inside create_retell_router()
     ghl_webhook_verifier=None,  # resolved from GHL_WEBHOOK_SECRET inside create_angel_router()
     book_api_verifier=None,  # resolved from BOOK_API_KEY inside create_angel_router()

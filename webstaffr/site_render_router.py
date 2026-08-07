@@ -114,6 +114,10 @@ def _render(
     )
     context["current_year"] = datetime.now(timezone.utc).year
     context["api_base"] = str(request.base_url).rstrip("/")
+    context["lead_endpoint"] = (
+        f"{str(request.base_url).rstrip('/')}/sites/{tenant_id}/leads"
+    )
+    context["lead_source_path"] = path or "/"
     return templates.TemplateResponse(request, f"site/{template_name}", context)
 
 

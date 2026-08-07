@@ -4,12 +4,14 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from webstaffr.app import create_app
+from webstaffr.app import _leo_outreach_enabled_from_env, create_app
 from webstaffr.db import connect, migrate
 from webstaffr.workers.angel.api_auth import StaticSecretVerifier
+from webstaffr.workers.angel.ghl import NullGHLClient
 from webstaffr.workers.leo.protocol import GHLMessagingClient
 
 
@@ -262,7 +264,8 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         sms = self.ghl_client.sent_sms[0]
         self.assertEqual(sms["contact_id"], "ghl-contact-uuid-123")
         self.assertIn("Smith Plumbing", sms["message"])
-        self.assertIn("WebStaffr", sms["message"])
+        self.assertIn("NetBuild.Pro", sms["message"])
+        self.assertNotIn("24/7", sms["message"])
         self.assertIn("YES", sms["message"])
 
     def test_webhook_tier_3_sends_email(self):
@@ -299,7 +302,10 @@ class TestLeoWebhookNoVerifier(LeoRouterTestCase):
         email = self.ghl_client.sent_emails[0]
         self.assertEqual(email["contact_id"], "ghl-contact-uuid-123")
         self.assertIn("Smith Plumbing", email["subject"])
-        self.assertIn("missed calls", email["body"])
+        self.assertIn("NetBuild.Pro", email["body"])
+        self.assertIn("integrations are verified", email["body"])
+        self.assertNotIn("24/7", email["body"])
+        self.assertNotIn("WebStaffr", email["body"])
 
     def test_webhook_tier_4_sends_nothing(self):
         """Tier 4 leads (<55) are skipped, no outreach."""
@@ -407,6 +413,42 @@ class TestLeoTenantIsolation(LeoRouterTestCase):
         conn.close()
 
         self.assertEqual(count_a, 1)
+
+
+class TestLeoOutreachActivation(unittest.TestCase):
+    def test_env_flag_is_explicit_and_fail_closed(self):
+        for value, expected in (("true", True), ("TRUE", True), ("1", False), ("yes", False), ("", False)):
+            with self.subTest(value=value), patch.dict(
+                os.environ, {"LEO_OUTREACH_ENABLED": value}
+            ):
+                self.assertEqual(_leo_outreach_enabled_from_env(), expected)
+
+    def test_general_ghl_configuration_does_not_enable_outreach(self):
+        fd, db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        ghl = NullGHLClient()
+        try:
+            app = create_app(
+                db_path=db_path,
+                ghl_client=ghl,
+                ghl_webhook_verifier=StaticSecretVerifier("test-secret"),
+            )
+            with TestClient(app) as client:
+                with connect(db_path) as conn:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO tenants (tenant_id) VALUES (?)",
+                        ("acme",),
+                    )
+                response = client.post(
+                    "/webhooks/ghl/lead",
+                    json=_valid_lead_event(),
+                    headers={"X-Webhook-Secret": "test-secret"},
+                )
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(ghl.sent_sms, [])
+            self.assertEqual(ghl.sent_emails, [])
+        finally:
+            os.remove(db_path)
 
 
 if __name__ == "__main__":
