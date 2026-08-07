@@ -28,6 +28,54 @@
 ## Blockers / Known Gaps
 - ADR-020 (em-dash rule, 2026-07-30) referenced in TASKS.md/CLAUDE.md but never written into `docs/DECISIONS.md` — flagged, trivial backfill, not done.
 - `webstaffr-standalone.html` not integrated into the repo — founder hasn't asked for that yet.
+
+---
+
+# Session Summary — 2026-08-07
+
+## Completed
+
+**NetBuild.Pro site deployed live (animated, Angel embedded)**
+- Received official `netbuild-pro.zip` (Canonical NetBuild.Pro page + 8 trade demo sites). Located the real blank-screen root cause: a JavaScript syntax error (unbalanced parenthesis) in the page's `TrustBar()` function. The browser hit `missing ) after argument list`, aborted the whole React bundle, and `#root` stayed empty (blank screen). Repaired `TrustBar` with a paren-balanced version; verified all 7 script blocks pass `node --check` and the page renders fully (56-57 elements).
+- Wired the page into the FastAPI app: `webstaffr/templates/netbuild_pro.html` served at `GET /` (replacing the old 10KB static landing), with Angel chat widget embedded (`tenant_id="netbuild"` posting to `POST /chat`).
+- Added `/demo-sites/{file}` route (renamed from `/demos` to avoid colliding with `main`'s `/demos/{trade}` provisioned-tenant redirect). 8 trade demos copied to `webstaffr/templates/netbuild_demos/`.
+- Merged `origin/main` (Codex security-foundation CORS/RLS hardening) into `hermes/operations`, resolved conflicts keeping `main`'s security as source of truth, pushed to `main` → Vercel production deploy `● Ready`.
+
+**Build fix**
+- Production build was failing: `requirements.txt` pinned `pydantic==2.13.4` AND `pydantic_core==2.47.0` (conflict — uv lock unsolvable). Aligned `pydantic_core==2.46.4`. Build succeeded.
+
+**Angel widget polish**
+- Fixed input text color (was white-on-white, invisible while typing) → `#111` on `#fff`.
+- Reworked widget to glassmorphism: frosted translucent panel + toggle with `backdrop-filter: blur()`, light borders, glassy message bubbles. Verified computed styles live.
+
+**Angel agent confirmed functionally live**
+- GROK_API_KEY was already in Vercel env (Production + Preview). Live `POST /chat` with `tenant_id=netbuild` returns a real Grok-backed reply. Angel answers visitors, not just the fallback.
+
+## Tests / Verification
+- All 7 page script blocks: `node --check` pass.
+- Live page renders full content (verified in browser, 57 elements).
+- Live `/chat`: returns real reply (`{"reply":"Yes, I answer calls for your business..."}`).
+- Vercel production deploy: `● Ready`.
+
+## Blockers / Known Gaps
+- None blocking. Site is live and functional.
+- `vercel link` created a local `.env.local` (OIDC token) + `.gitignore` tweak; both reverted/removed, working tree clean.
+- 85% stat retained in the page per founder instruction (note: canonical repo `tests/test_landing_page.py` bans 78%/85% — founder override stands for this marketing page).
+
+## Commits (on main)
+- `3bfc55e` add canonical NetBuild.Pro site
+- `03038c5` embed Angel chat widget (functional /chat)
+- `aa0488e` serve animated page at / + /demo-sites routes
+- `b1fa6a1` merge origin/main (security hardening)
+- `115ac1c` fix pydantic_core conflict
+- `78ea5cc` fix TrustBar paren (blank-screen)
+- `226b8fe` fix widget input color
+- `1773df1` widget glassmorphism
+
+## Next three priorities
+1. Decide whether to keep 85% stat (founder override) or align to canonical test rule.
+2. Add voice to Angel widget when GrokVoiceBackend is production-ready (currently stub; button is a placeholder).
+3. Consider wiring `/demo-sites` iframes to be lazy-loaded for perf on the live page.
 - Rest of the working tree's uncommitted changes (templates, `site_render_router.py`, `seed_demo_tenants.py`, Impeccable/Site Magic artifacts) untouched — Hermes' active work, out of scope this session.
 
 ## Next Session
