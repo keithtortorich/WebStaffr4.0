@@ -56,7 +56,7 @@
       '<div id="angel-widget-messages" style="flex:1;overflow-y:auto;padding:10px;font-size:14px;line-height:1.4;"></div>' +
       '<form id="angel-widget-form" style="display:flex;border-top:1px solid #eee;">' +
       '<input id="angel-widget-input" type="text" placeholder="Type a message..." autocomplete="off" ' +
-      'style="flex:1;border:none;padding:10px;font-size:14px;outline:none;" />' +
+      'style="flex:1;border:none;padding:10px;font-size:14px;outline:none;color:#111;background:#fff;" />' +
       '<button type="submit" style="border:none;background:#2a6df5;color:#fff;padding:0 14px;cursor:pointer;">Send</button>' +
       "</form>" +
       "</div>";
