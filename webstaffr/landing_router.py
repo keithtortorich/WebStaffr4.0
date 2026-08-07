@@ -9,9 +9,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 landing_router = APIRouter(tags=["public"])
 _INTAKE_PAGE = Path(__file__).parent / "templates" / "intake_start.html"
+_NETBUILD_PAGE = Path(__file__).parent / "templates" / "netbuild_pro.html"
+_NETBUILD_DEMOS = Path(__file__).parent / "templates" / "netbuild_demos"
 
 # Single source of truth for the public contact details. These appear in the
 # investor JSON, the investor modal, and the lead-capture form, and previously
@@ -59,15 +62,33 @@ _ICON_ARROW = (
 )
 
 
-@landing_router.get("/", response_class=None)
-async def landing_page():
-    """Serve the public landing page with embedded investor modal and demo gallery."""
+@landing_router.get("/demos/{file_name}", response_class=None)
+async def netbuild_demo(file_name: str):
+    """Serve an embedded NetBuild.Pro trade demo site (Desert Cooling, etc.).
+
+    Explicit route (not a StaticFiles mount) to match the repo's
+    dependency-minimal convention used for /static/site.css -- no aiofiles,
+    no directory-traversal surface.
+    """
     from fastapi.responses import HTMLResponse
 
-    # Read the landing page HTML (created separately as static asset or inline)
-    # For now, return a placeholder that redirects to the static version
-    # In production, this will read from a file or serve inline
-    return HTMLResponse(content=_render_landing_page())
+    candidate = (_NETBUILD_DEMOS / file_name).resolve()
+    # Contain the path inside the demos directory.
+    if not str(candidate).startswith(str(_NETBUILD_DEMOS.resolve())):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+    if not candidate.is_file():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+    return HTMLResponse(content=candidate.read_text())
+
+
+@landing_router.get("/", response_class=None)
+async def landing_page():
+    """Serve the NetBuild.Pro public landing page (animated, Angel embedded)."""
+    from fastapi.responses import HTMLResponse
+
+    return HTMLResponse(content=_NETBUILD_PAGE.read_text())
 
 
 @landing_router.get("/start", response_class=None)
