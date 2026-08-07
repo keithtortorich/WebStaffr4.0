@@ -43,21 +43,32 @@
     root.innerHTML =
       '<button id="angel-widget-toggle" aria-label="Chat with us" ' +
       'style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;' +
-      'border-radius:50%;border:none;background:#2a6df5;color:#fff;font-size:22px;' +
-      'cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:999999;">&#128172;</button>' +
+      'border-radius:50%;border:1px solid rgba(255,255,255,0.55);' +
+      'background:rgba(42,109,245,0.55);' +
+      'backdrop-filter:blur(12px) saturate(160%);-webkit-backdrop-filter:blur(12px) saturate(160%);' +
+      'color:#fff;font-size:22px;' +
+      'cursor:pointer;box-shadow:0 6px 20px rgba(31,38,135,0.30);z-index:999999;\">&#128172;</button>' +
       '<div id="angel-widget-panel" style="display:none;position:fixed;bottom:88px;right:20px;' +
-      "width:320px;max-height:440px;background:#fff;border-radius:12px;" +
-      'box-shadow:0 4px 20px rgba(0,0,0,.2);flex-direction:column;overflow:hidden;z-index:999999;font-family:sans-serif;">' +
-      '<div style="padding:12px 14px;background:#2a6df5;color:#fff;display:flex;justify-content:space-between;align-items:center;">' +
+      "width:330px;max-height:460px;" +
+      'background:rgba(255,255,255,0.62);' +
+      'backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);' +
+      'border:1px solid rgba(255,255,255,0.55);border-radius:20px;' +
+      'box-shadow:0 8px 32px rgba(31,38,135,0.22);' +
+      'flex-direction:column;overflow:hidden;z-index:999999;font-family:sans-serif;\">' +
+      '<div style=\"padding:12px 14px;background:rgba(42,109,245,0.82);color:#fff;' +
+      'display:flex;justify-content:space-between;align-items:center;\">' +
       "<strong>Angel</strong>" +
       '<button id="angel-widget-voice" title="Voice (not available yet)" ' +
-      'style="background:none;border:none;color:#fff;opacity:.6;cursor:not-allowed;font-size:16px;">&#127908;</button>' +
+      'style="background:none;border:none;color:#fff;opacity:.6;cursor:not-allowed;font-size:16px;\">&#127908;</button>' +
       "</div>" +
-      '<div id="angel-widget-messages" style="flex:1;overflow-y:auto;padding:10px;font-size:14px;line-height:1.4;"></div>' +
-      '<form id="angel-widget-form" style="display:flex;border-top:1px solid #eee;">' +
+      '<div id="angel-widget-messages" style="flex:1;overflow-y:auto;padding:10px;font-size:14px;line-height:1.4;background:transparent;"></div>' +
+      '<form id="angel-widget-form" style=\"display:flex;border-top:1px solid rgba(255,255,255,0.5);' +
+      'background:rgba(255,255,255,0.35);\">' +
       '<input id="angel-widget-input" type="text" placeholder="Type a message..." autocomplete="off" ' +
-      'style="flex:1;border:none;padding:10px;font-size:14px;outline:none;color:#111;background:#fff;" />' +
-      '<button type="submit" style="border:none;background:#2a6df5;color:#fff;padding:0 14px;cursor:pointer;">Send</button>' +
+      'style="flex:1;border:none;padding:10px;font-size:14px;outline:none;' +
+      'color:#111;background:rgba(255,255,255,0.7);" />' +
+      '<button type="submit" style="border:none;background:rgba(42,109,245,0.85);' +
+      'color:#fff;padding:0 14px;cursor:pointer;\">Send</button>' +
       "</form>" +
       "</div>";
     document.body.appendChild(root);
@@ -79,8 +90,14 @@
       bubble.style.padding = "8px 12px";
       bubble.style.borderRadius = "14px";
       bubble.style.maxWidth = "80%";
-      bubble.style.background = from === "user" ? "#2a6df5" : "#f0f1f3";
-      bubble.style.color = from === "user" ? "#fff" : "#111";
+      if (from === "user") {
+        bubble.style.background = "rgba(42,109,245,0.92)";
+        bubble.style.color = "#fff";
+      } else {
+        bubble.style.background = "rgba(255,255,255,0.7)";
+        bubble.style.color = "#111";
+        bubble.style.border = "1px solid rgba(255,255,255,0.6)";
+      }
       el.appendChild(bubble);
       messages.appendChild(el);
       messages.scrollTop = messages.scrollHeight;
