@@ -475,6 +475,8 @@ def build_page_context(
         "current_service": service_name,
         "site_root": site_root,
         "page_url": page_url,
+        "static_css": f"{site_root}/static/angel-widget.css",
+        "static_js": f"{site_root}/static/angel-widget.js",
         "local_business_schema": local_business_schema(site_data, page_url),
         "service_schema": (
             service_schema(site_data, service_name, page_url) if service_name else None
