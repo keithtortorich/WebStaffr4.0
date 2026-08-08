@@ -553,3 +553,70 @@ button:focus-visible,
     font-size: 1.6rem;
   }
 }
+
+/* --- Demo Sites Listing Page --- */
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.demo-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--ws-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.demo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(232, 90, 36, 0.15);
+  border-color: #E85A24;
+}
+
+.demo-card h3 {
+  margin: 0 0 0.5rem;
+  color: var(--ws-dark-slate);
+  font-size: 1.5rem;
+}
+
+.demo-card p {
+  color: #7A7A7A;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Large, Prominent Demo Buttons */
+.btn-visit {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: #E85A24;
+  color: #FFFFFF;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border-radius: 8px;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 6px rgba(232, 90, 36, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-visit:hover {
+  background-color: #B83B19;
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(232, 90, 36, 0.3);
+  text-decoration: none;
+}
+
+.btn-visit:active {
+  transform: scale(0.98);
+}
