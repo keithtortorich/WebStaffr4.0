@@ -22,7 +22,7 @@ def _valid_payload(**overrides):
         "differentiator": "We show up on time, every time.",
         "services": ["Leak Repair", "Drain Cleaning"],
         "license_number": "ROC 999999",
-        "plan": "growth",
+        "plan": "office_staff",
         "lead_routing": "Text Maria at 602-555-0101, replies within 1 hour.",
         "approver": "Maria Lopez",
     }
@@ -55,7 +55,7 @@ class TestIntakeSubmission(IntakeTestCase):
         self.assertTrue(body["tenant_id"].startswith("desert_pro_plumbing_"))
         self.assertEqual(body["biz_name"], "Desert Pro Plumbing")
         self.assertEqual(body["industry"], "Plumber")
-        self.assertEqual(body["plan"], "growth")
+        self.assertEqual(body["plan"], "office_staff")
 
     def test_submission_creates_tenant_row(self):
         resp = self.client.post("/intake", json=_valid_payload())

@@ -42,7 +42,7 @@ REQUIRED_FIELDS = (
     "approver",
 )
 
-VALID_PLANS = {"essentials", "growth", "pro"}
+VALID_PLANS = {"office_staff"}
 
 _SLUG_PATTERN = re.compile(r"[^a-z0-9]+")
 
