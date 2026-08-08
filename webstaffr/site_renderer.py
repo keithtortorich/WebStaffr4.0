@@ -448,6 +448,21 @@ def build_page_context(
     palette = generate_palette(site_data.get("brand_colors"))
     validate_palette_contrast(palette)
 
+    # Calculate trust signals for template gating
+    trust_signal_count = 0
+    if site_data.get('rating_value') and site_data.get('review_count'):
+        trust_signal_count += 1
+    if site_data.get('certifications'):
+        trust_signal_count += 1
+    if site_data.get('emergency_service') == 'true':
+        trust_signal_count += 1
+    if site_data.get('pricing_shown') == 'true':
+        trust_signal_count += 1
+    
+    # Add Impeccable-generated trust signals to count
+    if trust:
+        trust_signal_count = max(trust_signal_count, len(trust.get('signals', [])))
+
     return {
         "site": site_data,
         "title": page_title(site_data, service_name),
@@ -455,6 +470,8 @@ def build_page_context(
         "schema_type": schema_business_type(site_data.get("industry", "")),
         "services": service_pages(site_data),
         "has_reviews": has_real_reviews(site_data),
+        "trust_signal_count": trust_signal_count,
+        "show_trust_bar": trust_signal_count >= 2,
         "current_service": service_name,
         "site_root": site_root,
         "page_url": page_url,
